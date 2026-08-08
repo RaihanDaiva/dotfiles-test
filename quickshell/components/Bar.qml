@@ -1,26 +1,38 @@
+import "../widgets/Bar"
 import QtQuick
+import QtQuick.Layouts
 import Quickshell
 
 PanelWindow {
-    // Posisi layer shell di bagian atas layar (status bar)
+    implicitHeight: 40
+    color: '#364b4b4b'
+
     anchors {
         top: true
         left: true
         right: true
     }
 
-    // Tinggi bar dan warna background (Catppuccin Mocha)
-    height: 40
-    color: "#1e1e2e"
+    // 📍 1. PULAU KIRI (Workspace)
+    RowLayout {
+        anchors.left: parent.left
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.leftMargin: 10
 
-    // Teks di tengah bar
-    Text {
-        anchors.centerIn: parent
-        text: "Testing Quickshell Bar"
-        color: "#cdd6f4"
-        font.pixelSize: 16
-        font.bold: true
+        Workspace {}
     }
-    
 
+    // 📍 2. PULAU TENGAH (Clock - 100% Persis di Tengah Layar)
+    Clock {
+        anchors.centerIn: parent
+    }
+
+    // 📍 3. PULAU KANAN (System Stats: RAM, CPU, Battery, Wi-Fi)
+    RowLayout {
+        anchors.right: parent.right
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.rightMargin: 10
+
+        SystemStats {}
+    }
 }
