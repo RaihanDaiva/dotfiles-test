@@ -1,31 +1,12 @@
 import QtQuick
 import Quickshell
 import "./components/"
+import "./theme/"
 
 Scope {
-    // Status Bar
+    // 🔄 Service pemantau warna Pywal di background
+    PywalService {}
+
+    // 🖥️ Status Bar Utama
     Bar {}
-
-
-    // PanelWindow {
-    //     id: root
-    //     color: "#424242"
-    //     visible: true
-    //     width: 200
-    //     height: 150
-    //     Rectangle {
-
-    //         anchors.fill: parent
-    //         color: "#7c96bf"
-    //         radius: 12
-
-    //         Text {
-    //             anchors.horizontalCenter: parent.horizontalCenter
-    //             text: "Test"
-    //             color: "#ffffff"
-    //             font.pixelSize: 30
-    //         }
-    //     }
-    // }
 }
-

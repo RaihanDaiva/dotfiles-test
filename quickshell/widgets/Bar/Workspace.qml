@@ -2,35 +2,46 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Hyprland
+import "../../theme"
 
 Rectangle {
     id: root
 
     readonly property var romanNums: ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"]
 
-    // Posisi X dari kapsul aktif (dihitung secara independen, TIDAK di dalam RowLayout)
     property real pillX: 0
 
-    // Setiap kali workspace aktif berubah, perbarui posisi pill
     function updatePillX() {
-        var idx = workspaceRepeater.modelList.indexOf(
-            Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.id : 1
-        )
-        if (idx < 0) idx = 0
+        var activeId = Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.id : 1
+        var idx = workspaceRepeater.modelList.indexOf(activeId)
+        if (idx < 0) return
+
         var item = workspaceRepeater.itemAt(idx)
-        if (item) {
-            // Konversi koordinat item ke koordinat root (bukan leftContent)
+        if (item && item.width > 0) {
             var mapped = leftContent.mapToItem(root, item.x, item.y)
-            pillX = mapped.x
+            if (mapped.x >= 0) {
+                pillX = mapped.x
+            }
+        } else {
+            pillUpdateTimer.restart()
         }
     }
 
     implicitWidth: leftContent.implicitWidth + 16
     implicitHeight: 32
-    color: "#1e1e2e"
+    color: "transparent"
     radius: 10
 
-    // 🌟 KAPSUL AKTIF (Di luar RowLayout, mengapung bebas tanpa memengaruhi layout)
+    Timer {
+        id: pillUpdateTimer
+        interval: 32
+        repeat: false
+        onTriggered: root.updatePillX()
+    }
+
+    Component.onCompleted: pillUpdateTimer.restart()
+
+    // 🌟 KAPSUL SLIDING AKTIF
     Rectangle {
         id: activePill
         z: 0
@@ -38,19 +49,25 @@ Rectangle {
         anchors.verticalCenter: parent.verticalCenter
         width: 32
         height: 24
-        color: "#89b4fa"
+        color: Theme.accent
         radius: 8
 
-        // ✨ ANIMASI SLIDE MULUS
         Behavior on x {
             NumberAnimation {
                 duration: 250
                 easing.type: Easing.OutCubic
             }
         }
+
+        Behavior on color {
+            ColorAnimation {
+                duration: 200
+                easing.type: Easing.InOutQuad
+            }
+        }
     }
 
-    // Tombol-tombol workspace
+    // TOMBOL WORKSPACE
     RowLayout {
         id: leftContent
         z: 1
@@ -65,20 +82,20 @@ Rectangle {
 
                 for (var i = 0; i < Hyprland.workspaces.values.length; i++) {
                     var id = Hyprland.workspaces.values[i].id
-                    if (!list.includes(id))
+                    if (!list.includes(id)) {
                         list.push(id)
+                    }
                 }
 
-                if (Hyprland.focusedWorkspace && !list.includes(Hyprland.focusedWorkspace.id))
+                if (Hyprland.focusedWorkspace && !list.includes(Hyprland.focusedWorkspace.id)) {
                     list.push(Hyprland.focusedWorkspace.id)
+                }
 
                 return list.sort((a, b) => a - b)
             }
 
             model: modelList
-
-            // Perbarui posisi pill setiap model berubah
-            onModelChanged: Qt.callLater(root.updatePillX)
+            onModelChanged: pillUpdateTimer.restart()
 
             Item {
                 implicitWidth: 32
@@ -88,28 +105,36 @@ Rectangle {
                 property var ws: Hyprland.workspaces.values.find(w => w.id == wsId)
                 property bool isActive: Hyprland.focusedWorkspace && Hyprland.focusedWorkspace.id == wsId
 
-                // Perbarui posisi pill saat item ini menjadi aktif
-                onIsActiveChanged: if (isActive) Qt.callLater(root.updatePillX)
+                onIsActiveChanged: if (isActive) pillUpdateTimer.restart()
+                onXChanged: if (isActive) pillUpdateTimer.restart()
 
-                // Background untuk workspace yang ada isinya tapi tidak aktif
                 Rectangle {
                     anchors.fill: parent
                     radius: 8
-                    color: !isActive && ws ? "#313244" : "transparent"
-
-                    Behavior on color {
-                        ColorAnimation { duration: 200 }
-                    }
+                    color: "transparent"
                 }
 
                 Text {
                     anchors.centerIn: parent
                     text: root.romanNums[wsId - 1] !== undefined ? root.romanNums[wsId - 1] : wsId
-                    color: isActive ? "#11111b" : (ws ? "#cdd6f4" : "#585b70")
-                    font { pixelSize: 12; bold: true }
+
+                    // 🎯 HIERARKI WARNA VISUAL LOGIS:
+                    // 1. AKTIF: Warna Gelap Pekat (kontras tinggi di atas kapsul aksen)
+                    // 2. TERISI APP: Warna Terang Jelas (100% Theme.textMain)
+                    // 3. KOSONG: Warna Redup Transparan (35% Opacity)
+                    color: isActive ? Theme.bgDark : (ws ? Theme.textMain : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.35))
+
+                    font {
+                        family: Theme.fontMain
+                        pixelSize: 14
+                        bold: true
+                    }
 
                     Behavior on color {
-                        ColorAnimation { duration: 200 }
+                        ColorAnimation { 
+                            duration: 200 
+                            easing.type: Easing.InOutQuad
+                        }
                     }
                 }
 
@@ -120,7 +145,4 @@ Rectangle {
             }
         }
     }
-
-    // Inisialisasi posisi pill saat pertama kali dimuat
-    Component.onCompleted: Qt.callLater(root.updatePillX)
 }

@@ -1,16 +1,37 @@
-import "../widgets/Bar"
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import "../widgets/Bar"
+import "../theme"
 
 PanelWindow {
     implicitHeight: 40
-    color: '#364b4b4b'
+    color: 'transparent'
 
     anchors {
         top: true
         left: true
         right: true
+    }
+
+    margins {
+        top: 8
+        left: 15
+        right: 15
+    }
+
+    Rectangle {
+        anchors.fill: parent
+        color: Qt.rgba(Theme.bgDark.r, Theme.bgDark.g, Theme.bgDark.b, 0.5)
+        radius: 20
+
+        // ✨ ANIMASI FADE WARNA BACKGROUND (Saat ganti wallpaper)
+        Behavior on color {
+            ColorAnimation {
+                duration: 200
+                easing.type: Easing.InOutQuad
+            }
+        }
     }
 
     // 📍 1. PULAU KIRI (Workspace)

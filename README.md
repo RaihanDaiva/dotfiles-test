@@ -12,12 +12,22 @@ This repository contains an isolated testing environment (`test-hypr`) for exper
 - **Mathematical Screen Center Alignment:** Independent component anchoring ensures the center island (Clock) stays in the exact mathematical center of the screen regardless of left/right island sizes.
 - **Sliding Workspace Pill:** Smooth `OutCubic` sliding animation (`Behavior on x`) when switching active workspaces, with accurate coordinate mapping via `mapToItem`.
 - **Hybrid Workspace Model:** Displays base static workspaces (`I` to `V`) and dynamically appends extra workspaces (`VI`, `VII`, etc.) when active or occupied.
-- **Roman Numeral Indicators:** Clean, aesthetic workspace representation (`I` through `X`).
-- **Live System Statistics:** Real-time RAM usage, CPU temperature, Battery level, and active Wi-Fi SSID powered by a lightweight asynchronous bash script.
+- **Logical Visual Hierarchy:**
+  - **Active Workspace:** High-contrast dark text (`Theme.bgDark`) over the bright accent pill.
+  - **Occupied Workspace:** Bright text (`Theme.textMain`) indicating running applications.
+  - **Empty Workspace:** Muted 35% opacity text (`Theme.textMain` 0.35 alpha) to reduce visual clutter.
+- **Dynamic Pywal Theming & Smooth Transitions:** Real-time wallpaper color synchronization via a background `PywalService` (`StdioCollector` & polling), updating UI colors (`Theme.accent`, `Theme.bgDark`, `Theme.textMain`, `Theme.secondary`) with smooth `Easing.InOutQuad` color fade animations (`ColorAnimation`).
+- **Dynamic System Statistics:**
+  - **RAM Usage:** Real-time RAM usage with Nerd Font glyphs (`󰍛`).
+  - **CPU Temperature:** Real-time CPU thermal status (`󰔏`).
+  - **Dynamic Bluetooth Status:** Real-time Bluetooth connection state (`󰂯` connected vs `󰂲` disconnected with slash).
+  - **Dynamic Wi-Fi Indicator:** Minimalist dynamic signal strength icon (`󰤨` / `󰤥` / `󰤢` / `󰤟` / `󰤮` disconnected) with SSID text hidden.
+  - **Dynamic Battery State:** Smart battery status (`󰂄` charging, `󰁹` full) with automatic red warning color (`#f38ba8`) when battery drops below 20%.
 
 ### 🧪 Isolated Hyprland Test Environment (`test-hypr`)
 - **Nested Testing Ready:** Rebound `$mainMod` to `ALT` to prevent keybind collisions with the host compositor during nested testing (`Hyprland -c ~/.config/test-hypr/hyprland.conf`).
 - **Clean Canvas:** Autostart of legacy bars/notification daemons (Waybar, SwayNC, Hyprpaper) commented out to avoid UI overlaps with Quickshell.
+- **Clean Layer Blur:** `ignore_alpha 0.5` layerrule configured in `layerrule.conf` so Hyprland blurs the status bar with clean rounded corners without blurring transparent margin gaps.
 - **Self-Contained Sourcing:** All sub-config files source explicitly from `~/.config/test-hypr/`.
 
 ---
@@ -31,18 +41,22 @@ dotfiles-test/
 │   ├── autostart.conf              # Autostart applications & background daemons
 │   ├── keybinds.conf               # Rebound shortcuts ($mainMod = ALT)
 │   ├── input.conf                  # Keyboard layout & touchpad settings
+│   ├── layerrule.conf              # Blur & window rules (ignore_alpha 0.5 for Quickshell)
 │   ├── monitors.conf               # Display monitor setup
-│   └── scripts/                    # Wallpaper & utility scripts
+│   └── scripts/                    # Wallpaper & utility scripts (set-wallpaper.sh, etc.)
 │
 └── quickshell/                     # Quickshell UI configuration
-    ├── shell.qml                   # Main entry point (Scope wrapper)
+    ├── shell.qml                   # Main entry point (Scope wrapper loading PywalService & Bar)
     ├── components/
     │   └── Bar.qml                 # 3-Island Top Status Bar layout
+    ├── theme/
+    │   ├── Theme.qml               # Clean Singleton storing pure font & color properties
+    │   └── PywalService.qml        # Background service syncing Pywal colors to Theme.qml
     ├── widgets/
     │   └── Bar/
     │       ├── Workspace.qml       # Hybrid workspace switcher with sliding animation
     │       ├── Clock.qml           # Real-time clock & date widget
-    │       └── SystemStats.qml     # System stats widget (RAM, CPU, Battery, Wi-Fi)
+    │       └── SystemStats.qml     # Dynamic stats widget (RAM, CPU, Bluetooth, Wi-Fi, Battery)
     └── scripts/
         └── sys_info.sh             # Executable bash helper script for system metrics
 ```
@@ -55,6 +69,8 @@ dotfiles-test/
 Ensure the following packages are installed on your system (e.g. Arch Linux / CachyOS):
 - `hyprland`
 - `quickshell`
+- `pywal` (`wal`)
+- `bluez` / `bluez-utils` (`bluetoothctl`)
 - `qt6-declarative` / `qt5-declarative` (for QML runtime & `qmlformat`)
 - `procps-ng` (`free`), `networkmanager` (`nmcli`), `bash`
 

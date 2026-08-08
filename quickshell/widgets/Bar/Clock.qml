@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import "../../theme"
 
 Rectangle {
     implicitWidth: middleContent.implicitWidth + 20
@@ -14,14 +15,26 @@ Rectangle {
 
         Text {
             id: timeText
-            color: "#ffffff"
-            font {pixelSize: 14; bold: true}
+            color: Theme.textMain
+            font {
+                family: Theme.fontMain
+                pixelSize: 20
+                bold: true
+            }
+
+            Behavior on color {
+                ColorAnimation {
+                    duration: 200
+                    easing.type: Easing.InOutQuad
+                }
+            }
         }
     }
 
     function updateClock()
     {
-        timeText.text = Qt.formatDateTime(new Date(), "ddd, dd MMM - hh:mm")
+        // timeText.text = Qt.formatDateTime(new Date(), "ddd, dd MMM - hh:mm")
+        timeText.text = Qt.formatDateTime(new Date(), "hh : mm")
     }
 
     Timer {
