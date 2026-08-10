@@ -18,7 +18,7 @@ Rectangle {
             color: Theme.textMain
             font {
                 family: Theme.fontMain
-                pixelSize: 20
+                pixelSize: 18 
                 bold: true
             }
 

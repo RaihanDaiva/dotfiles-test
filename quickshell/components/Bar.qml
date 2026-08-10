@@ -34,13 +34,16 @@ PanelWindow {
         }
     }
 
-    // 📍 1. PULAU KIRI (Workspace)
+    // 📍 1. PULAU KIRI (Workspace & Media Player)
     RowLayout {
         anchors.left: parent.left
         anchors.verticalCenter: parent.verticalCenter
         anchors.leftMargin: 10
+        spacing: 12
 
         Workspace {}
+
+        MediaPlayer {}
     }
 
     // 📍 2. PULAU TENGAH (Clock - 100% Persis di Tengah Layar)

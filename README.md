@@ -2,13 +2,13 @@
 
 A modular, modern Linux desktop environment configuration built for **Hyprland** and **Quickshell** (QtQuick/QML-based Wayland shell). 
 
-This repository contains an isolated testing environment (`test-hypr`) for experimentation alongside a custom 3-island status bar built from scratch with Quickshell.
+This repository contains an isolated testing environment (`test-hypr`) for experimentation alongside a custom status bar built from scratch with Quickshell.
 
 ---
 
 ## 🚀 Features
 
-### 🏛️ 3-Island Status Bar (Quickshell)
+### 🏛️ Status Bar & Widgets (Quickshell)
 - **Mathematical Screen Center Alignment:** Independent component anchoring ensures the center island (Clock) stays in the exact mathematical center of the screen regardless of left/right island sizes.
 - **Sliding Workspace Pill:** Smooth `OutCubic` sliding animation (`Behavior on x`) when switching active workspaces, with accurate coordinate mapping via `mapToItem`.
 - **Hybrid Workspace Model:** Displays base static workspaces (`I` to `V`) and dynamically appends extra workspaces (`VI`, `VII`, etc.) when active or occupied.
@@ -16,6 +16,11 @@ This repository contains an isolated testing environment (`test-hypr`) for exper
   - **Active Workspace:** High-contrast dark text (`Theme.bgDark`) over the bright accent pill.
   - **Occupied Workspace:** Bright text (`Theme.textMain`) indicating running applications.
   - **Empty Workspace:** Muted 35% opacity text (`Theme.textMain` 0.35 alpha) to reduce visual clutter.
+- **Dynamic MPRIS Media Player Widget (`MediaPlayer.qml`):**
+  - Real-time media control powered natively by `Quickshell.Services.Mpris` (Spotify, Firefox/YouTube, Amberol, MPV, VLC, etc.).
+  - Displays album art thumbnail (`trackArtUrl`), track title (`trackTitle`), and artist name (`trackArtists`).
+  - Interactive playback control buttons: Previous (`󰒮`), Play/Pause (`󰏤`/`󰐊`), and Next (`󰒭`).
+  - Smart auto-hide animation when no media is actively playing.
 - **Dynamic Pywal Theming & Smooth Transitions:** Real-time wallpaper color synchronization via a background `PywalService` (`StdioCollector` & polling), updating UI colors (`Theme.accent`, `Theme.bgDark`, `Theme.textMain`, `Theme.secondary`) with smooth `Easing.InOutQuad` color fade animations (`ColorAnimation`).
 - **Dynamic System Statistics:**
   - **RAM Usage:** Real-time RAM usage with Nerd Font glyphs (`󰍛`).
@@ -48,7 +53,7 @@ dotfiles-test/
 └── quickshell/                     # Quickshell UI configuration
     ├── shell.qml                   # Main entry point (Scope wrapper loading PywalService & Bar)
     ├── components/
-    │   └── Bar.qml                 # 3-Island Top Status Bar layout
+    │   └── Bar.qml                 # Top Status Bar layout
     ├── theme/
     │   ├── Theme.qml               # Clean Singleton storing pure font & color properties
     │   └── PywalService.qml        # Background service syncing Pywal colors to Theme.qml
@@ -56,6 +61,7 @@ dotfiles-test/
     │   └── Bar/
     │       ├── Workspace.qml       # Hybrid workspace switcher with sliding animation
     │       ├── Clock.qml           # Real-time clock & date widget
+    │       ├── MediaPlayer.qml     # Dynamic MPRIS media player widget
     │       └── SystemStats.qml     # Dynamic stats widget (RAM, CPU, Bluetooth, Wi-Fi, Battery)
     └── scripts/
         └── sys_info.sh             # Executable bash helper script for system metrics
