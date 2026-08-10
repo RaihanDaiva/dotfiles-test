@@ -2,38 +2,76 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import "../../theme"
+import "clockWidget"
 
-Rectangle {
+Item {
+    id: clockRoot
+
+    property var barWindow: null
+
+    // ⏱️ TIMER DELAY HOVER POPUP
+    Timer {
+        id: closeTimer
+        interval: 300
+        onTriggered: calendarPopup.isOpen = false
+    }
+
+    // 🪟 SUB-KOMPONEN 1: CALENDAR POPUP HOVER CARD (ENTER & EXIT ANIMATED)
+    CalendarPopup {
+        id: calendarPopup
+        barWindow: clockRoot.barWindow
+        clockRootItem: clockRoot
+
+        onKeepOpen: closeTimer.stop()
+        onStartCloseTimer: closeTimer.restart()
+    }
+
     implicitWidth: middleContent.implicitWidth + 20
     implicitHeight: 32
-    color: 'transparent'
 
-    RowLayout {
-        id: middleContent
-        anchors.centerIn: parent
-        spacing: 6
+    Rectangle {
+        anchors.fill: parent
+        color: "transparent"
+        radius: 8
 
-        Text {
-            id: timeText
-            color: Theme.textMain
-            font {
-                family: Theme.fontMain
-                pixelSize: 18 
-                bold: true
+        // 🖱️ MOUSEAREA HOVER POPUP TRIGGER
+        MouseArea {
+            anchors.fill: parent
+            hoverEnabled: true
+            onEntered: {
+                closeTimer.stop()
+                calendarPopup.isOpen = true
             }
+            onExited: {
+                closeTimer.restart()
+            }
+        }
 
-            Behavior on color {
-                ColorAnimation {
-                    duration: 200
-                    easing.type: Easing.InOutQuad
+        RowLayout {
+            id: middleContent
+            anchors.centerIn: parent
+            spacing: 6
+
+            Text {
+                id: timeText
+                color: Theme.textMain
+                font {
+                    family: Theme.fontMain
+                    pixelSize: 18
+                    bold: true
+                }
+
+                Behavior on color {
+                    ColorAnimation {
+                        duration: 200
+                        easing.type: Easing.InOutQuad
+                    }
                 }
             }
         }
     }
 
-    function updateClock()
-    {
-        // timeText.text = Qt.formatDateTime(new Date(), "ddd, dd MMM - hh:mm")
+    function updateClock() {
         timeText.text = Qt.formatDateTime(new Date(), "hh : mm")
     }
 
@@ -45,5 +83,3 @@ Rectangle {
         onTriggered: updateClock()
     }
 }
-
-

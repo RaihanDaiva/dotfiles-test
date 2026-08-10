@@ -53,6 +53,7 @@ PanelWindow {
 
     // 📍 2. PULAU TENGAH (Clock - 100% Persis di Tengah Layar)
     Clock {
+        barWindow: barWindow
         anchors.centerIn: parent
     }
 

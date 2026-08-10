@@ -10,8 +10,27 @@ Item {
 
     property var barWindow: null
 
-    // 🎵 Ambil player MPRIS pertama yang aktif
-    readonly property var player: Mpris.players.values.length > 0 ? Mpris.players.values[0] : null
+    // 🎵 Smart-select player MPRIS yang sedang aktif/diputar (mengabaikan instance browser yang idle)
+    readonly property var activePlayer: {
+        var players = Mpris.players.values
+        if (!players || players.length === 0) return null
+
+        // 1. Prioritaskan player yang sedang diputar (isPlaying == true)
+        for (var i = 0; i < players.length; i++) {
+            var p = players[i]
+            if (p && p.isPlaying) return p
+        }
+
+        // 2. Jika tidak ada yang diputar, prioritaskan player yang memiliki trackTitle
+        for (var j = 0; j < players.length; j++) {
+            var p2 = players[j]
+            if (p2 && p2.trackTitle && p2.trackTitle !== "") return p2
+        }
+
+        return players[0]
+    }
+
+    readonly property var player: activePlayer
     readonly property bool hasMedia: player !== null && (player.trackTitle !== "" || player.isPlaying)
 
     // 🔍 Helper fungsi untuk mendapatkan nama Artis

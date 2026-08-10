@@ -16,19 +16,29 @@ This repository contains an isolated testing environment (`test-hypr`) for exper
   - **Active Workspace:** High-contrast dark text (`Theme.bgDark`) over the bright accent pill.
   - **Occupied Workspace:** Bright text (`Theme.textMain`) indicating running applications.
   - **Empty Workspace:** Muted 35% opacity text (`Theme.textMain` 0.35 alpha) to reduce visual clutter.
+- **Reusable Popup Architecture (`BasePopup.qml`):**
+  - Modular, extensible `PanelWindow` shell encapsulated in `widgets/BasePopup.qml`.
+  - Built-in Wayland LayerShell setup (`WlrLayershell.namespace: "quickshell:popup"`), Hyprland glassmorphism blur, translucent Pywal background (`0.5` alpha), and dual slide/fade enter-exit animations.
+  - Dynamic `updatePosition()` automatically centering any popup card precisely under its target status bar widget.
+  - Native Qt 6 `HoverHandler` handling mouse events seamlessly without child widget event conflicts.
+- **Interactive Calendar & Date Hub (`Clock.qml` & `CalendarPopup.qml`):**
+  - **Live Digital Header:** Displays real-time clock with seconds (`hh : mm : ss`) and full formatted date (*Senin, 10 Agustus 2026*).
+  - **Interactive 7x6 Monthly Calendar Grid:**
+    - Highlighting **Today** with a vibrant Pywal accent pill (`Theme.accent`) and high-contrast dark text.
+    - Month navigation controls: Previous Month (`󰅁`), Next Month (`󰅂`), and Today Reset (`󰃭`).
+    - Dimmed dates for preceding and trailing month days.
+  - **System Uptime Indicator:** Live system uptime parsed asynchronously via `Quickshell.Io` `Process` from `/proc/uptime` (e.g. `󰅐 System Uptime: 4j 12m`).
 - **Dynamic MPRIS Media Player Widget (`MediaPlayer.qml`):**
-  - Real-time media control powered natively by `Quickshell.Services.Mpris` (Spotify, Firefox/YouTube, Amberol, MPV, VLC, etc.).
+  - Real-time media control powered natively by `Quickshell.Services.Mpris` (Spotify, Firefox/YouTube, Amberol, MPV, VLC, etc.) with **Smart-Select Active Player Filtering** prioritizing actively playing media over idle browser tabs.
   - Displays album art thumbnail (`trackArtUrl`), track title (`trackTitle`), and robust multi-fallback artist detection (`trackArtist`, `trackAlbumArtist`, `xesam:artist`).
   - **Seamless Infinite Continuous Marquee Loop:** Double-buffered linear text scrolling (`Easing.Linear`) that continuously loops track titles and artist names endlessly without abrupt jumps or gaps when text overflows.
   - **Real-Time PipeWire Cava Audio Visualizer Background:** 24-bar audio spectrum visualizer (`cava -p ~/.config/cava/config_quickshell`) rendered in the background (`z: 0`) spanning the full width of the container rectangle.
   - **Interactive Hover Detail Card (`MediaPopup.qml`):**
-    - **Vertical Reference Layout:** Scaled $270\times420\text{px}$ floating popup card with translucent Pywal background (`0.5` alpha) and full Hyprland glassmorphism blur.
+    - **Vertical Reference Layout:** Scaled $270\times420\text{px}$ floating popup card inheriting from `BasePopup`.
     - **1:1 Square Album Cover Art:** Large cover art with smooth `QtQuick.Effects` `MultiEffect` rounded corner masking (`radius: 14`).
     - **Interactive Seek Progress Bar:** Click and drag to scrub track position in real-time (`player.seek()`), featuring a dynamic hover thumb indicator and active duration text highlights.
     - **Real-Time Position Ticker:** 1-second `posTicker` updating live playback position (`MM:SS`) and total duration smoothly.
     - **Optically Centered Controls:** Previous (`󰒮`), Play/Pause (`󰏤`/`󰐊` with $+1.5\text{px}$ optical center offset), and Next (`󰒭`).
-    - **Smooth Enter & Exit Transitions:** Dual slide ($y: -15 \rightarrow 0\text{px}$) and fade ($0 \rightarrow 1$) animations driven by `visible: isOpen || hideAnim.running`.
-    - **Qt 6 HoverHandler & Dynamic Auto-Centering:** Prevents nested mouse event conflicts and dynamically computes horizontal center alignment (`updatePosition()`) relative to `MediaPlayer.qml` on hover.
   - Smart auto-hide animation when no media is actively playing.
 - **Dynamic Pywal Theming & Smooth Transitions:** Real-time wallpaper color synchronization via a background `PywalService` (`StdioCollector` & polling), updating UI colors (`Theme.accent`, `Theme.bgDark`, `Theme.textMain`, `Theme.secondary`) with smooth `Easing.InOutQuad` color fade animations (`ColorAnimation`).
 - **Dynamic System Statistics:**
@@ -41,7 +51,7 @@ This repository contains an isolated testing environment (`test-hypr`) for exper
 ### 🧪 Isolated Hyprland Test Environment (`test-hypr`)
 - **Nested Testing Ready:** Rebound `$mainMod` to `ALT` to prevent keybind collisions with the host compositor during nested testing (`Hyprland -c ~/.config/test-hypr/hyprland.conf`).
 - **Clean Canvas:** Autostart of legacy bars/notification daemons (Waybar, SwayNC, Hyprpaper) commented out to avoid UI overlaps with Quickshell.
-- **Glassmorphism Layer Blur:** `layerrule = blur on` and `ignore_alpha 0.5` configured in `layerrule.conf` for both `quickshell` (status bar) and `quickshell:popup` (media player detail card) namespaces.
+- **Glassmorphism Layer Blur:** `layerrule = blur on` and `ignore_alpha 0.5` configured in `layerrule.conf` for both `quickshell` (status bar) and `quickshell:popup` (popup cards) namespaces.
 - **Self-Contained Sourcing:** All sub-config files source explicitly from `~/.config/test-hypr/`.
 
 ---
@@ -67,10 +77,13 @@ dotfiles-test/
     │   ├── Theme.qml               # Clean Singleton storing pure font & color properties
     │   └── PywalService.qml        # Background service syncing Pywal colors to Theme.qml
     ├── widgets/
+    │   ├── BasePopup.qml           # Reusable PanelWindow popup shell with Hyprland blur & auto-positioning
     │   └── bar/
     │       ├── Workspace.qml       # Hybrid workspace switcher with sliding animation
-    │       ├── Clock.qml           # Real-time clock & date widget
-    │       ├── MediaPlayer.qml     # Dynamic MPRIS media player entry point
+    │       ├── Clock.qml           # Real-time clock & date widget with calendar hover trigger
+    │       ├── clockWidget/
+    │       │   └── CalendarPopup.qml # Interactive monthly calendar, live clock & system uptime popup
+    │       ├── MediaPlayer.qml     # Dynamic MPRIS media player entry point (with smart active player selection)
     │       ├── mediaPlayerWidget/  # Dedicated modular sub-components
     │       │   ├── MarqueeText.qml # Reusable endless continuous marquee text
     │       │   ├── CavaVisualizer.qml # 24-bar PipeWire Cava audio visualizer
