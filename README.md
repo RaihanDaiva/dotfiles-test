@@ -18,8 +18,9 @@ This repository contains an isolated testing environment (`test-hypr`) for exper
   - **Empty Workspace:** Muted 35% opacity text (`Theme.textMain` 0.35 alpha) to reduce visual clutter.
 - **Dynamic MPRIS Media Player Widget (`MediaPlayer.qml`):**
   - Real-time media control powered natively by `Quickshell.Services.Mpris` (Spotify, Firefox/YouTube, Amberol, MPV, VLC, etc.).
-  - Displays album art thumbnail (`trackArtUrl`), track title (`trackTitle`), and artist name (`trackArtists`).
-  - Interactive playback control buttons: Previous (`󰒮`), Play/Pause (`󰏤`/`󰐊`), and Next (`󰒭`).
+  - Displays album art thumbnail (`trackArtUrl`), track title (`trackTitle`), and robust multi-fallback artist detection (`trackArtist`, `trackAlbumArtist`, `xesam:artist`).
+  - Interactive playback control buttons with generous $24\times24\text{px}$ touch targets: Previous (`󰒮`), Play/Pause (`󰏤`/`󰐊`), and Next (`󰒭`).
+  - **Real-Time PipeWire Cava Audio Visualizer Background:** 24-bar audio spectrum visualizer (`cava -p ~/.config/cava/config_quickshell`) rendered in the background (`z: 0`) spanning the full width of the container rectangle.
   - Smart auto-hide animation when no media is actively playing.
 - **Dynamic Pywal Theming & Smooth Transitions:** Real-time wallpaper color synchronization via a background `PywalService` (`StdioCollector` & polling), updating UI colors (`Theme.accent`, `Theme.bgDark`, `Theme.textMain`, `Theme.secondary`) with smooth `Easing.InOutQuad` color fade animations (`ColorAnimation`).
 - **Dynamic System Statistics:**
@@ -61,7 +62,7 @@ dotfiles-test/
     │   └── Bar/
     │       ├── Workspace.qml       # Hybrid workspace switcher with sliding animation
     │       ├── Clock.qml           # Real-time clock & date widget
-    │       ├── MediaPlayer.qml     # Dynamic MPRIS media player widget
+    │       ├── MediaPlayer.qml     # Dynamic MPRIS media player with PipeWire Cava background
     │       └── SystemStats.qml     # Dynamic stats widget (RAM, CPU, Bluetooth, Wi-Fi, Battery)
     └── scripts/
         └── sys_info.sh             # Executable bash helper script for system metrics
@@ -75,6 +76,7 @@ dotfiles-test/
 Ensure the following packages are installed on your system (e.g. Arch Linux / CachyOS):
 - `hyprland`
 - `quickshell`
+- `cava` (for real-time PipeWire audio visualizer)
 - `pywal` (`wal`)
 - `bluez` / `bluez-utils` (`bluetoothctl`)
 - `qt6-declarative` / `qt5-declarative` (for QML runtime & `qmlformat`)
