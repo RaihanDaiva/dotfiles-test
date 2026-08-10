@@ -20,8 +20,15 @@ This repository contains an isolated testing environment (`test-hypr`) for exper
   - Real-time media control powered natively by `Quickshell.Services.Mpris` (Spotify, Firefox/YouTube, Amberol, MPV, VLC, etc.).
   - Displays album art thumbnail (`trackArtUrl`), track title (`trackTitle`), and robust multi-fallback artist detection (`trackArtist`, `trackAlbumArtist`, `xesam:artist`).
   - **Seamless Infinite Continuous Marquee Loop:** Double-buffered linear text scrolling (`Easing.Linear`) that continuously loops track titles and artist names endlessly without abrupt jumps or gaps when text overflows.
-  - Interactive playback control buttons with generous $24\times24\text{px}$ touch targets: Previous (`󰒮`), Play/Pause (`󰏤`/`󰐊`), and Next (`󰒭`).
   - **Real-Time PipeWire Cava Audio Visualizer Background:** 24-bar audio spectrum visualizer (`cava -p ~/.config/cava/config_quickshell`) rendered in the background (`z: 0`) spanning the full width of the container rectangle.
+  - **Interactive Hover Detail Card (`MediaPopup.qml`):**
+    - **Vertical Reference Layout:** Scaled $270\times420\text{px}$ floating popup card with translucent Pywal background (`0.5` alpha) and full Hyprland glassmorphism blur.
+    - **1:1 Square Album Cover Art:** Large cover art with smooth `QtQuick.Effects` `MultiEffect` rounded corner masking (`radius: 14`).
+    - **Interactive Seek Progress Bar:** Click and drag to scrub track position in real-time (`player.seek()`), featuring a dynamic hover thumb indicator and active duration text highlights.
+    - **Real-Time Position Ticker:** 1-second `posTicker` updating live playback position (`MM:SS`) and total duration smoothly.
+    - **Optically Centered Controls:** Previous (`󰒮`), Play/Pause (`󰏤`/`󰐊` with $+1.5\text{px}$ optical center offset), and Next (`󰒭`).
+    - **Smooth Enter & Exit Transitions:** Dual slide ($y: -15 \rightarrow 0\text{px}$) and fade ($0 \rightarrow 1$) animations driven by `visible: isOpen || hideAnim.running`.
+    - **Qt 6 HoverHandler & Dynamic Auto-Centering:** Prevents nested mouse event conflicts and dynamically computes horizontal center alignment (`updatePosition()`) relative to `MediaPlayer.qml` on hover.
   - Smart auto-hide animation when no media is actively playing.
 - **Dynamic Pywal Theming & Smooth Transitions:** Real-time wallpaper color synchronization via a background `PywalService` (`StdioCollector` & polling), updating UI colors (`Theme.accent`, `Theme.bgDark`, `Theme.textMain`, `Theme.secondary`) with smooth `Easing.InOutQuad` color fade animations (`ColorAnimation`).
 - **Dynamic System Statistics:**
@@ -34,7 +41,7 @@ This repository contains an isolated testing environment (`test-hypr`) for exper
 ### 🧪 Isolated Hyprland Test Environment (`test-hypr`)
 - **Nested Testing Ready:** Rebound `$mainMod` to `ALT` to prevent keybind collisions with the host compositor during nested testing (`Hyprland -c ~/.config/test-hypr/hyprland.conf`).
 - **Clean Canvas:** Autostart of legacy bars/notification daemons (Waybar, SwayNC, Hyprpaper) commented out to avoid UI overlaps with Quickshell.
-- **Clean Layer Blur:** `ignore_alpha 0.5` layerrule configured in `layerrule.conf` so Hyprland blurs the status bar with clean rounded corners without blurring transparent margin gaps.
+- **Glassmorphism Layer Blur:** `layerrule = blur on` and `ignore_alpha 0.5` configured in `layerrule.conf` for both `quickshell` (status bar) and `quickshell:popup` (media player detail card) namespaces.
 - **Self-Contained Sourcing:** All sub-config files source explicitly from `~/.config/test-hypr/`.
 
 ---
@@ -48,7 +55,7 @@ dotfiles-test/
 │   ├── autostart.conf              # Autostart applications & background daemons
 │   ├── keybinds.conf               # Rebound shortcuts ($mainMod = ALT)
 │   ├── input.conf                  # Keyboard layout & touchpad settings
-│   ├── layerrule.conf              # Blur & window rules (ignore_alpha 0.5 for Quickshell)
+│   ├── layerrule.conf              # Blur & window rules (ignore_alpha 0.5 for quickshell & quickshell:popup)
 │   ├── monitors.conf               # Display monitor setup
 │   └── scripts/                    # Wallpaper & utility scripts (set-wallpaper.sh, etc.)
 │
@@ -60,10 +67,14 @@ dotfiles-test/
     │   ├── Theme.qml               # Clean Singleton storing pure font & color properties
     │   └── PywalService.qml        # Background service syncing Pywal colors to Theme.qml
     ├── widgets/
-    │   └── Bar/
+    │   └── bar/
     │       ├── Workspace.qml       # Hybrid workspace switcher with sliding animation
     │       ├── Clock.qml           # Real-time clock & date widget
-    │       ├── MediaPlayer.qml     # Dynamic MPRIS media player with PipeWire Cava & Seamless Marquee
+    │       ├── MediaPlayer.qml     # Dynamic MPRIS media player entry point
+    │       ├── mediaPlayerWidget/  # Dedicated modular sub-components
+    │       │   ├── MarqueeText.qml # Reusable endless continuous marquee text
+    │       │   ├── CavaVisualizer.qml # 24-bar PipeWire Cava audio visualizer
+    │       │   └── MediaPopup.qml  # Floating hover detail card with interactive seek bar & 1:1 cover art
     │       └── SystemStats.qml     # Dynamic stats widget (RAM, CPU, Bluetooth, Wi-Fi, Battery)
     └── scripts/
         └── sys_info.sh             # Executable bash helper script for system metrics
@@ -80,7 +91,7 @@ Ensure the following packages are installed on your system (e.g. Arch Linux / Ca
 - `cava` (for real-time PipeWire audio visualizer)
 - `pywal` (`wal`)
 - `bluez` / `bluez-utils` (`bluetoothctl`)
-- `qt6-declarative` / `qt5-declarative` (for QML runtime & `qmlformat`)
+- `qt6-declarative` / `qt6-5compat` / `qt6-shadertools` (for QML runtime, `QtQuick.Effects`, & `qmlformat`)
 - `procps-ng` (`free`), `networkmanager` (`nmcli`), `bash`
 
 ### 1. Symlink Configuration (Recommended)

@@ -1,10 +1,11 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import "../widgets/Bar"
+import "../widgets/bar"
 import "../theme"
 
 PanelWindow {
+    id: barWindow
     implicitHeight: 40
     color: 'transparent'
 
@@ -24,6 +25,8 @@ PanelWindow {
         anchors.fill: parent
         color: Qt.rgba(Theme.bgDark.r, Theme.bgDark.g, Theme.bgDark.b, 0.5)
         radius: 20
+        border.color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.3)
+        border.width: 1
 
         // ✨ ANIMASI FADE WARNA BACKGROUND (Saat ganti wallpaper)
         Behavior on color {
@@ -43,7 +46,9 @@ PanelWindow {
 
         Workspace {}
 
-        MediaPlayer {}
+        MediaPlayer {
+            barWindow: barWindow
+        }
     }
 
     // 📍 2. PULAU TENGAH (Clock - 100% Persis di Tengah Layar)
