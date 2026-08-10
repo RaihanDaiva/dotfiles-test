@@ -5,15 +5,16 @@ import Quickshell.Io
 import "../../"
 import "../../../theme"
 
-// 📅 KALENDER POPUP (Menggunakan BasePopup Reusable Shell)
+// 📅 KALENDER POPUP (Scaled Up Reusable Shell matching SysStatsPopup dimensions)
 BasePopup {
     id: popupRoot
 
     property var clockRootItem: null
     targetItem: clockRootItem
 
-    implicitWidth: 300
-    implicitHeight: 415
+    // 📐 UKURAN POPUP LEBIH BESAR & SEIMBANG (380x450 px)
+    implicitWidth: 380
+    implicitHeight: 450
 
     // 📅 STATE KALENDER
     property date currentDate: new Date()
@@ -117,17 +118,17 @@ BasePopup {
     // 📦 KONTEN UTAMA KALENDER
     ColumnLayout {
         anchors.fill: parent
-        spacing: 12
+        spacing: 14
 
         // 🕒 1. HEADER JAM & TANGGAL LENGKAP
         ColumnLayout {
             Layout.fillWidth: true
-            spacing: 2
+            spacing: 4
 
             Text {
                 text: popupRoot.liveTimeString !== "" ? popupRoot.liveTimeString : Qt.formatDateTime(popupRoot.currentDate, "hh : mm : ss")
                 color: Theme.textMain
-                font { family: Theme.fontMain; pixelSize: 22; bold: true }
+                font { family: Theme.fontMain; pixelSize: 26; bold: true }
                 horizontalAlignment: Text.AlignHCenter
                 Layout.fillWidth: true
             }
@@ -135,7 +136,7 @@ BasePopup {
             Text {
                 text: popupRoot.liveDateString !== "" ? popupRoot.liveDateString : Qt.formatDateTime(popupRoot.currentDate, "dddd, dd MMMM yyyy")
                 color: Theme.accent
-                font { family: Theme.fontMain; pixelSize: 12 }
+                font { family: Theme.fontMain; pixelSize: 14 }
                 horizontalAlignment: Text.AlignHCenter
                 Layout.fillWidth: true
             }
@@ -154,14 +155,14 @@ BasePopup {
 
             // Tombol Bulan Lalu (<)
             Item {
-                implicitWidth: 28
-                implicitHeight: 28
+                implicitWidth: 32
+                implicitHeight: 32
 
                 Text {
                     anchors.centerIn: parent
                     text: "󰅁"
                     color: Theme.textMain
-                    font { family: Theme.fontMono; pixelSize: 16 }
+                    font { family: Theme.fontMono; pixelSize: 18 }
                 }
 
                 MouseArea {
@@ -181,21 +182,21 @@ BasePopup {
             Text {
                 text: Qt.formatDateTime(popupRoot.displayedDate, "MMMM yyyy")
                 color: Theme.textMain
-                font { family: Theme.fontMain; pixelSize: 14; bold: true }
+                font { family: Theme.fontMain; pixelSize: 16; bold: true }
             }
 
             Item { Layout.fillWidth: true }
 
             // Tombol Hari Ini (Reset ke Bulan Sekarang)
             Item {
-                implicitWidth: 28
-                implicitHeight: 28
+                implicitWidth: 32
+                implicitHeight: 32
 
                 Text {
                     anchors.centerIn: parent
                     text: "󰃭"
                     color: Theme.accent
-                    font { family: Theme.fontMono; pixelSize: 15 }
+                    font { family: Theme.fontMono; pixelSize: 17 }
                 }
 
                 MouseArea {
@@ -209,14 +210,14 @@ BasePopup {
 
             // Tombol Bulan Depan (>)
             Item {
-                implicitWidth: 28
-                implicitHeight: 28
+                implicitWidth: 32
+                implicitHeight: 32
 
                 Text {
                     anchors.centerIn: parent
                     text: "󰅂"
                     color: Theme.textMain
-                    font { family: Theme.fontMono; pixelSize: 16 }
+                    font { family: Theme.fontMono; pixelSize: 18 }
                 }
 
                 MouseArea {
@@ -231,18 +232,19 @@ BasePopup {
             }
         }
 
-        // 📆 3. NAMA HARI (Mg, Sn, Sl, Rb, Km, Jm, Sb)
-        RowLayout {
+        // 📆 3. NAMA HARI BAHASA INGGRIS & PRESISI SEJAJAR (Sun, Mon, Tue, Wed, Thu, Fri, Sat)
+        GridLayout {
             Layout.fillWidth: true
-            spacing: 0
+            columns: 7
+            columnSpacing: 5
 
             Repeater {
-                model: ["Mg", "Sn", "Sl", "Rb", "Km", "Jm", "Sb"]
+                model: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
                 Text {
                     text: modelData
                     color: Theme.accent
-                    font { family: Theme.fontMain; pixelSize: 11; bold: true }
+                    font { family: Theme.fontMain; pixelSize: 13; bold: true }
                     horizontalAlignment: Text.AlignHCenter
                     Layout.fillWidth: true
                 }
@@ -254,16 +256,16 @@ BasePopup {
             id: calendarGrid
             Layout.fillWidth: true
             columns: 7
-            rowSpacing: 4
-            columnSpacing: 4
+            rowSpacing: 5
+            columnSpacing: 5
 
             Repeater {
                 model: popupRoot.generateCalendarGrid()
 
                 Rectangle {
                     Layout.fillWidth: true
-                    implicitHeight: 28
-                    radius: 8
+                    implicitHeight: 34
+                    radius: 10
                     color: modelData.isToday ? Theme.accent : "transparent"
 
                     Text {
@@ -272,7 +274,7 @@ BasePopup {
                         color: modelData.isToday ? Theme.bgDark : (modelData.isCurrentMonth ? Theme.textMain : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.3))
                         font {
                             family: Theme.fontMain
-                            pixelSize: 12
+                            pixelSize: 14
                             bold: modelData.isToday
                         }
                     }
@@ -292,18 +294,18 @@ BasePopup {
         // 󰅐 5. FOOTER SYSTEM UPTIME
         RowLayout {
             Layout.alignment: Qt.AlignHCenter
-            spacing: 6
+            spacing: 8
 
             Text {
                 text: "󰅐"
                 color: Theme.accent
-                font { family: Theme.fontMono; pixelSize: 14 }
+                font { family: Theme.fontMono; pixelSize: 16 }
             }
 
             Text {
                 text: "System Uptime: " + popupRoot.uptimeString
                 color: Theme.accent
-                font { family: Theme.fontMain; pixelSize: 11 }
+                font { family: Theme.fontMain; pixelSize: 13 }
             }
         }
     }

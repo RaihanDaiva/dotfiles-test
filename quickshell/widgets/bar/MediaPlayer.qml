@@ -57,7 +57,7 @@ Item {
         onTriggered: mediaPopup.isOpen = false
     }
 
-    // 🪟 SUB-KOMPONEN 1: MEDIA POPUP HOVER CARD (ENTER & EXIT ANIMATED)
+    // 🪟 SUB-KOMPONEN 1: MEDIA POPUP HOVER CARD
     MediaPopup {
         id: mediaPopup
         barWindow: mediaRoot.barWindow
@@ -69,7 +69,7 @@ Item {
         onStartCloseTimer: closeTimer.restart()
     }
 
-    implicitWidth: hasMedia ? mediaLayout.implicitWidth + 24 : 0
+    implicitWidth: hasMedia ? mediaLayout.implicitWidth + 8 : 0
     implicitHeight: 32
     visible: hasMedia
 
@@ -95,75 +95,96 @@ Item {
             spacing: 8
             z: 1
 
-            // 🖼️ Cover Album / Art Image
+            // 🧠🌡️ PILL RECTANGLE HOVER EFEK PADA COVER & TEKS MEDIA (PERSIS SYSTEMSTATS & CLOCK)
             Rectangle {
-                implicitWidth: 24
-                implicitHeight: 24
-                radius: 6
-                color: Theme.accent
-                clip: true
-                layer.enabled: true
+                id: mediaPill
+                implicitWidth: infoLayout.implicitWidth + 10
+                implicitHeight: 26
+                radius: 8
+                color: (mediaMouseArea.containsMouse || mediaPopup.isOpen) ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.15) : "transparent"
+                border.color: (mediaMouseArea.containsMouse || mediaPopup.isOpen) ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.3) : "transparent"
+                border.width: 1
 
-                Image {
-                    id: coverImage
-                    anchors.fill: parent
-                    source: (player && player.trackArtUrl) ? player.trackArtUrl : ""
-                    fillMode: Image.PreserveAspectCrop
-                    visible: status === Image.Ready
-                }
+                Behavior on color { ColorAnimation { duration: 150 } }
+                Behavior on border.color { ColorAnimation { duration: 150 } }
 
-                Text {
-                    anchors.centerIn: parent
-                    text: "󰎈"
-                    color: Theme.bgDark
-                    font { family: Theme.fontMono; pixelSize: 13 }
-                    visible: coverImage.status !== Image.Ready
-                }
-            }
-
-            // 🎶 SUB-KOMPONEN 3: MARQUEE TEXT JUDUL & ARTIS (Hover Trigger)
-            Item {
-                id: textHoverArea
-                implicitWidth: 90
-                implicitHeight: textColumn.implicitHeight
-                Layout.preferredWidth: 90
-                Layout.maximumWidth: 90
-
-                ColumnLayout {
-                    id: textColumn
-                    anchors.fill: parent
-                    spacing: 0
-
-                    MarqueeText {
-                        text: (player && player.trackTitle) ? player.trackTitle : "No Media"
-                        textFont.family: Theme.fontMain
-                        textFont.pixelSize: 11
-                        textFont.bold: true
-                        textColor: Theme.textMain
-                        targetWidth: 90
-                        isPlaying: mediaRoot.player ? mediaRoot.player.isPlaying : false
-                    }
-
-                    MarqueeText {
-                        text: mediaRoot.getArtistName(player)
-                        textFont.family: Theme.fontMain
-                        textFont.pixelSize: 9
-                        textColor: Theme.accent
-                        targetWidth: 90
-                        isPlaying: mediaRoot.player ? mediaRoot.player.isPlaying : false
-                    }
-                }
-
-                // 🖱️ MOUSEAREA KHUSUS AREA TEKS SAHAJA
+                // 🖱️ MOUSEAREA UNTUK COVER & TEKS MEDIA
                 MouseArea {
+                    id: mediaMouseArea
                     anchors.fill: parent
                     hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
                     onEntered: {
                         closeTimer.stop()
                         mediaPopup.isOpen = true
                     }
                     onExited: {
                         closeTimer.restart()
+                    }
+                }
+
+                RowLayout {
+                    id: infoLayout
+                    anchors.centerIn: parent
+                    spacing: 6
+
+                    // 🖼️ Cover Album / Art Image
+                    Rectangle {
+                        implicitWidth: 20
+                        implicitHeight: 20
+                        radius: 5
+                        color: Theme.accent
+                        clip: true
+                        layer.enabled: true
+
+                        Image {
+                            id: coverImage
+                            anchors.fill: parent
+                            source: (player && player.trackArtUrl) ? player.trackArtUrl : ""
+                            fillMode: Image.PreserveAspectCrop
+                            visible: status === Image.Ready
+                        }
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "󰎈"
+                            color: Theme.bgDark
+                            font { family: Theme.fontMono; pixelSize: 11 }
+                            visible: coverImage.status !== Image.Ready
+                        }
+                    }
+
+                    // 🎶 MARQUEE TEXT JUDUL & ARTIS
+                    Item {
+                        implicitWidth: 90
+                        implicitHeight: textColumn.implicitHeight
+                        Layout.preferredWidth: 90
+                        Layout.maximumWidth: 90
+
+                        ColumnLayout {
+                            id: textColumn
+                            anchors.fill: parent
+                            spacing: 0
+
+                            MarqueeText {
+                                text: (player && player.trackTitle) ? player.trackTitle : "No Media"
+                                textFont.family: Theme.fontMain
+                                textFont.pixelSize: 11
+                                textFont.bold: true
+                                textColor: Theme.textMain
+                                targetWidth: 90
+                                isPlaying: mediaRoot.player ? mediaRoot.player.isPlaying : false
+                            }
+
+                            MarqueeText {
+                                text: mediaRoot.getArtistName(player)
+                                textFont.family: Theme.fontMain
+                                textFont.pixelSize: 9
+                                textColor: Theme.secondary
+                                targetWidth: 90
+                                isPlaying: mediaRoot.player ? mediaRoot.player.isPlaying : false
+                            }
+                        }
                     }
                 }
             }

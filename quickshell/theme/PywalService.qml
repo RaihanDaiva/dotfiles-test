@@ -19,7 +19,7 @@ Item {
                         Theme.bgDark = json.special.background
                         Theme.textMain = json.special.foreground
                         Theme.accent = json.colors.color4
-                        Theme.secondary = json.colors.color2
+                        Theme.secondary = json.colors.color3
                     }
                 } catch (e) {
                     console.log("[PywalService] Error parsing colors.json: " + e)

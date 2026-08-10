@@ -63,6 +63,8 @@ PanelWindow {
         anchors.verticalCenter: parent.verticalCenter
         anchors.rightMargin: 10
 
-        SystemStats {}
+        SystemStats {
+            barWindow: barWindow
+        }
     }
 }

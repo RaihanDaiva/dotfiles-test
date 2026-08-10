@@ -16,7 +16,7 @@ Item {
         onTriggered: calendarPopup.isOpen = false
     }
 
-    // 🪟 SUB-KOMPONEN 1: CALENDAR POPUP HOVER CARD (ENTER & EXIT ANIMATED)
+    // 🪟 SUB-KOMPONEN 1: CALENDAR POPUP HOVER CARD
     CalendarPopup {
         id: calendarPopup
         barWindow: clockRoot.barWindow
@@ -26,18 +26,29 @@ Item {
         onStartCloseTimer: closeTimer.restart()
     }
 
-    implicitWidth: middleContent.implicitWidth + 20
+    implicitWidth: clockPill.implicitWidth
     implicitHeight: 32
 
+    // 🧠🌡️ PILL RECTANGLE HOVER EFEK (PERSIS DENGAN SYSTEMSTATS)
     Rectangle {
-        anchors.fill: parent
-        color: "transparent"
+        id: clockPill
+        anchors.centerIn: parent
+        implicitWidth: middleContent.implicitWidth + 16
+        implicitHeight: 26
         radius: 8
+        color: (clockMouseArea.containsMouse || calendarPopup.isOpen) ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.15) : "transparent"
+        border.color: (clockMouseArea.containsMouse || calendarPopup.isOpen) ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.3) : "transparent"
+        border.width: 1
+
+        Behavior on color { ColorAnimation { duration: 150 } }
+        Behavior on border.color { ColorAnimation { duration: 150 } }
 
         // 🖱️ MOUSEAREA HOVER POPUP TRIGGER
         MouseArea {
+            id: clockMouseArea
             anchors.fill: parent
             hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
             onEntered: {
                 closeTimer.stop()
                 calendarPopup.isOpen = true

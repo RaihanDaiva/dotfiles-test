@@ -5,7 +5,7 @@ import QtQuick.Effects
 import "../../"
 import "../../../theme"
 
-// 🎵 MEDIA PLAYER POPUP (Menggunakan BasePopup Reusable Shell)
+// 🎵 MEDIA PLAYER POPUP (Scaled Up Performance & Proportion Matching SysStatsPopup & CalendarPopup)
 BasePopup {
     id: popupRoot
 
@@ -25,9 +25,9 @@ BasePopup {
     // Posisi yang aktif ditampilkan: pakai seekPosition saat dragging, currentPosition saat normal
     readonly property real displayPosition: isSeeking ? seekPosition : currentPosition
 
-    // 📐 UKURAN POPUP PRESISI DENGAN GAP BAWAH (420px height)
-    implicitWidth: 270
-    implicitHeight: 420
+    // 📐 UKURAN POPUP PROPOSIONAL DI-SCALE UP (310x450 px)
+    implicitWidth: 310
+    implicitHeight: 485
 
     // ⏱️ TIMER DETIK REAL-TIME
     Timer {
@@ -64,14 +64,14 @@ BasePopup {
     // 📦 KONTEN UTAMA MEDIA PLAYER POPUP
     ColumnLayout {
         anchors.fill: parent
-        spacing: 10
+        spacing: 5
 
-        // 🖼️ 1. COVER ALBUM 1:1 ASPECT RATIO DENGAN CORNER RADIUS
+        // 🖼️ 1. COVER ALBUM 1:1 ASPECT RATIO DENGAN CORNER RADIUS (DI-SCALE UP)
         Rectangle {
             id: coverContainer
             Layout.fillWidth: true
             implicitHeight: width
-            radius: 14
+            radius: 16
             color: Theme.accent
             clip: true
 
@@ -93,7 +93,7 @@ BasePopup {
                 id: maskRect
                 width: coverContainer.width
                 height: coverContainer.height
-                radius: 14
+                radius: 16
                 visible: false
                 layer.enabled: true
             }
@@ -102,20 +102,44 @@ BasePopup {
                 anchors.centerIn: parent
                 text: "󰎈"
                 color: Theme.bgDark
-                font { family: Theme.fontMono; pixelSize: 48 }
+                font { family: Theme.fontMono; pixelSize: 56 }
                 visible: popupCover.status !== Image.Ready
             }
         }
 
-        // 🎵 2. PROGRESS BAR INTERAKTIF (Klik / Drag untuk Seek)
+        // 📝 2. JUDUL LAGU & NAMA ARTIS (SCALED UP)
         ColumnLayout {
-            spacing: 4
+            spacing: 3
+            Layout.fillWidth: true
+
+            Text {
+                text: (player && player.trackTitle) ? player.trackTitle : "No Media"
+                color: Theme.textMain
+                font { family: Theme.fontMain; pixelSize: 17; bold: true }
+                elide: Text.ElideRight
+                horizontalAlignment: Text.AlignHCenter
+                Layout.fillWidth: true
+            }
+
+            Text {
+                text: popupRoot.artistName
+                color: Theme.accent
+                font { family: Theme.fontMain; pixelSize: 13 }
+                elide: Text.ElideRight
+                horizontalAlignment: Text.AlignHCenter
+                Layout.fillWidth: true
+            }
+        }
+
+        // 🎵 3. PROGRESS BAR INTERAKTIF (Klik / Drag untuk Seek)
+        ColumnLayout {
+            spacing: 5
             Layout.fillWidth: true
 
             // 🎚️ TRACK PROGRESS BAR
             Item {
                 Layout.fillWidth: true
-                implicitHeight: 18
+                implicitHeight: 20
 
                 // Track background (garis abu-abu)
                 Rectangle {
@@ -123,7 +147,7 @@ BasePopup {
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.left: parent.left
                     anchors.right: parent.right
-                    height: seekMouseArea.containsMouse || popupRoot.isSeeking ? 8 : 6
+                    height: seekMouseArea.containsMouse || popupRoot.isSeeking ? 10 : 8
                     radius: height / 2
                     color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.2)
 
@@ -150,7 +174,7 @@ BasePopup {
                         id: progressThumb
                         anchors.verticalCenter: parent.verticalCenter
                         x: Math.min(progressFill.width - width / 2, progressTrack.width - width)
-                        width: seekMouseArea.containsMouse || popupRoot.isSeeking ? 14 : 0
+                        width: seekMouseArea.containsMouse || popupRoot.isSeeking ? 16 : 0
                         height: width
                         radius: width / 2
                         color: Theme.textMain
@@ -199,8 +223,8 @@ BasePopup {
 
                 Text {
                     text: player ? popupRoot.formatTime(popupRoot.displayPosition) : "0:00"
-                    color: popupRoot.isSeeking ? Theme.accent : Theme.accent
-                    font { family: Theme.fontMain; pixelSize: 10 }
+                    color: Theme.accent
+                    font { family: Theme.fontMain; pixelSize: 12 }
                     Behavior on color { ColorAnimation { duration: 150 } }
                 }
 
@@ -209,50 +233,26 @@ BasePopup {
                 Text {
                     text: player ? popupRoot.formatTime(player.length) : "0:00"
                     color: Theme.accent
-                    font { family: Theme.fontMain; pixelSize: 10 }
+                    font { family: Theme.fontMain; pixelSize: 12 }
                 }
             }
         }
 
-        // 📝 3. JUDUL LAGU & NAMA ARTIS
-        ColumnLayout {
-            spacing: 2
-            Layout.fillWidth: true
-
-            Text {
-                text: (player && player.trackTitle) ? player.trackTitle : "No Media"
-                color: Theme.textMain
-                font { family: Theme.fontMain; pixelSize: 14; bold: true }
-                elide: Text.ElideRight
-                horizontalAlignment: Text.AlignHCenter
-                Layout.fillWidth: true
-            }
-
-            Text {
-                text: popupRoot.artistName
-                color: Theme.accent
-                font { family: Theme.fontMain; pixelSize: 11 }
-                elide: Text.ElideRight
-                horizontalAlignment: Text.AlignHCenter
-                Layout.fillWidth: true
-            }
-        }
-
-        // ⏯️ 4. TOMBOL KONTROL PREV, PLAY/PAUSE, NEXT
+        // ⏯️ 4. TOMBOL KONTROL PREV, PLAY/PAUSE, NEXT (SCALED UP TO 48px)
         RowLayout {
             Layout.alignment: Qt.AlignHCenter
-            spacing: 20
+            spacing: 24
 
             // 󰒮 Previous
             Item {
-                implicitWidth: 32
-                implicitHeight: 32
+                implicitWidth: 38
+                implicitHeight: 38
 
                 Text {
                     anchors.centerIn: parent
                     text: "󰒮"
                     color: Theme.textMain
-                    font { family: Theme.fontMono; pixelSize: 18 }
+                    font { family: Theme.fontMono; pixelSize: 22 }
                     Behavior on color { ColorAnimation { duration: 200; easing.type: Easing.InOutQuad } }
                 }
 
@@ -265,9 +265,9 @@ BasePopup {
 
             // 󰏤 / 󰐊 Play / Pause
             Rectangle {
-                implicitWidth: 40
-                implicitHeight: 40
-                radius: 20
+                implicitWidth: 48
+                implicitHeight: 48
+                radius: 24
                 color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.15)
                 border.color: Theme.textMain
                 border.width: 1
@@ -277,7 +277,7 @@ BasePopup {
                     anchors.horizontalCenterOffset: (player && player.isPlaying) ? 0 : 1.5
                     text: (player && player.isPlaying) ? "󰏤" : "󰐊"
                     color: Theme.textMain
-                    font { family: Theme.fontMono; pixelSize: 20 }
+                    font { family: Theme.fontMono; pixelSize: 24 }
                     Behavior on color { ColorAnimation { duration: 200; easing.type: Easing.InOutQuad } }
                 }
 
@@ -296,14 +296,14 @@ BasePopup {
 
             // 󰒭 Next
             Item {
-                implicitWidth: 32
-                implicitHeight: 32
+                implicitWidth: 38
+                implicitHeight: 38
 
                 Text {
                     anchors.centerIn: parent
                     text: "󰒭"
                     color: Theme.textMain
-                    font { family: Theme.fontMono; pixelSize: 18 }
+                    font { family: Theme.fontMono; pixelSize: 22 }
                     Behavior on color { ColorAnimation { duration: 200; easing.type: Easing.InOutQuad } }
                 }
 
