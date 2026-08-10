@@ -130,32 +130,119 @@ Item {
                 }
             }
 
-            // 🎶 Judul Lagu & Artis
+            // 🎶 Judul Lagu & Artis (Dengan Seamless Endless Infinite Marquee Loop)
             ColumnLayout {
                 spacing: 0
-                Layout.maximumWidth: 140
+                Layout.preferredWidth: 80
+                Layout.maximumWidth: 80
 
-                Text {
-                    text: (player && player.trackTitle) ? player.trackTitle : "No Media"
-                    color: Theme.textMain
-                    font { family: Theme.fontMain; pixelSize: 11; bold: true }
-                    elide: Text.ElideRight
-                    Layout.fillWidth: true
+                // 📜 1. SEAMLESS INFINITE MARQUEE JUDUL LAGU
+                Item {
+                    id: titleContainer
+                    Layout.preferredWidth: 80
+                    Layout.maximumWidth: 80
+                    implicitHeight: titleText1.implicitHeight
+                    clip: true
 
-                    Behavior on color {
-                        ColorAnimation { duration: 300; easing.type: Easing.InOutQuad }
+                    readonly property bool isOverflowing: titleText1.contentWidth > titleContainer.width
+                    readonly property real loopSpan: titleText1.contentWidth + 24
+
+                    // Copy 1
+                    Text {
+                        id: titleText1
+                        x: titleContainer.isOverflowing ? titleAnim.xOffset : 0
+                        text: (player && player.trackTitle) ? player.trackTitle : "No Media"
+                        color: Theme.textMain
+                        font { family: Theme.fontMain; pixelSize: 11; bold: true }
+
+                        Behavior on color {
+                            ColorAnimation { duration: 300; easing.type: Easing.InOutQuad }
+                        }
+                    }
+
+                    // Copy 2 (Berada di belakang Copy 1 untuk efek Seamless Loop tanpa henti)
+                    Text {
+                        id: titleText2
+                        x: titleContainer.isOverflowing ? (titleAnim.xOffset + titleContainer.loopSpan) : 0
+                        text: titleText1.text
+                        color: Theme.textMain
+                        font: titleText1.font
+                        visible: titleContainer.isOverflowing
+
+                        Behavior on color {
+                            ColorAnimation { duration: 300; easing.type: Easing.InOutQuad }
+                        }
+                    }
+
+                    // Animasi Bergeser Linear Tanpa Ujung (Continuous Endless Loop)
+                    NumberAnimation {
+                        id: titleAnim
+                        property real xOffset: 0
+                        target: titleAnim
+                        property: "xOffset"
+                        from: 0
+                        to: -titleContainer.loopSpan
+                        duration: Math.max(3000, titleContainer.loopSpan * 45)
+                        loops: Animation.Infinite
+                        running: titleContainer.isOverflowing && player && player.isPlaying
+                        easing.type: Easing.Linear
+
+                        onRunningChanged: if (!running) xOffset = 0
                     }
                 }
 
-                Text {
-                    text: mediaRoot.getArtistName(player)
-                    color: Theme.textMain
-                    font { family: Theme.fontMain; pixelSize: 9 }
-                    elide: Text.ElideRight
-                    Layout.fillWidth: true
+                // 📜 2. SEAMLESS INFINITE MARQUEE NAMA ARTIS
+                Item {
+                    id: artistContainer
+                    Layout.preferredWidth: 100
+                    Layout.maximumWidth: 100
+                    implicitHeight: artistText1.implicitHeight
+                    clip: true
 
-                    Behavior on color {
-                        ColorAnimation { duration: 300; easing.type: Easing.InOutQuad }
+                    readonly property bool isOverflowing: artistText1.contentWidth > artistContainer.width
+                    readonly property real loopSpan: artistText1.contentWidth + 24
+
+                    // Copy 1
+                    Text {
+                        id: artistText1
+                        x: artistContainer.isOverflowing ? artistAnim.xOffset : 0
+                        text: mediaRoot.getArtistName(player)
+                        color: Theme.textMain
+                        font { family: Theme.fontMain; pixelSize: 9 }
+
+                        Behavior on color {
+                            ColorAnimation { duration: 300; easing.type: Easing.InOutQuad }
+                        }
+                    }
+
+                    // Copy 2 (Berada di belakang Copy 1 untuk efek Seamless Loop tanpa henti)
+                    Text {
+                        id: artistText2
+                        x: artistContainer.isOverflowing ? (artistAnim.xOffset + artistContainer.loopSpan) : 0
+                        text: artistText1.text
+                        color: Theme.textMain
+                        font: artistText1.font
+                        visible: artistContainer.isOverflowing
+
+                        Behavior on color {
+                            ColorAnimation { duration: 300; easing.type: Easing.InOutQuad }
+                        }
+                    }
+
+                    // Animasi Bergeser Linear Tanpa Ujung (Continuous Endless Loop)
+                    NumberAnimation {
+                        id: artistAnim
+                        property real xOffset: 0
+                        target: artistAnim
+                        property: "xOffset"
+                        from: 0
+                        to: -artistContainer.loopSpan
+                        duration: Math.max(3000, artistContainer.loopSpan * 45)
+                        loops: Animation.Infinite
+                        running: artistContainer.isOverflowing && player && player.isPlaying
+                        easing.type: Easing.Linear
+
+                        onRunningChanged: if (!running) xOffset = 0
                     }
                 }
             }

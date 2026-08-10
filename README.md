@@ -19,6 +19,7 @@ This repository contains an isolated testing environment (`test-hypr`) for exper
 - **Dynamic MPRIS Media Player Widget (`MediaPlayer.qml`):**
   - Real-time media control powered natively by `Quickshell.Services.Mpris` (Spotify, Firefox/YouTube, Amberol, MPV, VLC, etc.).
   - Displays album art thumbnail (`trackArtUrl`), track title (`trackTitle`), and robust multi-fallback artist detection (`trackArtist`, `trackAlbumArtist`, `xesam:artist`).
+  - **Seamless Infinite Continuous Marquee Loop:** Double-buffered linear text scrolling (`Easing.Linear`) that continuously loops track titles and artist names endlessly without abrupt jumps or gaps when text overflows.
   - Interactive playback control buttons with generous $24\times24\text{px}$ touch targets: Previous (`󰒮`), Play/Pause (`󰏤`/`󰐊`), and Next (`󰒭`).
   - **Real-Time PipeWire Cava Audio Visualizer Background:** 24-bar audio spectrum visualizer (`cava -p ~/.config/cava/config_quickshell`) rendered in the background (`z: 0`) spanning the full width of the container rectangle.
   - Smart auto-hide animation when no media is actively playing.
@@ -62,7 +63,7 @@ dotfiles-test/
     │   └── Bar/
     │       ├── Workspace.qml       # Hybrid workspace switcher with sliding animation
     │       ├── Clock.qml           # Real-time clock & date widget
-    │       ├── MediaPlayer.qml     # Dynamic MPRIS media player with PipeWire Cava background
+    │       ├── MediaPlayer.qml     # Dynamic MPRIS media player with PipeWire Cava & Seamless Marquee
     │       └── SystemStats.qml     # Dynamic stats widget (RAM, CPU, Bluetooth, Wi-Fi, Battery)
     └── scripts/
         └── sys_info.sh             # Executable bash helper script for system metrics
