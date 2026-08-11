@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Services.Mpris
 import "../../theme"
+import "../../components/popups"
 import "mediaPlayerWidget"
 
 Item {
@@ -135,7 +136,6 @@ Item {
                         radius: 5
                         color: Theme.accent
                         clip: true
-                        layer.enabled: true
 
                         Image {
                             id: coverImage

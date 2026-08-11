@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import "../../theme"
-import "clockWidget"
+import "../../components/popups"
 
 Item {
     id: clockRoot
@@ -16,7 +16,7 @@ Item {
         onTriggered: calendarPopup.isOpen = false
     }
 
-    // 🪟 SUB-KOMPONEN 1: CALENDAR POPUP HOVER CARD
+    // 🪟 SUB-KOMPONEN 1: CALENDAR POPUP HOVER CARD (Dari components/popups/)
     CalendarPopup {
         id: calendarPopup
         barWindow: clockRoot.barWindow

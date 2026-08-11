@@ -15,7 +15,12 @@ cat /sys/class/power_supply/BAT*/capacity 2>/dev/null || echo "100"
 cat /sys/class/power_supply/BAT*/status 2>/dev/null || echo "Discharging"
 
 # 5. Wi-Fi Signal Strength (0-100)
-nmcli -t -f active,signal dev wifi 2>/dev/null | awk -F: '/^yes/ {print $2}'
+WIFI_SIG=$(nmcli -t -f active,signal dev wifi 2>/dev/null | awk -F: '/^yes/ {print $2}' | head -n1)
+if [ -n "$WIFI_SIG" ]; then
+    echo "$WIFI_SIG"
+else
+    echo "0"
+fi
 
 # 6. Bluetooth Status (on / off)
 if bluetoothctl show 2>/dev/null | grep -q "Powered: yes"; then
@@ -67,3 +72,31 @@ fi
 
 echo "$GPU_LOAD"
 echo "$GPU_TEMP"
+
+# 15 & 16. Volume Percent (%) and Mute Status
+VOL_RAW=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null || echo "Volume: 0.50")
+VOL_VAL=$(echo "$VOL_RAW" | awk '{print int($2 * 100)}')
+echo "$VOL_VAL"
+
+if echo "$VOL_RAW" | grep -q "MUTED"; then
+    echo "muted"
+else
+    echo "unmuted"
+fi
+
+# 17. Brightness %
+CUR_BR=$(brightnessctl g 2>/dev/null || echo 100)
+MAX_BR=$(brightnessctl m 2>/dev/null || echo 100)
+if [ "$MAX_BR" -gt 0 ]; then
+    BR_PCT=$(( CUR_BR * 100 / MAX_BR ))
+else
+    BR_PCT=100
+fi
+echo "$BR_PCT"
+
+# 18. User Display Name
+USER_NAME=$(getent passwd $USER 2>/dev/null | cut -d: -f5 | cut -d',' -f1)
+if [ -z "$USER_NAME" ]; then
+    USER_NAME=$USER
+fi
+echo "$USER_NAME"

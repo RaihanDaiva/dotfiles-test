@@ -3,7 +3,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
 import "../../theme"
-import "systemStatsWidget"
+import "../../components/popups"
 
 Rectangle {
     id: statsRoot
@@ -22,6 +22,11 @@ Rectangle {
     property int wifiSignal: -1
     property string btStatus: "off"
 
+    // 🔆 BRIGHTNESS & 🔊 VOLUME METRICS
+    property int brightPercent: 100
+    property int volPercent: 80
+    property string volMuted: "unmuted"
+
     // 🌟 POPUP METRICS
     property int cpuLoadPercent: 0
     property int cpuTempValue: 0
@@ -32,14 +37,21 @@ Rectangle {
     property int diskPercent: 0
     property string diskDetails: "0 / 0 GB"
 
-    // ⏱️ TIMER DELAY HOVER POPUP
+    // ⏱️ TIMER DELAY HOVER POPUP SYSTEM MONITOR
     Timer {
-        id: closeTimer
+        id: closeSysTimer
         interval: 300
         onTriggered: sysStatsPopup.isOpen = false
     }
 
-    // 🪟 SUB-KOMPONEN 1: SYSTEM MONITOR POPUP CARD
+    // ⏱️ TIMER DELAY HOVER POPUP QUICK SETTINGS
+    Timer {
+        id: closeQuickTimer
+        interval: 300
+        onTriggered: quickSettingsPopup.isOpen = false
+    }
+
+    // 🪟 SUB-KOMPONEN 1: SYSTEM MONITOR PERFORMANCE POPUP CARD (Dari components/popups/)
     SysStatsPopup {
         id: sysStatsPopup
         barWindow: statsRoot.barWindow
@@ -55,8 +67,26 @@ Rectangle {
         diskPercent: statsRoot.diskPercent
         diskDetails: statsRoot.diskDetails
 
-        onKeepOpen: closeTimer.stop()
-        onStartCloseTimer: closeTimer.restart()
+        onKeepOpen: closeSysTimer.stop()
+        onStartCloseTimer: closeSysTimer.restart()
+    }
+
+    // 🪟 SUB-KOMPONEN 2: QUICK SETTINGS / CONTROL CENTER POPUP CARD (Dari components/popups/)
+    QuickSettingsPopup {
+        id: quickSettingsPopup
+        barWindow: statsRoot.barWindow
+        controlRootItem: controlPill
+
+        onKeepOpen: closeQuickTimer.stop()
+        onStartCloseTimer: closeQuickTimer.restart()
+    }
+
+    // 🔊 Dynamic Volume Icon Logic
+    readonly property string volIcon: {
+        if (volMuted === "muted" || volPercent <= 0) return "󰝟"
+        if (volPercent >= 66) return "󰕾"
+        if (volPercent >= 33) return "󰖀"
+        return "󰕿"
     }
 
     // 🔋 Dynamic Battery Icon Logic
@@ -89,7 +119,7 @@ Rectangle {
 
     // 󰂯 Dynamic Bluetooth Icon Logic
     readonly property string btIcon: (btStatus === "on" || btStatus === "connected") ? "󰂯" : "󰂲"
-    readonly property color btColor: (btStatus === "on" || btStatus === "connected") ? Theme.accent : Theme.accent
+    readonly property color btColor: (btStatus === "on" || btStatus === "connected") ? Theme.accent : Theme.secondary
 
     Process {
         id: sysProcess
@@ -112,6 +142,9 @@ Rectangle {
                 if (lines.length >= 12 && lines[11] !== "") diskDetails = lines[11].trim()
                 if (lines.length >= 13 && lines[12] !== "") gpuLoadPercent = parseInt(lines[12]) || 0
                 if (lines.length >= 14 && lines[13] !== "") gpuTempValue = parseInt(lines[13]) || 0
+                if (lines.length >= 15 && lines[14] !== "") volPercent = parseInt(lines[14]) || 0
+                if (lines.length >= 16 && lines[15] !== "") volMuted = lines[15].trim()
+                if (lines.length >= 17 && lines[16] !== "") brightPercent = parseInt(lines[16]) || 100
             }
         }
     }
@@ -130,9 +163,9 @@ Rectangle {
     RowLayout {
         id: statsLayout
         anchors.centerIn: parent
-        spacing: 14
+        spacing: 10
 
-        // 🧠🌡️ PILL RECTANGLE GABUNGAN RAM & CPU TEMP (HOVER TRIGGER FOR POPUP)
+        // 🧠🌡️ PILL RECTANGLE 1: RAM & CPU TEMP (HOVER TRIGGER FOR SYSSTATS POPUP)
         Rectangle {
             id: ramTempPill
             implicitWidth: ramTempLayout.implicitWidth + 12
@@ -151,11 +184,11 @@ Rectangle {
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 onEntered: {
-                    closeTimer.stop()
+                    closeSysTimer.stop()
                     sysStatsPopup.isOpen = true
                 }
                 onExited: {
-                    closeTimer.restart()
+                    closeSysTimer.restart()
                 }
             }
 
@@ -200,42 +233,110 @@ Rectangle {
             }
         }
 
-        // 󰂯 Bluetooth
-        RowLayout {
-            spacing: 4
-            Text {
-                text: btIcon
-                color: btColor
-                font { family: Theme.fontMono; pixelSize: 16 }
-                Behavior on color { ColorAnimation { duration: 300; easing.type: Easing.InOutQuad } }
-            }
-        }
+        // 🎛️ PILL RECTANGLE 2: VOLUME %, BLUETOOTH, & WI-FI (HOVER TRIGGER FOR CONTROL CENTER POPUP)
+        Rectangle {
+            id: controlPill
+            implicitWidth: controlLayout.implicitWidth + 12
+            implicitHeight: 26
+            radius: 8
+            color: (controlMouseArea.containsMouse || quickSettingsPopup.isOpen) ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.15) : "transparent"
+            border.color: (controlMouseArea.containsMouse || quickSettingsPopup.isOpen) ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.3) : "transparent"
+            border.width: 1
 
-        // 📡 Wi-Fi
-        RowLayout {
-            spacing: 4
-            Text {
-                text: wifiIcon
-                color: wifiColor
-                font { family: Theme.fontMono; pixelSize: 16 }
-                Behavior on color { ColorAnimation { duration: 300; easing.type: Easing.InOutQuad } }
-            }
-        }
+            Behavior on color { ColorAnimation { duration: 150 } }
+            Behavior on border.color { ColorAnimation { duration: 150 } }
 
-        // 🔋 Battery
-        RowLayout {
-            spacing: 4
-            Text {
-                text: batIcon
-                color: batColor
-                font { family: Theme.fontMono; pixelSize: 16 }
-                Behavior on color { ColorAnimation { duration: 300; easing.type: Easing.InOutQuad } }
+            MouseArea {
+                id: controlMouseArea
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onEntered: {
+                    closeQuickTimer.stop()
+                    quickSettingsPopup.isOpen = true
+                }
+                onExited: {
+                    closeQuickTimer.restart()
+                }
             }
-            Text {
-                text: batCap + "%"
-                color: Theme.textMain
-                font { family: Theme.fontMain; pixelSize: 13; bold: true }
-                Behavior on color { ColorAnimation { duration: 300; easing.type: Easing.InOutQuad } }
+
+            RowLayout {
+                id: controlLayout
+                anchors.centerIn: parent
+                spacing: 10
+
+                // 🔆 BRIGHTNESS % (Disebelah Kiri Volume)
+                RowLayout {
+                    spacing: 4
+                    Text {
+                        text: "󰃠"
+                        color: Theme.accent
+                        font { family: Theme.fontMono; pixelSize: 15 }
+                        Behavior on color { ColorAnimation { duration: 300; easing.type: Easing.InOutQuad } }
+                    }
+                    Text {
+                        text: statsRoot.brightPercent + "%"
+                        color: Theme.textMain
+                        font { family: Theme.fontMain; pixelSize: 13; bold: true }
+                        Behavior on color { ColorAnimation { duration: 300; easing.type: Easing.InOutQuad } }
+                    }
+                }
+
+                // 🔊 VOLUME %
+                RowLayout {
+                    spacing: 4
+                    Text {
+                        text: statsRoot.volIcon
+                        color: statsRoot.volMuted === "muted" ? "#f38ba8" : Theme.accent
+                        font { family: Theme.fontMono; pixelSize: 15 }
+                        Behavior on color { ColorAnimation { duration: 300; easing.type: Easing.InOutQuad } }
+                    }
+                    Text {
+                        text: statsRoot.volPercent + "%"
+                        color: Theme.textMain
+                        font { family: Theme.fontMain; pixelSize: 13; bold: true }
+                        Behavior on color { ColorAnimation { duration: 300; easing.type: Easing.InOutQuad } }
+                    }
+                }
+
+                // 󰂯 BLUETOOTH
+                RowLayout {
+                    spacing: 4
+                    Text {
+                        text: btIcon
+                        color: btColor
+                        font { family: Theme.fontMono; pixelSize: 15 }
+                        Behavior on color { ColorAnimation { duration: 300; easing.type: Easing.InOutQuad } }
+                    }
+                }
+
+                // 📡 WI-FI
+                RowLayout {
+                    spacing: 4
+                    Text {
+                        text: wifiIcon
+                        color: wifiColor
+                        font { family: Theme.fontMono; pixelSize: 15 }
+                        Behavior on color { ColorAnimation { duration: 300; easing.type: Easing.InOutQuad } }
+                    }
+                }
+
+                // 🔋 BATTERY (DYNAMIC ICON & CAPACITY TEXT)
+                RowLayout {
+                    spacing: 4
+                    Text {
+                        text: batIcon
+                        color: batColor
+                        font { family: Theme.fontMono; pixelSize: 16 }
+                        Behavior on color { ColorAnimation { duration: 300; easing.type: Easing.InOutQuad } }
+                    }
+                    Text {
+                        text: batCap + "%"
+                        color: Theme.textMain
+                        font { family: Theme.fontMain; pixelSize: 13; bold: true }
+                        Behavior on color { ColorAnimation { duration: 300; easing.type: Easing.InOutQuad } }
+                    }
+                }
             }
         }
     }

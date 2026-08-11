@@ -2,10 +2,10 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 import QtQuick.Effects
-import "../../"
-import "../../../theme"
+import "../../widgets"
+import "../../theme"
 
-// 🎵 MEDIA PLAYER POPUP (Scaled Up Performance & Proportion Matching SysStatsPopup & CalendarPopup)
+// 🎵 MEDIA PLAYER POPUP (Berada di components/popups/ & Inherit BasePopup dari widgets/)
 BasePopup {
     id: popupRoot
 
@@ -64,7 +64,7 @@ BasePopup {
     // 📦 KONTEN UTAMA MEDIA PLAYER POPUP
     ColumnLayout {
         anchors.fill: parent
-        spacing: 5
+        spacing: 12
 
         // 🖼️ 1. COVER ALBUM 1:1 ASPECT RATIO DENGAN CORNER RADIUS (DI-SCALE UP)
         Rectangle {

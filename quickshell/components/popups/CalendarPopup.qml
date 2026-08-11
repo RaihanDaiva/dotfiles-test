@@ -2,10 +2,10 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 import Quickshell.Io
-import "../../"
-import "../../../theme"
+import "../../widgets"
+import "../../theme"
 
-// 📅 KALENDER POPUP (Scaled Up Reusable Shell matching SysStatsPopup dimensions)
+// 📅 KALENDER POPUP (Berada di components/popups/ & Inherit BasePopup dari widgets/)
 BasePopup {
     id: popupRoot
 
@@ -14,7 +14,7 @@ BasePopup {
 
     // 📐 UKURAN POPUP LEBIH BESAR & SEIMBANG (380x450 px)
     implicitWidth: 380
-    implicitHeight: 450
+    implicitHeight: 485
 
     // 📅 STATE KALENDER
     property date currentDate: new Date()

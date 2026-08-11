@@ -16,11 +16,12 @@ This repository contains an isolated testing environment (`test-hypr`) for exper
   - **Active Workspace:** High-contrast dark text (`Theme.bgDark`) over the bright accent pill.
   - **Occupied Workspace:** Bright text (`Theme.textMain`) indicating running applications.
   - **Empty Workspace:** Muted 35% opacity text (`Theme.textMain` 0.35 alpha) to reduce visual clutter.
-- **Reusable Popup Architecture (`BasePopup.qml`):**
-  - Modular, extensible `PanelWindow` shell encapsulated in `widgets/BasePopup.qml`.
+- **Modular Popup Architecture (`BasePopup.qml` & `components/popups/`):**
+  - Reusable `PanelWindow` shell encapsulated in `widgets/BasePopup.qml`.
   - Built-in Wayland LayerShell setup (`WlrLayershell.namespace: "quickshell:popup"`), Hyprland glassmorphism blur, translucent Pywal background (`0.5` alpha), and dual slide/fade enter-exit animations.
-  - Dynamic `updatePosition()` automatically centering any popup card precisely under its target status bar widget.
-  - Native Qt 6 `HoverHandler` handling mouse events seamlessly without child widget event conflicts.
+  - **Dynamic Wayland Keyboard Focus:** `requiresKeyboardFocus` property switching `WlrLayershell.keyboardFocus` dynamically to `WlrKeyboardFocus.OnDemand` whenever text input is active, allowing seamless typing in popups without stealing desktop focus otherwise.
+  - **Smart Clamped Positioning (`updatePosition()`):** Auto-centers popup under target widget, and dynamically clamps left/right edges flush with the status bar boundaries if overflowing.
+  - Centralized popup repository under `components/popups/` for clean imports and maintainability.
 - **Unified Status Bar Pill Hover System:**
   - Standardized uniform pill hover rectangle (`height: 26px`, `radius: 8px`, translucent Pywal `0.15` background with `0.3` accent border) across all primary status bar widgets (`Clock.qml`, `MediaPlayer.qml`, `SystemStats.qml`).
 - **Interactive Calendar & Date Hub (`Clock.qml` & `CalendarPopup.qml`):**
@@ -31,7 +32,7 @@ This repository contains an isolated testing environment (`test-hypr`) for exper
     - Month navigation controls: Previous Month (`󰅁`), Next Month (`󰅂`), and Today Reset (`󰃭`).
     - Dimmed dates for preceding and trailing month days.
   - **System Uptime Indicator:** Live system uptime parsed asynchronously via `Quickshell.Io` `Process` from `/proc/uptime` (e.g. `󰅐 System Uptime: 4j 12m`).
-- **System Performance Monitor Dashboard (`SystemStats.qml` & `SysStatsPopup.qml`):**
+- **System Performance Dashboard (`SysStatsPopup.qml`):**
   - **5-Circle Symmetrical Ring Gauge Layout:**
     - **CPU Load (`󰻠`):** Real-time processor utilization ring gauge with dynamic status badges (*Normal / High / Critical*).
     - **GPU Load (`󰢮`):** Real-time GPU utilization ring gauge powered by `nvidia-smi` and Linux DRM sysfs (`gpu_busy_percent`) fallback.
@@ -39,32 +40,23 @@ This repository contains an isolated testing environment (`test-hypr`) for exper
     - **GPU Temp (`󰔏`):** Thermal status ring gauge for GPU (*Good / Warm / Hot*).
     - **Memory (`󰍛`):** Centered RAM utilization ring gauge with exact capacity metrics (*e.g. 10Gi / 15Gi*).
   - **Storage Disk Usage Bar:** Full-width progress bar tracking root `/` partition storage space (*e.g. 105G / 250G*).
-  - **Enlarged Circular Ring Gauges ($115\times115\text{px}$):** Thickened 8px Canvas stroke width and vibrant color-coded metrics.
-- **Dynamic MPRIS Media Player Widget (`MediaPlayer.qml`):**
+  - **Styling Polish:** Scaled gauge icons (`24px`), swapped icon/value colors (`Theme.textMain` for icons, dynamic status colors for numbers), and clear text labels.
+- **Windows 11 Style Control Center Hub (`QuickSettingsPopup.qml`):**
+  - **3-Page Horizontal Sliding Drill-Down Navigation:**
+    - **Page 0 (Main Page):** Fixed User Profile + Battery status header, Wi-Fi & Bluetooth control pills, Screen Brightness slider, and Volume slider.
+    - **Page 1 (Detail List Page):** Real-time scanned Wi-Fi networks (SSID, signal %, connection status, connect action) or paired Bluetooth devices (clean name, status, connect action) with master toggle switch and scan button.
+    - **Page 2 (Wi-Fi Password Input Page):** Dedicated password input page sliding in when connecting to unremembered Wi-Fi networks. Features target SSID display, show/hide password toggle (`󰈈`/`󰈂`), status feedback (*Connecting… / Connected! / Connection failed*), Enter key acceptance, and automated `nmcli` connection process.
+  - **Optically Centered Circle Icons:** `anchors.centerIn` with `anchors.horizontalCenterOffset: -1` in `ControlPill.qml` for optical alignment inside circular icon buttons.
+  - **Bluetooth & Wi-Fi List Delegate Parity:** Identical text font sizing and weights across Wi-Fi and Bluetooth list delegates (Icon: 16px, Name: 14px bold, Status/Action: 12px bold).
+- **Dynamic MPRIS Media Player Widget (`MediaPlayer.qml` & `MediaPopup.qml`):**
   - Real-time media control powered natively by `Quickshell.Services.Mpris` (Spotify, Firefox/YouTube, Amberol, MPV, VLC, etc.) with **Smart-Select Active Player Filtering** prioritizing actively playing media over idle browser tabs.
-  - Displays album art thumbnail (`trackArtUrl`), track title (`trackTitle`), and robust multi-fallback artist detection (`trackArtist`, `trackAlbumArtist`, `xesam:artist`).
-  - **Seamless Infinite Continuous Marquee Loop:** Double-buffered linear text scrolling (`Easing.Linear`) that continuously loops track titles and artist names endlessly without abrupt jumps or gaps when text overflows.
-  - **Real-Time PipeWire Cava Audio Visualizer Background:** 24-bar audio spectrum visualizer (`cava -p ~/.config/cava/config_quickshell`) rendered in the background (`z: 0`) spanning the full width of the container rectangle.
-  - **Interactive Hover Detail Card (`MediaPopup.qml`):**
-    - **Vertical Reference Layout:** Scaled $310\times450\text{px}$ floating popup card inheriting from `BasePopup`.
-    - **1:1 Square Album Cover Art:** Large cover art ($278\times278\text{px}$) with smooth `QtQuick.Effects` `MultiEffect` rounded corner masking (`radius: 16`).
-    - **Interactive Seek Progress Bar:** Click and drag to scrub track position in real-time (`player.seek()`), featuring a dynamic hover thumb indicator and active duration text highlights.
-    - **Real-Time Position Ticker:** 1-second `posTicker` updating live playback position (`MM:SS`) and total duration smoothly.
-    - **Optically Centered Controls:** Previous (`󰒮`), Play/Pause (`󰏤`/`󰐊` with $+1.5\text{px}$ optical center offset and $48\times48\text{px}$ button circle), and Next (`󰒭`).
-  - Smart auto-hide animation when no media is actively playing.
-- **Dynamic Pywal Theming & Smooth Transitions:** Real-time wallpaper color synchronization via a background `PywalService` (`StdioCollector` & polling), updating UI colors (`Theme.accent`, `Theme.bgDark`, `Theme.textMain`, `Theme.secondary`) with smooth `Easing.InOutQuad` color fade animations (`ColorAnimation`).
-- **Dynamic System Statistics:**
-  - **RAM Usage:** Real-time RAM usage with Nerd Font glyphs (`󰍛`).
-  - **CPU Temperature:** Real-time CPU thermal status (`󰔏`).
-  - **Dynamic Bluetooth Status:** Real-time Bluetooth connection state (`󰂯` connected vs `󰂲` disconnected with slash).
-  - **Dynamic Wi-Fi Indicator:** Minimalist dynamic signal strength icon (`󰤨` / `󰤥` / `󰤢` / `󰤟` / `󰤮` disconnected) with SSID text hidden.
-  - **Dynamic Battery State:** Smart battery status (`󰂄` charging, `󰁹` full) with automatic red warning color (`#f38ba8`) when battery drops below 20%.
-
-### 🧪 Isolated Hyprland Test Environment (`test-hypr`)
-- **Nested Testing Ready:** Rebound `$mainMod` to `ALT` to prevent keybind collisions with the host compositor during nested testing (`Hyprland -c ~/.config/test-hypr/hyprland.conf`).
-- **Clean Canvas:** Autostart of legacy bars/notification daemons (Waybar, SwayNC, Hyprpaper) commented out to avoid UI overlaps with Quickshell.
-- **Glassmorphism Layer Blur:** `layerrule = blur on` and `ignore_alpha 0.5` configured in `layerrule.conf` for both `quickshell` (status bar) and `quickshell:popup` (popup cards) namespaces.
-- **Self-Contained Sourcing:** All sub-config files source explicitly from `~/.config/test-hypr/`.
+  - **Bar Layout:** Dual vertical `MarqueeText` instances in a `ColumnLayout` for Title (11px bold) and Artist (9px) preventing text overlaps.
+  - **Interactive Hover Detail Card (`MediaPopup.qml`):** Reordered vertical layout: $1:1$ Square Album Cover Art ($278\times278\text{px}$) $\rightarrow$ Track Title & Artist $\rightarrow$ Interactive Seek Progress Slider & Position Ticker $\rightarrow$ Optically Centered Playback Controls.
+- **Status Bar Metrics:**
+  - **Screen Brightness Indicator:** Live brightness icon (`󰃠`) and percentage (`100%`) positioned directly to the left of Volume on the status bar pill (`controlPill`).
+  - **PipeWire Volume %:** Real-time volume & mute status (`󰕾` / `󰝟`).
+  - **Robust Bluetooth & Wi-Fi Metrics:** Line-guaranteed output parsing in `sys_info.sh` ensuring Bluetooth status remains accurate (`󰂯`) even when Wi-Fi is disabled.
+  - **Battery State:** Smart battery status (`󰂄` charging, `󰁹` full) with automatic red warning color (`#f38ba8`) when battery drops below 20%.
 
 ---
 
@@ -84,27 +76,30 @@ dotfiles-test/
 └── quickshell/                     # Quickshell UI configuration
     ├── shell.qml                   # Main entry point (Scope wrapper loading PywalService & Bar)
     ├── components/
-    │   └── Bar.qml                 # Top Status Bar layout
+    │   ├── Bar.qml                 # Top Status Bar layout
+    │   └── popups/                 # 🪟 CENTRALIZED POPUP REPOSITORY
+    │       ├── CalendarPopup.qml   # Interactive monthly calendar, live clock & uptime popup
+    │       ├── MediaPopup.qml      # Floating detail card with 1:1 cover art, seek bar & playback controls
+    │       ├── SysStatsPopup.qml   # 5-Circle Performance Dashboard popup (CPU/GPU Load & Temp, Mem, Storage)
+    │       └── QuickSettingsPopup.qml # Windows 11 style 3-tier sliding Control Center popup
     ├── theme/
     │   ├── Theme.qml               # Clean Singleton storing pure font & color properties
     │   └── PywalService.qml        # Background service syncing Pywal colors to Theme.qml
     ├── widgets/
-    │   ├── BasePopup.qml           # Reusable PanelWindow popup shell with Hyprland blur & auto-positioning
+    │   ├── BasePopup.qml           # Reusable PanelWindow popup shell with dynamic Wayland keyboard focus & blur
+    │   ├── ControlPill.qml         # Reusable control button pill with optical center offset
     │   └── bar/
     │       ├── Workspace.qml       # Hybrid workspace switcher with sliding animation
     │       ├── Clock.qml           # Real-time clock & date widget with pill hover trigger
-    │       ├── clockWidget/
-    │       │   └── CalendarPopup.qml # Interactive monthly calendar, live clock & system uptime popup
-    │       ├── MediaPlayer.qml     # Dynamic MPRIS media player entry point with pill hover trigger
-    │       ├── mediaPlayerWidget/  # Dedicated modular sub-components
+    │       ├── MediaPlayer.qml     # Dynamic MPRIS media player entry point with dual MarqueeText column
+    │       ├── mediaPlayerWidget/  # Sub-components for media player
     │       │   ├── MarqueeText.qml # Reusable endless continuous marquee text
-    │       │   ├── CavaVisualizer.qml # 24-bar PipeWire Cava audio visualizer
-    │       │   └── MediaPopup.qml  # Floating hover detail card with interactive seek bar & 1:1 cover art
-    │       ├── SystemStats.qml     # Dynamic stats widget with RAM/Temp pill hover trigger
-    │       └── systemStatsWidget/
-    │           └── SysStatsPopup.qml # 5-Circle Performance Dashboard popup (CPU/GPU Load & Temp, Mem, Storage)
+    │       │   └── CavaVisualizer.qml # 24-bar PipeWire Cava audio visualizer
+    │       └── SystemStats.qml     # Dynamic stats widget (RAM/Temp pill, Control pill with Brightness/Vol/BT/WiFi/Bat)
     └── scripts/
-        └── sys_info.sh             # Executable bash helper script for system metrics & GPU metrics
+        ├── sys_info.sh             # Executable bash helper script for system metrics, GPU stats & volume
+        ├── wifi_list.sh            # Helper script parsing unique signal-sorted Wi-Fi networks via nmcli
+        └── bt_list.sh              # Helper script parsing Bluetooth device status and clean names via pipe delimiter
 ```
 
 ---
@@ -119,7 +114,7 @@ Ensure the following packages are installed on your system (e.g. Arch Linux / Ca
 - `pywal` (`wal`)
 - `bluez` / `bluez-utils` (`bluetoothctl`)
 - `qt6-declarative` / `qt6-5compat` / `qt6-shadertools` (for QML runtime, `QtQuick.Effects`, & `qmlformat`)
-- `procps-ng` (`free`), `networkmanager` (`nmcli`), `bash`, `nvidia-utils` (optional for NVIDIA GPU stats)
+- `procps-ng` (`free`), `networkmanager` (`nmcli`), `bash`, `pipewire` (`wpctl`), `brightnessctl`, `nvidia-utils` (optional for NVIDIA GPU stats)
 
 ### 1. Symlink Configuration (Recommended)
 Link the repository directories to `~/.config/` so any edits sync automatically:
@@ -132,8 +127,8 @@ git clone https://github.com/RaihanDaiva/dotfiles-test.git ~/dotfiles-test
 ln -sf ~/dotfiles-test/test-hypr ~/.config/test-hypr
 ln -sf ~/dotfiles-test/quickshell ~/.config/quickshell
 
-# Make helper script executable
-chmod +x ~/.config/quickshell/scripts/sys_info.sh
+# Make helper scripts executable
+chmod +x ~/.config/quickshell/scripts/*.sh
 ```
 
 ### 2. Testing in Nested Hyprland

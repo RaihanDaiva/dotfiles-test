@@ -4,7 +4,7 @@ import Quickshell
 import Quickshell.Wayland
 import "../theme"
 
-// 🪟 REUSABLE BASE POPUP SHELL (PanelWindow dengan Hyprland Blur & Auto-Centering)
+// 🪟 REUSABLE BASE POPUP SHELL (PanelWindow dengan Hyprland Blur & Smart Clamped Positioning)
 PanelWindow {
     id: popupRoot
 
@@ -22,23 +22,37 @@ PanelWindow {
     property alias cardMargins: contentContainer.anchors.margins
     property alias cardRadius: popupCard.radius
 
+    property bool requiresKeyboardFocus: false
+
     // 🏷️ Namespace & Layer Wayland
     WlrLayershell.namespace: "quickshell:popup"
     WlrLayershell.layer: WlrLayer.Top
-    WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
+    WlrLayershell.keyboardFocus: requiresKeyboardFocus ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
     anchors.top: true
     anchors.left: true
     margins.top: 6
 
-    // 📐 Kalkulasi Posisi Dinamis (Tepat Centered di Bawah targetItem)
+    // 📐 Kalkulasi Posisi Dinamis (Smart Auto-Centering & Clamp ke Ujung Bar)
     function updatePosition() {
         if (!targetItem) return
         var barLeft = barWindow ? barWindow.margins.left : 15
+        var barWidth = barWindow ? barWindow.width : 1000
+
         var itemX = targetItem.mapToItem(null, 0, 0).x
         var itemWidth = targetItem.width
         var popupWidth = popupRoot.implicitWidth
-        popupRoot.margins.left = Math.max(8, Math.round(barLeft + itemX + (itemWidth / 2) - (popupWidth / 2)))
+
+        // 1. Posisi ideal: Centered tepat di bawah targetItem
+        var desiredLeft = barLeft + itemX + (itemWidth / 2) - (popupWidth / 2)
+
+        // 2. Batas Kiri & Kanan (Constraint sejajar dengan ujung bar jika melimpah keluar)
+        var minLeft = barLeft
+        var maxLeft = (barLeft + barWidth) - popupWidth
+
+        var finalLeft = Math.max(minLeft, Math.min(maxLeft, desiredLeft))
+
+        popupRoot.margins.left = Math.round(finalLeft)
     }
 
     onIsOpenChanged: {

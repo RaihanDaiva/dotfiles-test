@@ -2,10 +2,10 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 import Quickshell
-import "../../"
-import "../../../theme"
+import "../../widgets"
+import "../../theme"
 
-// 🎛️ SYSTEM MONITOR PERFORMANCE POPUP (Scaled Circle Gauges Only)
+// 🎛️ SYSTEM MONITOR PERFORMANCE POPUP (Berada di components/popups/ & Inherit BasePopup dari widgets/)
 BasePopup {
     id: popupRoot
 
