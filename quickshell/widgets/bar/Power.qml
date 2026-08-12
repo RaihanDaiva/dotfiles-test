@@ -35,8 +35,8 @@ Item {
         implicitWidth: 26
         implicitHeight: 26
         radius: 13
-        color: (powerMouseArea.containsMouse || powerPopup.isOpen) ? Qt.rgba(243/255, 139/255, 168/255, 0.25) : Qt.rgba(Theme.bgDark.r, Theme.bgDark.g, Theme.bgDark.b, 0.5)
-        border.color: (powerMouseArea.containsMouse || powerPopup.isOpen) ? "#f38ba8" : Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.3)
+        color: (powerMouseArea.containsMouse || powerPopup.isOpen) ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.15) : "transparent"
+        border.color: (powerMouseArea.containsMouse || powerPopup.isOpen) ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.3) : "transparent"
         border.width: 1
 
         Behavior on color { ColorAnimation { duration: 150 } }
@@ -46,8 +46,8 @@ Item {
             anchors.centerIn: parent
             anchors.horizontalCenterOffset: 0
             text: "󰐥"
-            color: (powerMouseArea.containsMouse || powerPopup.isOpen) ? "#f38ba8" : Theme.accent
-            font { family: Theme.fontMono; pixelSize: 14 }
+            color: (powerMouseArea.containsMouse || powerPopup.isOpen) ? Theme.accent : Theme.accent
+            font { family: Theme.fontMono; pixelSize: 18 }
 
             Behavior on color { ColorAnimation { duration: 150 } }
         }

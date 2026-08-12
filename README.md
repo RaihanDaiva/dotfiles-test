@@ -102,7 +102,8 @@ dotfiles-test/
     │       ├── QuickSettingsPopup.qml # Windows 11 style 3-tier sliding Control Center popup
     │       ├── OsdPopup.qml        # Real-time OSD overlay card for Volume & Brightness
     │       ├── NotificationPopup.qml # Native desktop notification popup extending BasePopup
-    │       └── PowerPopup.qml      # Power menu popup dropdown extending BasePopup
+    │       ├── PowerPopup.qml      # Power menu popup dropdown extending BasePopup
+    │       └── PowerMenuOverlay.qml # Fullscreen Power Menu Overlay with Morphing Circle-to-Pill buttons (Super + P)
     ├── theme/
     │   ├── Theme.qml               # Clean Singleton storing pure font & color properties
     │   └── PywalService.qml        # Background service syncing Pywal colors to Theme.qml

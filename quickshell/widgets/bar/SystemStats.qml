@@ -137,7 +137,7 @@ Item {
                 spacing: 4
                 Text {
                     text: "󰔏"
-                    color: "#f38ba8"
+                    color: Theme.accent
                     font { family: Theme.fontMono; pixelSize: 15 }
                 }
                 Text {

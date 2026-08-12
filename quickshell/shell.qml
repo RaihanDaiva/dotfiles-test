@@ -17,6 +17,11 @@ Scope {
         id: notifPopup
     }
 
+    // 🔌 Fullscreen Power Menu Overlay (Triggered by Super + P via quickshell ipc call powermenu toggle)
+    PowerMenuOverlay {
+        id: powerMenuOverlay
+    }
+
     // 📡 Native Notification Server DBus Daemon (org.freedesktop.Notifications)
     NotificationServer {
         id: notifServer 

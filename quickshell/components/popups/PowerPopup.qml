@@ -85,8 +85,8 @@ BasePopup {
             Layout.fillWidth: true
             implicitHeight: 38
             radius: 10
-            color: shutdownHover.hovered ? Qt.rgba(243/255, 139/255, 168/255, 0.25) : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.05)
-            border.color: shutdownHover.hovered ? "#f38ba8" : "transparent"
+            color: shutdownHover.hovered ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25) : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.05)
+            border.color: shutdownHover.hovered ? Theme.accent : "transparent"
             border.width: 1
 
             Behavior on color { ColorAnimation { duration: 150 } }
@@ -99,13 +99,13 @@ BasePopup {
 
                 Text {
                     text: "󰐥"
-                    color: shutdownHover.hovered ? "#f38ba8" : "#f38ba8"
+                    color: shutdownHover.hovered ? Theme.accent : Theme.accent
                     font { family: Theme.fontMono; pixelSize: 16 }
                 }
 
                 Text {
                     text: "Shutdown"
-                    color: shutdownHover.hovered ? "#f38ba8" : Theme.textMain
+                    color: shutdownHover.hovered ? Theme.accent : Theme.textMain
                     font { family: Theme.fontMain; pixelSize: 13; bold: true }
                     Layout.fillWidth: true
                 }
@@ -185,8 +185,8 @@ BasePopup {
             Layout.fillWidth: true
             implicitHeight: 38
             radius: 10
-            color: suspendHover.hovered ? Qt.rgba(137/255, 220/255, 235/255, 0.25) : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.05)
-            border.color: suspendHover.hovered ? "#89dceb" : "transparent"
+            color: suspendHover.hovered ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25) : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.05)
+            border.color: suspendHover.hovered ? Theme.accent : "transparent"
             border.width: 1
 
             Behavior on color { ColorAnimation { duration: 150 } }
@@ -199,13 +199,13 @@ BasePopup {
 
                 Text {
                     text: "󰤄"
-                    color: suspendHover.hovered ? "#89dceb" : "#89dceb"
+                    color: suspendHover.hovered ? Theme.accent : Theme.accent
                     font { family: Theme.fontMono; pixelSize: 16 }
                 }
 
                 Text {
                     text: "Suspend"
-                    color: suspendHover.hovered ? "#89dceb" : Theme.textMain
+                    color: suspendHover.hovered ? Theme.accent : Theme.textMain
                     font { family: Theme.fontMain; pixelSize: 13; bold: true }
                     Layout.fillWidth: true
                 }
@@ -235,8 +235,8 @@ BasePopup {
             Layout.fillWidth: true
             implicitHeight: 38
             radius: 10
-            color: lockHover.hovered ? Qt.rgba(249/255, 226/255, 175/255, 0.25) : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.05)
-            border.color: lockHover.hovered ? "#f9e2af" : "transparent"
+            color: lockHover.hovered ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25) : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.05)
+            border.color: lockHover.hovered ? Theme.accent : "transparent"
             border.width: 1
 
             Behavior on color { ColorAnimation { duration: 150 } }
@@ -249,13 +249,13 @@ BasePopup {
 
                 Text {
                     text: "󰌾"
-                    color: lockHover.hovered ? "#f9e2af" : "#f9e2af"
+                    color: lockHover.hovered ? Theme.accent : Theme.accent
                     font { family: Theme.fontMono; pixelSize: 16 }
                 }
 
                 Text {
                     text: "Lock Screen"
-                    color: lockHover.hovered ? "#f9e2af" : Theme.textMain
+                    color: lockHover.hovered ? Theme.accent : Theme.textMain
                     font { family: Theme.fontMain; pixelSize: 13; bold: true }
                     Layout.fillWidth: true
                 }
@@ -285,8 +285,8 @@ BasePopup {
             Layout.fillWidth: true
             implicitHeight: 38
             radius: 10
-            color: logoutHover.hovered ? Qt.rgba(250/255, 179/255, 135/255, 0.25) : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.05)
-            border.color: logoutHover.hovered ? "#fab387" : "transparent"
+            color: logoutHover.hovered ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25) : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.05)
+            border.color: logoutHover.hovered ? Theme.accent : "transparent"
             border.width: 1
 
             Behavior on color { ColorAnimation { duration: 150 } }
@@ -299,13 +299,13 @@ BasePopup {
 
                 Text {
                     text: "󰍃"
-                    color: logoutHover.hovered ? "#fab387" : "#fab387"
+                    color: logoutHover.hovered ? Theme.accent : Theme.accent
                     font { family: Theme.fontMono; pixelSize: 16 }
                 }
 
                 Text {
                     text: "Log Out"
-                    color: logoutHover.hovered ? "#fab387" : Theme.textMain
+                    color: logoutHover.hovered ? Theme.accent : Theme.textMain
                     font { family: Theme.fontMain; pixelSize: 13; bold: true }
                     Layout.fillWidth: true
                 }
