@@ -144,7 +144,10 @@ Rectangle {
                 if (lines.length >= 14 && lines[13] !== "") gpuTempValue = parseInt(lines[13]) || 0
                 if (lines.length >= 15 && lines[14] !== "") volPercent = parseInt(lines[14]) || 0
                 if (lines.length >= 16 && lines[15] !== "") volMuted = lines[15].trim()
-                if (lines.length >= 17 && lines[16] !== "") brightPercent = parseInt(lines[16]) || 100
+                if (lines.length >= 17 && lines[16] !== "") {
+                    var bp = parseInt(lines[16])
+                    brightPercent = isNaN(bp) ? 100 : bp
+                }
             }
         }
     }

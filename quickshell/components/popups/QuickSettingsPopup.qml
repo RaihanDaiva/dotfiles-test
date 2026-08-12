@@ -35,8 +35,16 @@ BasePopup {
     property string btConnectedName: "Not connected"
     property var btDevices: []         // [{name, mac, connected}]
 
-    // 🎚️ SLIDER METRICS
-    property int brightnessVal: 100
+    // 🎚️ SLIDER METRICS & MULTI-DISPLAY BRIGHTNESS
+    property int displayCount: 1
+    property string brightName1: "Screen Brightness"
+    property int brightVal1: 100
+    property string brightType1: "backlight"
+
+    property string brightName2: "Screen Brightness (second)"
+    property int brightVal2: 100
+    property string brightType2: "ddcutil:1"
+
     property int volumeVal: 80
     property bool volumeMuted: false
 
@@ -232,8 +240,42 @@ BasePopup {
         }
     }
 
-    // ─── BRIGHTNESS & VOLUME ACTION PROCESSES ────────────────────────────────
-    Process { id: brightProc }
+    // ─── MULTI-DISPLAY BRIGHTNESS DETECTION & ACTION PROCESSES ───────────────
+    Process {
+        id: brightInfoProc
+        command: [Quickshell.configDir + "/scripts/brightness_info.sh"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var lines = this.text.trim().split("\n")
+                if (lines.length >= 4) {
+                    var dCount = parseInt(lines[0])
+                    popupRoot.displayCount = isNaN(dCount) ? 1 : dCount
+                    popupRoot.brightName1 = lines[1].trim()
+                    var b1 = parseInt(lines[2])
+                    popupRoot.brightVal1 = isNaN(b1) ? 100 : b1
+                    popupRoot.brightType1 = lines[3].trim()
+                    if (popupRoot.displayCount >= 2 && lines.length >= 7) {
+                        popupRoot.brightName2 = lines[4].trim()
+                        var b2 = parseInt(lines[5])
+                        popupRoot.brightVal2 = isNaN(b2) ? 100 : b2
+                        popupRoot.brightType2 = lines[6].trim()
+                    }
+                }
+            }
+        }
+    }
+
+    Timer {
+        id: brightPollTimer
+        interval: 3000
+        running: popupRoot.isOpen
+        repeat: true
+        triggeredOnStart: true
+        onTriggered: { brightInfoProc.running = false; brightInfoProc.running = true }
+    }
+
+    Process { id: bright1Proc }
+    Process { id: bright2Proc }
     Process { id: volProc }
     Process { id: wifiToggleProc }
     Process { id: btToggleProc }
@@ -365,7 +407,7 @@ BasePopup {
                         onToggleClicked: {
                             var turningOff = (popupRoot.btStatus !== "off")
                             popupRoot.btStatus = turningOff ? "off" : "on"
-                            btToggleProc.command = ["bluetoothctl", turningOff ? "power off" : "power on"]
+                            btToggleProc.command = ["bluetoothctl", "power", turningOff ? "off" : "on"]
                             btToggleProc.running = true
                         }
                         onExpandClicked: {
@@ -374,7 +416,7 @@ BasePopup {
                     }
                 }
 
-                // 🔆 BRIGHTNESS SLIDER
+                // 🔆 BRIGHTNESS SLIDER 1 (PRIMARY / FIRST)
                 Rectangle {
                     Layout.fillWidth: true
                     implicitHeight: 46
@@ -385,7 +427,7 @@ BasePopup {
 
                     Rectangle {
                         height: parent.height
-                        width: parent.width * (popupRoot.brightnessVal / 100)
+                        width: parent.width * (popupRoot.brightVal1 / 100)
                         radius: parent.radius
                         color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25)
                         Behavior on width { NumberAnimation { duration: 80 } }
@@ -397,12 +439,12 @@ BasePopup {
                         anchors.rightMargin: 12
                         Text { text: "󰃠"; color: Theme.accent; font { family: Theme.fontMono; pixelSize: 18 } }
                         Text {
-                            text: "Screen Brightness"
+                            text: popupRoot.displayCount > 1 ? "Screen Brightness (first)" : "Screen Brightness"
                             color: Theme.textMain
                             font { family: Theme.fontMain; pixelSize: 13; bold: true }
                             Layout.fillWidth: true
                         }
-                        Text { text: popupRoot.brightnessVal + "%"; color: Theme.textMain; font { family: Theme.fontMain; pixelSize: 13; bold: true } }
+                        Text { text: popupRoot.brightVal1 + "%"; color: Theme.textMain; font { family: Theme.fontMain; pixelSize: 13; bold: true } }
                     }
 
                     MouseArea {
@@ -410,9 +452,60 @@ BasePopup {
                         cursorShape: Qt.PointingHandCursor
                         onPositionChanged: (mouse) => {
                             var pct = Math.min(100, Math.max(0, Math.round((mouse.x / width) * 100)))
-                            popupRoot.brightnessVal = pct
-                            brightProc.command = ["brightnessctl", "s", pct + "%"]
-                            brightProc.running = true
+                            popupRoot.brightVal1 = pct
+                            bright1Proc.command = ["brightnessctl", "s", pct + "%"]
+                            bright1Proc.running = true
+                        }
+                    }
+                }
+
+                // 🔆 BRIGHTNESS SLIDER 2 (SECONDARY / SECOND MONITOR - AUTOMATICALLY APPEARS WHEN EXTERNAL MONITOR CONNECTED)
+                Rectangle {
+                    Layout.fillWidth: true
+                    implicitHeight: 46
+                    radius: 12
+                    color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.06)
+                    border.color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.1)
+                    border.width: 1
+                    visible: popupRoot.displayCount >= 2
+
+                    Rectangle {
+                        height: parent.height
+                        width: parent.width * (popupRoot.brightVal2 / 100)
+                        radius: parent.radius
+                        color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25)
+                        Behavior on width { NumberAnimation { duration: 80 } }
+                    }
+
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: 12
+                        anchors.rightMargin: 12
+                        Text { text: "󰃠"; color: Theme.accent; font { family: Theme.fontMono; pixelSize: 18 } }
+                        Text {
+                            text: popupRoot.brightName2 !== "" ? popupRoot.brightName2 : "Screen Brightness (second)"
+                            color: Theme.textMain
+                            font { family: Theme.fontMain; pixelSize: 13; bold: true }
+                            Layout.fillWidth: true
+                        }
+                        Text { text: popupRoot.brightVal2 + "%"; color: Theme.textMain; font { family: Theme.fontMain; pixelSize: 13; bold: true } }
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onPositionChanged: (mouse) => {
+                            var pct = Math.min(100, Math.max(0, Math.round((mouse.x / width) * 100)))
+                            popupRoot.brightVal2 = pct
+                            if (popupRoot.brightType2.indexOf("ddcutil") === 0) {
+                                bright2Proc.command = ["ddcutil", "setvcp", "10", pct.toString()]
+                            } else if (popupRoot.brightType2.indexOf("brightnessctl:") === 0) {
+                                var dev = popupRoot.brightType2.split(":")[1]
+                                bright2Proc.command = ["brightnessctl", "-d", dev, "s", pct + "%"]
+                            } else {
+                                bright2Proc.command = ["brightnessctl", "s", pct + "%"]
+                            }
+                            bright2Proc.running = true
                         }
                     }
                 }
@@ -588,7 +681,7 @@ BasePopup {
                                 } else {
                                     var turningOff = (popupRoot.btStatus !== "off")
                                     popupRoot.btStatus = turningOff ? "off" : "on"
-                                    btToggleProc.command = ["bluetoothctl", turningOff ? "power off" : "power on"]
+                                    btToggleProc.command = ["bluetoothctl", "power", turningOff ? "off" : "on"]
                                     btToggleProc.running = true
                                 }
                             }

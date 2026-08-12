@@ -43,9 +43,15 @@ This repository contains an isolated testing environment (`test-hypr`) for exper
   - **Styling Polish:** Scaled gauge icons (`24px`), swapped icon/value colors (`Theme.textMain` for icons, dynamic status colors for numbers), and clear text labels.
 - **Windows 11 Style Control Center Hub (`QuickSettingsPopup.qml`):**
   - **3-Page Horizontal Sliding Drill-Down Navigation:**
-    - **Page 0 (Main Page):** Fixed User Profile + Battery status header, Wi-Fi & Bluetooth control pills, Screen Brightness slider, and Volume slider.
+    - **Page 0 (Main Page):** Fixed User Profile + Battery status header, Wi-Fi & Bluetooth control pills, Dynamic Multi-Monitor Brightness slider(s), and Volume slider.
     - **Page 1 (Detail List Page):** Real-time scanned Wi-Fi networks (SSID, signal %, connection status, connect action) or paired Bluetooth devices (clean name, status, connect action) with master toggle switch and scan button.
     - **Page 2 (Wi-Fi Password Input Page):** Dedicated password input page sliding in when connecting to unremembered Wi-Fi networks. Features target SSID display, show/hide password toggle (`󰈈`/`󰈂`), status feedback (*Connecting… / Connected! / Connection failed*), Enter key acceptance, and automated `nmcli` connection process.
+  - **Dynamic Multi-Monitor Screen Brightness Detection:**
+    - Automatically detects external monitors via `brightness_info.sh` supporting internal panels (`brightnessctl`) and external displays via DDC/CI (`ddcutil`) or secondary GPU backlights.
+    - **Single Monitor:** Displays single slider titled `"Screen Brightness"`.
+    - **Dual / Multi-Monitor:** Dynamically appends secondary slider titled `"Screen Brightness (first)"` and `"Screen Brightness (second)"`.
+    - **Robust 0% Brightness Parsing:** Uses `isNaN()` check to ensure 0% brightness is parsed accurately without jumping to 100%.
+  - **Reliable Bluetooth Power Toggle:** Split subcommand arguments (`["bluetoothctl", "power", "off"]`) for smooth Bluetooth power toggling.
   - **Optically Centered Circle Icons:** `anchors.centerIn` with `anchors.horizontalCenterOffset: -1` in `ControlPill.qml` for optical alignment inside circular icon buttons.
   - **Bluetooth & Wi-Fi List Delegate Parity:** Identical text font sizing and weights across Wi-Fi and Bluetooth list delegates (Icon: 16px, Name: 14px bold, Status/Action: 12px bold).
 - **Dynamic MPRIS Media Player Widget (`MediaPlayer.qml` & `MediaPopup.qml`):**
@@ -98,6 +104,7 @@ dotfiles-test/
     │       └── SystemStats.qml     # Dynamic stats widget (RAM/Temp pill, Control pill with Brightness/Vol/BT/WiFi/Bat)
     └── scripts/
         ├── sys_info.sh             # Executable bash helper script for system metrics, GPU stats & volume
+        ├── brightness_info.sh      # Helper script detecting internal and DDC/CI external display brightness
         ├── wifi_list.sh            # Helper script parsing unique signal-sorted Wi-Fi networks via nmcli
         └── bt_list.sh              # Helper script parsing Bluetooth device status and clean names via pipe delimiter
 ```
@@ -113,6 +120,7 @@ Ensure the following packages are installed on your system (e.g. Arch Linux / Ca
 - `cava` (for real-time PipeWire audio visualizer)
 - `pywal` (`wal`)
 - `bluez` / `bluez-utils` (`bluetoothctl`)
+- `ddcutil` (optional for external monitor DDC/CI brightness control)
 - `qt6-declarative` / `qt6-5compat` / `qt6-shadertools` (for QML runtime, `QtQuick.Effects`, & `qmlformat`)
 - `procps-ng` (`free`), `networkmanager` (`nmcli`), `bash`, `pipewire` (`wpctl`), `brightnessctl`, `nvidia-utils` (optional for NVIDIA GPU stats)
 
