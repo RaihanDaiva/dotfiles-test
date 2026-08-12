@@ -22,6 +22,11 @@ Scope {
         id: powerMenuOverlay
     }
 
+    // 🚀 Application Launcher Popup (Triggered via quickshell ipc call applauncher toggle)
+    AppLauncherPopup {
+        id: appLauncherPopup
+    }
+
     // 📡 Native Notification Server DBus Daemon (org.freedesktop.Notifications)
     NotificationServer {
         id: notifServer 

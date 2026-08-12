@@ -2,7 +2,7 @@
 
 A modular, modern Linux desktop environment configuration built for **Hyprland** and **Quickshell** (QtQuick/QML-based Wayland shell). 
 
-This repository contains an isolated testing environment (`test-hypr`) for experimentation alongside a custom status bar built from scratch with Quickshell.
+This repository contains an isolated testing environment (`test-hypr`) for experimentation alongside a custom status bar and popups built from scratch with Quickshell.
 
 ---
 
@@ -11,7 +11,7 @@ This repository contains an isolated testing environment (`test-hypr`) for exper
 ### 🏛️ Status Bar & Widgets (Quickshell)
 - **Mathematical Screen Center Alignment:** Independent component anchoring ensures the center island (Clock) stays in the exact mathematical center of the screen regardless of left/right island sizes.
 - **Modular 3-Widget Right Island Architecture:**
-  - **SystemStats (`SystemStats.qml`):** Dedicated RAM usage & CPU temperature monitor pill triggering `SysStatsPopup`.
+  - **SystemStats (`SystemStats.qml`):** Dedicated RAM usage & CPU temperature monitor pill triggering `SysStatsPopup`. Dynamic Pywal `Theme.accent` color applied across all status icons including CPU Temp (`󰔏`).
   - **ControlCenter (`ControlCenter.qml`):** Quick settings control pill (Brightness %, Volume %, Bluetooth, Wi-Fi, Battery %) triggering `QuickSettingsPopup` & `OsdPopup`.
   - **Power (`Power.qml`):** Standalone circular Power button (`󰐥`) triggering `PowerPopup`.
 - **Sliding Workspace Pill:** Smooth `OutCubic` sliding animation (`Behavior on x`) when switching active workspaces, with accurate coordinate mapping via `mapToItem`.
@@ -27,11 +27,21 @@ This repository contains an isolated testing environment (`test-hypr`) for exper
   - **Smart Clamped Positioning (`updatePosition()`):** Auto-centers popup under target widget, and dynamically clamps left/right edges flush with the status bar boundaries if overflowing.
   - Centralized popup repository under `components/popups/` for clean imports and maintainability.
 - **Unified Status Bar Pill Hover System:**
-  - Standardized uniform pill hover rectangle (`height: 26px`, `radius: 8px`, translucent Pywal `0.15` background with `0.3` accent border) across all primary status bar widgets (`Clock.qml`, `MediaPlayer.qml`, `SystemStats.qml`, `ControlCenterWidget.qml`, `PowerWidget.qml`).
+  - Standardized uniform pill hover rectangle (`height: 26px`, `radius: 8px`, translucent Pywal `0.15` background with `0.3` accent border) across all primary status bar widgets (`Clock.qml`, `MediaPlayer.qml`, `SystemStats.qml`, `ControlCenter.qml`, `Power.qml`).
 - **Power Button & Vertical Pill Power Menu (`PowerPopup.qml`):**
   - Dedicated circular Power button (`󰐥`) positioned cleanly as its own standalone pill widget on the right island.
   - **Vertical Pill Dropdown Menu (Opsi B):** Profile header with live uptime display + 5 rounded action pills for **Shutdown** (`systemctl poweroff`), **Reboot** (`systemctl reboot`), **Suspend** (`systemctl suspend`), **Lock Screen** (`hyprlock`), and **Log Out** (`hyprctl dispatch exit`).
-  - Distinct color-coded hover highlights for each action pill (Rose `#f38ba8` for Shutdown, Accent for Reboot, Teal `#89dceb` for Suspend, Gold `#f9e2af` for Lock, Orange `#fab387` for Logout).
+  - Unified theme color highlights (`Theme.accent`) matching the Reboot button standard across all power action pills.
+- **Fullscreen Power Menu Overlay (`PowerMenuOverlay.qml`):**
+  - Replaces `wlogout` with a native Quickshell overlay triggered by `Super + P` (`quickshell ipc call powermenu toggle`).
+  - **Bottom-Center Floating Card:** Slide-up entrance animation (`Translate y: 50 → 0`) with dark backdrop overlay.
+  - **Circle-to-Pill Morphing Animation:** Buttons default to compact circles ($64\times64\text{px}$) showing Nerd Font icons and expand into horizontal pills ($180\times64\text{px}$) on hover/selection to reveal action labels.
+  - **Keyboard Navigation:** Full arrow key selection, Enter/Space execution, and Escape dismissal.
+- **Custom Application Launcher (`AppLauncherPopup.qml`):**
+  - Custom launcher triggered by `Alt + A` (`quickshell ipc call applauncher toggle`).
+  - **Bottom-Center Overlay Layout:** Slide-up animation with top `ListView` app list and bottom search bar pill (`Type ">" for commands`).
+  - **Native Freedesktop Icon Provider:** Resolves system app GTK icons via `image://icon/<name>`.
+  - **Auto-Retry Boot Scanning:** Asynchronously populates installed apps scanned via `DesktopEntries.applications`.
 - **Native Desktop Notification Daemon & Overlay (`NotificationPopup.qml` & `NotificationServer`):**
   - Built directly on Quickshell's native DBus `NotificationServer` daemon (`Quickshell.Services.Notifications`).
   - **Extends `PanelWindow` Overlay:** Top-Right alignment flush under status bar with Hyprland glassmorphism blur and Pywal theme integration.
@@ -70,11 +80,6 @@ This repository contains an isolated testing environment (`test-hypr`) for exper
   - Real-time media control powered natively by `Quickshell.Services.Mpris` (Spotify, Firefox/YouTube, Amberol, MPV, VLC, etc.) with **Smart-Select Active Player Filtering** prioritizing actively playing media over idle browser tabs.
   - **Bar Layout:** Dual vertical `MarqueeText` instances in a `ColumnLayout` for Title (11px bold) and Artist (9px) preventing text overlaps.
   - **Interactive Hover Detail Card (`MediaPopup.qml`):** Reordered vertical layout: $1:1$ Square Album Cover Art ($278\times278\text{px}$) $\rightarrow$ Track Title & Artist $\rightarrow$ Interactive Seek Progress Slider & Position Ticker $\rightarrow$ Optically Centered Playback Controls.
-- **Status Bar Metrics:**
-  - **Screen Brightness Indicator:** Live brightness icon (`󰃠`) and percentage (`100%`) positioned directly to the left of Volume on the status bar pill (`controlPill`).
-  - **PipeWire Volume %:** Real-time volume & mute status (`󰕾` / `󰝟`).
-  - **Robust Bluetooth & Wi-Fi Metrics:** Line-guaranteed output parsing in `sys_info.sh` ensuring Bluetooth status remains accurate (`󰂯`) even when Wi-Fi is disabled.
-  - **Battery State:** Smart battery status (`󰂄` charging, `󰁹` full) with automatic red warning color (`#f38ba8`) when battery drops below 20%.
 
 ---
 
@@ -85,14 +90,14 @@ dotfiles-test/
 ├── test-hypr/                      # Isolated Hyprland configuration
 │   ├── hyprland.conf               # Core Hyprland configuration (sourcing test-hypr files)
 │   ├── autostart.conf              # Autostart applications & background daemons
-│   ├── keybinds.conf               # Rebound shortcuts ($mainMod = ALT)
+│   ├── keybinds.conf               # Rebound shortcuts ($mainMod = ALT, Super + P powermenu, Super + A applauncher)
 │   ├── input.conf                  # Keyboard layout & touchpad settings
 │   ├── layerrule.conf              # Blur & window rules (ignore_alpha 0.5 for quickshell & quickshell:popup)
 │   ├── monitors.conf               # Display monitor setup
 │   └── scripts/                    # Wallpaper & utility scripts (set-wallpaper.sh, etc.)
 │
 └── quickshell/                     # Quickshell UI configuration
-    ├── shell.qml                   # Main entry point (Scope wrapper loading PywalService, Bar & NotificationServer)
+    ├── shell.qml                   # Main entry point (Scope loading PywalService, Bar, NotificationServer, PowerMenuOverlay & AppLauncherPopup)
     ├── components/
     │   ├── Bar.qml                 # Top Status Bar layout
     │   └── popups/                 # 🪟 CENTRALIZED POPUP REPOSITORY
@@ -101,9 +106,10 @@ dotfiles-test/
     │       ├── SysStatsPopup.qml   # 5-Circle Performance Dashboard popup (CPU/GPU Load & Temp, Mem, Storage)
     │       ├── QuickSettingsPopup.qml # Windows 11 style 3-tier sliding Control Center popup
     │       ├── OsdPopup.qml        # Real-time OSD overlay card for Volume & Brightness
-    │       ├── NotificationPopup.qml # Native desktop notification popup extending BasePopup
+    │       ├── NotificationPopup.qml # Native desktop notification popup extending PanelWindow
     │       ├── PowerPopup.qml      # Power menu popup dropdown extending BasePopup
-    │       └── PowerMenuOverlay.qml # Fullscreen Power Menu Overlay with Morphing Circle-to-Pill buttons (Super + P)
+    │       ├── PowerMenuOverlay.qml # Fullscreen Power Menu Overlay with Morphing Circle-to-Pill buttons (Super + P)
+    │       └── AppLauncherPopup.qml # Application Launcher popup extending PanelWindow with bottom-center search bar (Alt + A)
     ├── theme/
     │   ├── Theme.qml               # Clean Singleton storing pure font & color properties
     │   └── PywalService.qml        # Background service syncing Pywal colors to Theme.qml
@@ -180,6 +186,8 @@ quickshell
 | Shortcut | Action |
 | :--- | :--- |
 | `Alt + Return` | Open Terminal (Kitty) |
+| `Alt + A` | Open Custom Quickshell App Launcher |
+| `Super + P` | Open Custom Quickshell Power Menu Overlay |
 | `Alt + Q` | Close Active Window |
 | `Alt + M` | Exit Hyprland Session |
 | `Alt + 1` .. `Alt + 5` | Switch Workspaces |
