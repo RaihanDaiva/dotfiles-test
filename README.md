@@ -10,6 +10,10 @@ This repository contains an isolated testing environment (`test-hypr`) for exper
 
 ### 🏛️ Status Bar & Widgets (Quickshell)
 - **Mathematical Screen Center Alignment:** Independent component anchoring ensures the center island (Clock) stays in the exact mathematical center of the screen regardless of left/right island sizes.
+- **Modular 3-Widget Right Island Architecture:**
+  - **SystemStats (`SystemStats.qml`):** Dedicated RAM usage & CPU temperature monitor pill triggering `SysStatsPopup`.
+  - **ControlCenter (`ControlCenter.qml`):** Quick settings control pill (Brightness %, Volume %, Bluetooth, Wi-Fi, Battery %) triggering `QuickSettingsPopup` & `OsdPopup`.
+  - **Power (`Power.qml`):** Standalone circular Power button (`󰐥`) triggering `PowerPopup`.
 - **Sliding Workspace Pill:** Smooth `OutCubic` sliding animation (`Behavior on x`) when switching active workspaces, with accurate coordinate mapping via `mapToItem`.
 - **Hybrid Workspace Model:** Displays base static workspaces (`I` to `V`) and dynamically appends extra workspaces (`VI`, `VII`, etc.) when active or occupied.
 - **Logical Visual Hierarchy:**
@@ -23,7 +27,16 @@ This repository contains an isolated testing environment (`test-hypr`) for exper
   - **Smart Clamped Positioning (`updatePosition()`):** Auto-centers popup under target widget, and dynamically clamps left/right edges flush with the status bar boundaries if overflowing.
   - Centralized popup repository under `components/popups/` for clean imports and maintainability.
 - **Unified Status Bar Pill Hover System:**
-  - Standardized uniform pill hover rectangle (`height: 26px`, `radius: 8px`, translucent Pywal `0.15` background with `0.3` accent border) across all primary status bar widgets (`Clock.qml`, `MediaPlayer.qml`, `SystemStats.qml`).
+  - Standardized uniform pill hover rectangle (`height: 26px`, `radius: 8px`, translucent Pywal `0.15` background with `0.3` accent border) across all primary status bar widgets (`Clock.qml`, `MediaPlayer.qml`, `SystemStats.qml`, `ControlCenterWidget.qml`, `PowerWidget.qml`).
+- **Power Button & Vertical Pill Power Menu (`PowerPopup.qml`):**
+  - Dedicated circular Power button (`󰐥`) positioned cleanly as its own standalone pill widget on the right island.
+  - **Vertical Pill Dropdown Menu (Opsi B):** Profile header with live uptime display + 5 rounded action pills for **Shutdown** (`systemctl poweroff`), **Reboot** (`systemctl reboot`), **Suspend** (`systemctl suspend`), **Lock Screen** (`hyprlock`), and **Log Out** (`hyprctl dispatch exit`).
+  - Distinct color-coded hover highlights for each action pill (Rose `#f38ba8` for Shutdown, Accent for Reboot, Teal `#89dceb` for Suspend, Gold `#f9e2af` for Lock, Orange `#fab387` for Logout).
+- **Native Desktop Notification Daemon & Overlay (`NotificationPopup.qml` & `NotificationServer`):**
+  - Built directly on Quickshell's native DBus `NotificationServer` daemon (`Quickshell.Services.Notifications`).
+  - **Extends `PanelWindow` Overlay:** Top-Right alignment flush under status bar with Hyprland glassmorphism blur and Pywal theme integration.
+  - **Reference-Matched Layout:** Displays a left circular app icon avatar with badge indicator, bold summary title, multi-line wrapped body message, and dismiss button (`󰅖`).
+  - **Smart Hover Pausing:** Pauses 5-second auto-dismiss timer on mouse hover and resumes on leave.
 - **Real-Time On-Screen Display (OSD) Overlay (`OsdPopup.qml`):**
   - Floating bottom-centered glassmorphism overlay card (`WlrLayer.Overlay`) rendering real-time volume and brightness indicators with smooth `OutCubic` entrance/exit animations.
   - **0ms Real-Time Event Listener (`sys_event_monitor.sh`):** Streams PipeWire audio events via `pactl subscribe` and Linux kernel backlight events via `udevadm monitor --subsystem-match=backlight` for instant OSD updates when adjusting volume or brightness via keyboard **Fn** shortcuts.
@@ -79,7 +92,7 @@ dotfiles-test/
 │   └── scripts/                    # Wallpaper & utility scripts (set-wallpaper.sh, etc.)
 │
 └── quickshell/                     # Quickshell UI configuration
-    ├── shell.qml                   # Main entry point (Scope wrapper loading PywalService & Bar)
+    ├── shell.qml                   # Main entry point (Scope wrapper loading PywalService, Bar & NotificationServer)
     ├── components/
     │   ├── Bar.qml                 # Top Status Bar layout
     │   └── popups/                 # 🪟 CENTRALIZED POPUP REPOSITORY
@@ -87,7 +100,9 @@ dotfiles-test/
     │       ├── MediaPopup.qml      # Floating detail card with 1:1 cover art, seek bar & playback controls
     │       ├── SysStatsPopup.qml   # 5-Circle Performance Dashboard popup (CPU/GPU Load & Temp, Mem, Storage)
     │       ├── QuickSettingsPopup.qml # Windows 11 style 3-tier sliding Control Center popup
-    │       └── OsdPopup.qml        # Real-time OSD overlay card for Volume & Brightness
+    │       ├── OsdPopup.qml        # Real-time OSD overlay card for Volume & Brightness
+    │       ├── NotificationPopup.qml # Native desktop notification popup extending BasePopup
+    │       └── PowerPopup.qml      # Power menu popup dropdown extending BasePopup
     ├── theme/
     │   ├── Theme.qml               # Clean Singleton storing pure font & color properties
     │   └── PywalService.qml        # Background service syncing Pywal colors to Theme.qml
@@ -101,7 +116,9 @@ dotfiles-test/
     │       ├── mediaPlayerWidget/  # Sub-components for media player
     │       │   ├── MarqueeText.qml # Reusable endless continuous marquee text
     │       │   └── CavaVisualizer.qml # 24-bar PipeWire Cava audio visualizer
-    │       └── SystemStats.qml     # Dynamic stats widget (RAM/Temp pill, Control pill with Brightness/Vol/BT/WiFi/Bat)
+    │       ├── SystemStats.qml     # RAM & CPU Temp performance monitor widget
+    │       ├── ControlCenter.qml   # Quick settings control pill widget (Brightness/Vol/BT/WiFi/Bat)
+    │       └── Power.qml           # Standalone Power button widget
     └── scripts/
         ├── sys_info.sh             # Executable bash helper script for system metrics, GPU stats & volume
         ├── sys_event_monitor.sh    # Real-time event streamer for PipeWire audio & kernel backlight
@@ -118,6 +135,7 @@ dotfiles-test/
 Ensure the following packages are installed on your system (e.g. Arch Linux / CachyOS):
 - `hyprland`
 - `quickshell`
+- `libnotify` (`notify-send`)
 - `cava` (for real-time PipeWire audio visualizer)
 - `pywal` (`wal`)
 - `bluez` / `bluez-utils` (`bluetoothctl`)

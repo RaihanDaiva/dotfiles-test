@@ -57,13 +57,22 @@ PanelWindow {
         anchors.centerIn: parent
     }
 
-    // 📍 3. PULAU KANAN (System Stats: RAM, CPU, Battery, Wi-Fi)
+    // 📍 3. PULAU KANAN (System Stats, Control Center, & Power)
     RowLayout {
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
         anchors.rightMargin: 10
+        spacing: 8
 
         SystemStats {
+            barWindow: barWindow
+        }
+
+        ControlCenter {
+            barWindow: barWindow
+        }
+
+        Power {
             barWindow: barWindow
         }
     }
