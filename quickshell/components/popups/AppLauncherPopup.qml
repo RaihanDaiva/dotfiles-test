@@ -25,7 +25,7 @@ PanelWindow {
         bottom: true
     }
     margins {
-        bottom: 50
+        bottom: 10
     }
 
     implicitWidth: 480
@@ -117,16 +117,22 @@ PanelWindow {
         }
     }
 
+    signal requestOpen()
+
     // 📡 QUICKSHELL IPC HANDLER FOR SHORTCUT (`quickshell ipc call applauncher toggle`)
     IpcHandler {
         target: "applauncher"
 
         function toggle() {
-            launcherPopup.isOpen = !launcherPopup.isOpen
+            if (launcherPopup.isOpen) {
+                launcherPopup.isOpen = false
+            } else {
+                launcherPopup.requestOpen()
+            }
         }
 
         function open() {
-            launcherPopup.isOpen = true
+            launcherPopup.requestOpen()
         }
 
         function close() {
@@ -293,7 +299,7 @@ PanelWindow {
                         focus: true
 
                         Text {
-                            text: 'Type ">" for commands'
+                            text: 'Search Apps'
                             color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.4)
                             font { family: Theme.fontMain; pixelSize: 14 }
                             visible: searchInput.text === "" && !searchInput.inputMethodComposing

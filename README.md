@@ -39,9 +39,19 @@ This repository contains an isolated testing environment (`test-hypr`) for exper
   - **Keyboard Navigation:** Full arrow key selection, Enter/Space execution, and Escape dismissal.
 - **Custom Application Launcher (`AppLauncherPopup.qml`):**
   - Custom launcher triggered by `Alt + A` (`quickshell ipc call applauncher toggle`).
-  - **Bottom-Center Overlay Layout:** Slide-up animation with top `ListView` app list and bottom search bar pill (`Type ">" for commands`).
+  - **Bottom-Center Overlay Layout:** Slide-up animation with top `ListView` app list and bottom search bar pill (`Search Apps`).
   - **Native Freedesktop Icon Provider:** Resolves system app GTK icons via `image://icon/<name>`.
   - **Auto-Retry Boot Scanning:** Asynchronously populates installed apps scanned via `DesktopEntries.applications`.
+- **Custom Wallpaper Selector (`WallpaperPopup.qml`):**
+  - Custom wallpaper picker triggered by `Alt + W` (`quickshell ipc call wallpaperselect toggle`).
+  - **Bottom-Center Overlay Layout:** Slide-up animation with top 5-item horizontal carousel ($16:9$ thumbnails) and bottom search bar pill (`Search Wallpapers`).
+  - **Focused Config Directory Scanning (`wallpaper_list.sh`):** Scans wallpapers exclusively from `$HOME/.config/wallpapers/`.
+  - **Active Wallpaper Persistence & Auto-Centering:** Detects current wallpaper on boot (`readlink -f ~/.cache/current_wallpaper.jpg`) and automatically highlights and centers it in the middle of the carousel (`ListView.Center`).
+  - **Un-clipped Accent Border:** Outer border container handles scale ($1.12\times$) and Pywal accent border glow (`Theme.accent`), while inner container with inset margins (`clip: true`) renders rounded thumbnail images smoothly.
+  - **Automated Pywal & Hyprpaper Execution (`apply_wallpaper.sh`):** Auto-starts `hyprpaper` if dead, applies wallpaper to all monitors, updates Pywal color scheme & Hyprland active border colors, and refreshes Cava.
+- **Sequenced Popup Transition Manager (`shell.qml`):**
+  - Built-in 200ms transition timer (`popupOpenTimer`) handling `requestOpen()` signals between `AppLauncherPopup` (`Alt + A`) and `WallpaperPopup` (`Alt + W`).
+  - Ensures when switching between popups, the active popup slides down and closes completely BEFORE the new popup slides up smoothly onto a clean desktop.
 - **Native Desktop Notification Daemon & Overlay (`NotificationPopup.qml` & `NotificationServer`):**
   - Built directly on Quickshell's native DBus `NotificationServer` daemon (`Quickshell.Services.Notifications`).
   - **Extends `PanelWindow` Overlay:** Top-Right alignment flush under status bar with Hyprland glassmorphism blur and Pywal theme integration.
@@ -89,15 +99,15 @@ This repository contains an isolated testing environment (`test-hypr`) for exper
 dotfiles-test/
 ├── test-hypr/                      # Isolated Hyprland configuration
 │   ├── hyprland.conf               # Core Hyprland configuration (sourcing test-hypr files)
-│   ├── autostart.conf              # Autostart applications & background daemons
-│   ├── keybinds.conf               # Rebound shortcuts ($mainMod = ALT, Super + P powermenu, Super + A applauncher)
+│   ├── autostart.conf              # Autostart applications & background daemons (hyprpaper, restore-wallpaper.sh & quickshell)
+│   ├── keybinds.conf               # Rebound shortcuts ($mainMod = ALT, Super + P powermenu, Alt + A applauncher, Alt + W wallpaperselect)
 │   ├── input.conf                  # Keyboard layout & touchpad settings
 │   ├── layerrule.conf              # Blur & window rules (ignore_alpha 0.5 for quickshell & quickshell:popup)
 │   ├── monitors.conf               # Display monitor setup
-│   └── scripts/                    # Wallpaper & utility scripts (set-wallpaper.sh, etc.)
+│   └── scripts/                    # Wallpaper & utility scripts (set-wallpaper.sh, restore-wallpaper.sh, etc.)
 │
 └── quickshell/                     # Quickshell UI configuration
-    ├── shell.qml                   # Main entry point (Scope loading PywalService, Bar, NotificationServer, PowerMenuOverlay & AppLauncherPopup)
+    ├── shell.qml                   # Main entry point (Scope loading PywalService, Bar, NotificationServer, PowerMenuOverlay, AppLauncherPopup & WallpaperPopup)
     ├── components/
     │   ├── Bar.qml                 # Top Status Bar layout
     │   └── popups/                 # 🪟 CENTRALIZED POPUP REPOSITORY
@@ -109,7 +119,8 @@ dotfiles-test/
     │       ├── NotificationPopup.qml # Native desktop notification popup extending PanelWindow
     │       ├── PowerPopup.qml      # Power menu popup dropdown extending BasePopup
     │       ├── PowerMenuOverlay.qml # Fullscreen Power Menu Overlay with Morphing Circle-to-Pill buttons (Super + P)
-    │       └── AppLauncherPopup.qml # Application Launcher popup extending PanelWindow with bottom-center search bar (Alt + A)
+    │       ├── AppLauncherPopup.qml # Application Launcher popup extending PanelWindow with bottom-center search bar (Alt + A)
+    │       └── WallpaperPopup.qml  # Horizontal Wallpaper Selector Carousel popup extending PanelWindow (Alt + W)
     ├── theme/
     │   ├── Theme.qml               # Clean Singleton storing pure font & color properties
     │   └── PywalService.qml        # Background service syncing Pywal colors to Theme.qml
@@ -131,7 +142,9 @@ dotfiles-test/
         ├── sys_event_monitor.sh    # Real-time event streamer for PipeWire audio & kernel backlight
         ├── brightness_info.sh      # Helper script detecting internal and DDC/CI external display brightness
         ├── wifi_list.sh            # Helper script parsing unique signal-sorted Wi-Fi networks via nmcli
-        └── bt_list.sh              # Helper script parsing Bluetooth device status and clean names via pipe delimiter
+        ├── bt_list.sh              # Helper script parsing Bluetooth device status and clean names via pipe delimiter
+        ├── wallpaper_list.sh       # Helper script parsing wallpapers exclusively from ~/.config/wallpapers/
+        └── apply_wallpaper.sh      # Executable script setting hyprpaper, pywal colors, hyprland borders & cava
 ```
 
 ---
@@ -142,6 +155,7 @@ dotfiles-test/
 Ensure the following packages are installed on your system (e.g. Arch Linux / CachyOS):
 - `hyprland`
 - `quickshell`
+- `hyprpaper`
 - `libnotify` (`notify-send`)
 - `cava` (for real-time PipeWire audio visualizer)
 - `pywal` (`wal`)
@@ -187,6 +201,7 @@ quickshell
 | :--- | :--- |
 | `Alt + Return` | Open Terminal (Kitty) |
 | `Alt + A` | Open Custom Quickshell App Launcher |
+| `Alt + W` | Open Custom Quickshell Wallpaper Selector |
 | `Super + P` | Open Custom Quickshell Power Menu Overlay |
 | `Alt + Q` | Close Active Window |
 | `Alt + M` | Exit Hyprland Session |
