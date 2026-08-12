@@ -8,6 +8,8 @@ import "../theme"
 PanelWindow {
     id: popupRoot
 
+    exclusionMode: ExclusionMode.Ignore
+
     // 🎯 PROPERTY REUSABLE
     property var barWindow: null
     property var targetItem: null
@@ -31,13 +33,15 @@ PanelWindow {
 
     anchors.top: true
     anchors.left: true
-    margins.top: 6
+    margins.top: 54
 
     // 📐 Kalkulasi Posisi Dinamis (Smart Auto-Centering & Clamp ke Ujung Bar)
     function updatePosition() {
         if (!targetItem) return
         var barLeft = barWindow ? barWindow.margins.left : 15
         var barWidth = barWindow ? barWindow.width : 1000
+        var barTop = barWindow ? barWindow.margins.top : 8
+        var barHeight = barWindow ? (barWindow.height > 0 ? barWindow.height : barWindow.implicitHeight) : 40
 
         var itemX = targetItem.mapToItem(null, 0, 0).x
         var itemWidth = targetItem.width
@@ -53,6 +57,7 @@ PanelWindow {
         var finalLeft = Math.max(minLeft, Math.min(maxLeft, desiredLeft))
 
         popupRoot.margins.left = Math.round(finalLeft)
+        popupRoot.margins.top = barTop + barHeight + 6
     }
 
     onIsOpenChanged: {

@@ -8,6 +8,8 @@ import "../../theme"
 PanelWindow {
     id: osdRoot
 
+    exclusionMode: ExclusionMode.Ignore
+
     // 🎯 PUBLIC PROPERTIES & METHODS
     property bool isOpen: false
     property string osdIcon: "󰃠"

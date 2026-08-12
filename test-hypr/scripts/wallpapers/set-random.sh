@@ -1,5 +1,5 @@
 #!/bin/bash
 
-choose_random="$HOME/.config/test-hypr/scripts/wallpapers/random.sh"
-$HOME/.config/test-hypr/scripts/wallpapers/set.sh $($choose_random)
+choose_random="$HOME/.config/hypr/scripts/wallpapers/random.sh"
+$HOME/.config/hypr/scripts/wallpapers/set.sh $($choose_random)
 

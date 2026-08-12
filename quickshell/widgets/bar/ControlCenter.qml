@@ -91,11 +91,11 @@ Item {
     readonly property string btIcon: (btStatus === "on" || btStatus === "connected") ? "󰂯" : "󰂲"
     readonly property color btColor: (btStatus === "on" || btStatus === "connected") ? Theme.accent : Theme.secondary
 
-    // ⚡ REAL-TIME SYSTEM EVENT MONITOR (0ms latency for Fn Volume & Brightness keys)
+    // ⚡ REAL-TIME SYSTEM EVENT MONITOR (0ms latency for Fn Volume & Brightness keys - Primary Screen Only)
     Process {
         id: eventMonitorProc
         command: [Quickshell.configDir + "/scripts/sys_event_monitor.sh"]
-        running: true
+        running: !controlWidgetRoot.Window.window || !controlWidgetRoot.Window.window.screen || controlWidgetRoot.Window.window.screen === Quickshell.screens[0]
 
         stdout: SplitParser {
             onRead: data => {
@@ -202,7 +202,7 @@ Item {
                 Text {
                     text: "󰃠"
                     color: Theme.accent
-                    font { family: Theme.fontMono; pixelSize: 15 }
+                    font { family: Theme.fontMono; pixelSize: 18 }
                 }
                 Text {
                     text: controlWidgetRoot.brightPercent + "%"
@@ -217,7 +217,7 @@ Item {
                 Text {
                     text: controlWidgetRoot.volIcon
                     color: controlWidgetRoot.volMuted === "muted" ? "#f38ba8" : (controlWidgetRoot.volPercent > 100 ? "#f38ba8" : Theme.accent)
-                    font { family: Theme.fontMono; pixelSize: 15 }
+                    font { family: Theme.fontMono; pixelSize: 18 }
                 }
                 Text {
                     text: controlWidgetRoot.volPercent + "%"
@@ -232,7 +232,7 @@ Item {
                 Text {
                     text: btIcon
                     color: btColor
-                    font { family: Theme.fontMono; pixelSize: 15 }
+                    font { family: Theme.fontMono; pixelSize: 18 }
                 }
             }
 
@@ -242,7 +242,7 @@ Item {
                 Text {
                     text: wifiIcon
                     color: wifiColor
-                    font { family: Theme.fontMono; pixelSize: 15 }
+                    font { family: Theme.fontMono; pixelSize: 18 }
                 }
             }
 
@@ -252,7 +252,7 @@ Item {
                 Text {
                     text: batIcon
                     color: batColor
-                    font { family: Theme.fontMono; pixelSize: 16 }
+                    font { family: Theme.fontMono; pixelSize: 18 }
                 }
                 Text {
                     text: batCap + "%"

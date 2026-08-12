@@ -52,7 +52,7 @@ BasePopup {
         }
     }
 
-    // Helper fungsi format detik ke MM:SS
+    // Helper fungsi format detik ke MM:SS 
     function formatTime(sec) {
         if (!sec || isNaN(sec) || sec <= 0) return "0:00"
         if (sec > 100000) sec = Math.floor(sec / 1000000)

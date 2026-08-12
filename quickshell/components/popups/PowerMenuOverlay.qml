@@ -10,6 +10,8 @@ import "../../theme"
 PanelWindow {
     id: powerMenuRoot
 
+    exclusionMode: ExclusionMode.Ignore
+
     property bool isOpen: false
     property int selectedIndex: -1 // -1 means none keyboard-selected (hover active)
 

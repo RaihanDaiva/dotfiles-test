@@ -123,7 +123,7 @@ Item {
                 Text {
                     text: "󰍛"
                     color: Theme.accent
-                    font { family: Theme.fontMono; pixelSize: 15 }
+                    font { family: Theme.fontMono; pixelSize: 18 }
                 }
                 Text {
                     text: statsRoot.ramText
@@ -138,7 +138,7 @@ Item {
                 Text {
                     text: "󰔏"
                     color: Theme.accent
-                    font { family: Theme.fontMono; pixelSize: 15 }
+                    font { family: Theme.fontMono; pixelSize: 18 }
                 }
                 Text {
                     text: statsRoot.cpuTempText

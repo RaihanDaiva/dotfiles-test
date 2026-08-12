@@ -9,8 +9,18 @@ Scope {
     // 🔄 Service pemantau warna Pywal di background
     PywalService {}
 
-    // 🖥️ Status Bar Utama
-    Bar {} 
+    // 🖥️ Status Bar Utama untuk Semua Monitor (Laptop & Monitor Kedua)
+    Variants {
+        model: Quickshell.screens
+
+        Scope {
+            required property var modelData
+
+            Bar {
+                screen: modelData
+            }
+        }
+    } 
 
     // 🔔 Notification Popup Overlay Card (Menggunakan BasePopup & Pywal Theme)
     NotificationPopup {

@@ -8,88 +8,72 @@ This repository contains an isolated testing environment (`test-hypr`) for exper
 
 ## 🚀 Features
 
-### 🏛️ Status Bar & Widgets (Quickshell)
+### 🏛️ Status Bar & Multi-Monitor Widgets (Quickshell)
+- **Multi-Monitor Native Architecture:** Instantiates the top status bar on all connected displays (`eDP-1` laptop display, `DP-1` external display, HDMI) via `Variants` over `Quickshell.screens`.
 - **Mathematical Screen Center Alignment:** Independent component anchoring ensures the center island (Clock) stays in the exact mathematical center of the screen regardless of left/right island sizes.
+- **Independent Per-Monitor Workspace Active Pill Tracking (`Workspace.qml`):**
+  - Binds active workspace detection to `Hyprland.monitorFor(screen).activeWorkspace`.
+  - Each monitor tracks and highlights its own active workspace independently (e.g. Workspace 1 highlighted on main monitor while Workspace 5 is highlighted on second monitor).
+- **Special Workspace Indicator (`★`) & Negative Workspace ID Filtering:**
+  - Filters out negative workspace IDs (`id > 0`) from regular workspace items, preventing scratchpad IDs (e.g. `-98`) from rendering on the left.
+  - Adds a dedicated Special Workspace button (`★`) at the far right end of the workspace bar. When a scratchpad is focused, the sliding accent pill (`activePill`) smoothly moves to `★`.
+- **Real-Time GTK Application Icons & Instance Count Dots (`Workspace.qml`):**
+  - Background process streaming `hyprctl clients -j` to parse open window classes per workspace.
+  - Maps window classes to system GTK/Freedesktop icons (`image://icon/`).
+  - Displays open app icons to the right of each workspace Roman numeral.
+  - Adds instance count indicator dots (`••`) beneath icons when multiple instances of the same application are open in a workspace.
+  - **Dynamic Sliding Pill Width:** `activePill.width` smoothly expands and contracts (`Behavior on width`) to wrap around Roman numerals, app icons, and instance dots.
 - **Modular 3-Widget Right Island Architecture:**
   - **SystemStats (`SystemStats.qml`):** Dedicated RAM usage & CPU temperature monitor pill triggering `SysStatsPopup`. Dynamic Pywal `Theme.accent` color applied across all status icons including CPU Temp (`󰔏`).
-  - **ControlCenter (`ControlCenter.qml`):** Quick settings control pill (Brightness %, Volume %, Bluetooth, Wi-Fi, Battery %) triggering `QuickSettingsPopup` & `OsdPopup`.
+  - **ControlCenter (`ControlCenter.qml`):** Quick settings control pill (Brightness %, Volume %, Bluetooth, Wi-Fi, Battery %) triggering `QuickSettingsPopup` & `OsdPopup`. Restricted `eventMonitorProc` to primary screen (`Quickshell.screens[0]`) to eliminate duplicate OSD popups on multi-monitor setups.
   - **Power (`Power.qml`):** Standalone circular Power button (`󰐥`) triggering `PowerPopup`.
-- **Sliding Workspace Pill:** Smooth `OutCubic` sliding animation (`Behavior on x`) when switching active workspaces, with accurate coordinate mapping via `mapToItem`.
-- **Hybrid Workspace Model:** Displays base static workspaces (`I` to `V`) and dynamically appends extra workspaces (`VI`, `VII`, etc.) when active or occupied.
 - **Logical Visual Hierarchy:**
   - **Active Workspace:** High-contrast dark text (`Theme.bgDark`) over the bright accent pill.
   - **Occupied Workspace:** Bright text (`Theme.textMain`) indicating running applications.
   - **Empty Workspace:** Muted 35% opacity text (`Theme.textMain` 0.35 alpha) to reduce visual clutter.
-- **Modular Popup Architecture (`BasePopup.qml` & `components/popups/`):**
+- **Floating Overlay Popups & LayerShell Exclusion Mode (`BasePopup.qml` & `components/popups/`):**
   - Reusable `PanelWindow` shell encapsulated in `widgets/BasePopup.qml`.
+  - **`exclusionMode: ExclusionMode.Ignore`:** Applied across all popup windows (`BasePopup.qml`, `AppLauncherPopup.qml`, `WallpaperPopup.qml`, `OsdPopup.qml`, `PowerMenuOverlay.qml`, `NotificationPopup.qml`) ensuring popups float 100% cleanly over tiled windows without splitting or altering workspace tiling grids.
+  - **Precise Below-Bar Positioning:** Dynamic top margin calculation (`margins.top: 54` or `barTop + barHeight + 6`) placing dropdown popups flush EXACTLY `6px` below the status bar.
   - Built-in Wayland LayerShell setup (`WlrLayershell.namespace: "quickshell:popup"`), Hyprland glassmorphism blur, translucent Pywal background (`0.5` alpha), and dual slide/fade enter-exit animations.
-  - **Dynamic Wayland Keyboard Focus:** `requiresKeyboardFocus` property switching `WlrLayershell.keyboardFocus` dynamically to `WlrKeyboardFocus.OnDemand` whenever text input is active, allowing seamless typing in popups without stealing desktop focus otherwise.
-  - **Smart Clamped Positioning (`updatePosition()`):** Auto-centers popup under target widget, and dynamically clamps left/right edges flush with the status bar boundaries if overflowing.
-  - Centralized popup repository under `components/popups/` for clean imports and maintainability.
-- **Unified Status Bar Pill Hover System:**
-  - Standardized uniform pill hover rectangle (`height: 26px`, `radius: 8px`, translucent Pywal `0.15` background with `0.3` accent border) across all primary status bar widgets (`Clock.qml`, `MediaPlayer.qml`, `SystemStats.qml`, `ControlCenter.qml`, `Power.qml`).
+  - **Dynamic Wayland Keyboard Focus:** `requiresKeyboardFocus` property switching `WlrLayershell.keyboardFocus` dynamically to `WlrKeyboardFocus.OnDemand` whenever text input is active.
 - **Power Button & Vertical Pill Power Menu (`PowerPopup.qml`):**
   - Dedicated circular Power button (`󰐥`) positioned cleanly as its own standalone pill widget on the right island.
   - **Vertical Pill Dropdown Menu (Opsi B):** Profile header with live uptime display + 5 rounded action pills for **Shutdown** (`systemctl poweroff`), **Reboot** (`systemctl reboot`), **Suspend** (`systemctl suspend`), **Lock Screen** (`hyprlock`), and **Log Out** (`hyprctl dispatch exit`).
-  - Unified theme color highlights (`Theme.accent`) matching the Reboot button standard across all power action pills.
 - **Fullscreen Power Menu Overlay (`PowerMenuOverlay.qml`):**
   - Replaces `wlogout` with a native Quickshell overlay triggered by `Super + P` (`quickshell ipc call powermenu toggle`).
   - **Bottom-Center Floating Card:** Slide-up entrance animation (`Translate y: 50 → 0`) with dark backdrop overlay.
   - **Circle-to-Pill Morphing Animation:** Buttons default to compact circles ($64\times64\text{px}$) showing Nerd Font icons and expand into horizontal pills ($180\times64\text{px}$) on hover/selection to reveal action labels.
-  - **Keyboard Navigation:** Full arrow key selection, Enter/Space execution, and Escape dismissal.
 - **Custom Application Launcher (`AppLauncherPopup.qml`):**
   - Custom launcher triggered by `Alt + A` (`quickshell ipc call applauncher toggle`).
   - **Bottom-Center Overlay Layout:** Slide-up animation with top `ListView` app list and bottom search bar pill (`Search Apps`).
   - **Native Freedesktop Icon Provider:** Resolves system app GTK icons via `image://icon/<name>`.
-  - **Auto-Retry Boot Scanning:** Asynchronously populates installed apps scanned via `DesktopEntries.applications`.
 - **Custom Wallpaper Selector (`WallpaperPopup.qml`):**
   - Custom wallpaper picker triggered by `Alt + W` (`quickshell ipc call wallpaperselect toggle`).
   - **Bottom-Center Overlay Layout:** Slide-up animation with top 5-item horizontal carousel ($16:9$ thumbnails) and bottom search bar pill (`Search Wallpapers`).
   - **Focused Config Directory Scanning (`wallpaper_list.sh`):** Scans wallpapers exclusively from `$HOME/.config/wallpapers/`.
   - **Active Wallpaper Persistence & Auto-Centering:** Detects current wallpaper on boot (`readlink -f ~/.cache/current_wallpaper.jpg`) and automatically highlights and centers it in the middle of the carousel (`ListView.Center`).
-  - **Un-clipped Accent Border:** Outer border container handles scale ($1.12\times$) and Pywal accent border glow (`Theme.accent`), while inner container with inset margins (`clip: true`) renders rounded thumbnail images smoothly.
   - **Automated Pywal & Hyprpaper Execution (`apply_wallpaper.sh`):** Auto-starts `hyprpaper` if dead, applies wallpaper to all monitors, updates Pywal color scheme & Hyprland active border colors, and refreshes Cava.
 - **Sequenced Popup Transition Manager (`shell.qml`):**
   - Built-in 200ms transition timer (`popupOpenTimer`) handling `requestOpen()` signals between `AppLauncherPopup` (`Alt + A`) and `WallpaperPopup` (`Alt + W`).
   - Ensures when switching between popups, the active popup slides down and closes completely BEFORE the new popup slides up smoothly onto a clean desktop.
-- **Native Desktop Notification Daemon & Overlay (`NotificationPopup.qml` & `NotificationServer`):**
+- **Multi-Toast Stacked Notification Daemon & Overlay (`NotificationPopup.qml` & `NotificationServer`):**
   - Built directly on Quickshell's native DBus `NotificationServer` daemon (`Quickshell.Services.Notifications`).
-  - **Extends `PanelWindow` Overlay:** Top-Right alignment flush under status bar with Hyprland glassmorphism blur and Pywal theme integration.
-  - **Reference-Matched Layout:** Displays a left circular app icon avatar with badge indicator, bold summary title, multi-line wrapped body message, and dismiss button (`󰅖`).
-  - **Smart Hover Pausing:** Pauses 5-second auto-dismiss timer on mouse hover and resumes on leave.
+  - **Multi-Toast Stacked Toast System:** Manages dynamic array model (`notifList`) supporting up to 4 stacked notification toasts vertically at top-right.
+  - **Sequential Shift:** New notifications prepend to Row 1 (top), smoothly pushing older notifications down to Row 2, Row 3, etc.
+  - **Smooth Horizontal Slide Animations:** IN animation slides from far right screen edge (`+400px` $\rightarrow$ `0px`), OUT animation slides back to far right (`0px` $\rightarrow$ `+400px`).
+  - **Independent Timers & Dismissal:** Individual 5-second auto-dismiss timers and `✖` close buttons per card, with remaining toasts smoothly sliding up on dismissal.
+  - **Reliable Property Assignment:** Explicit property binding in `showNotification()` for 100% reliable app name, summary, body text, and GTK app icon rendering.
 - **Real-Time On-Screen Display (OSD) Overlay (`OsdPopup.qml`):**
   - Floating bottom-centered glassmorphism overlay card (`WlrLayer.Overlay`) rendering real-time volume and brightness indicators with smooth `OutCubic` entrance/exit animations.
   - **0ms Real-Time Event Listener (`sys_event_monitor.sh`):** Streams PipeWire audio events via `pactl subscribe` and Linux kernel backlight events via `udevadm monitor --subsystem-match=backlight` for instant OSD updates when adjusting volume or brightness via keyboard **Fn** shortcuts.
-  - **Auto-Hide:** Automatically fades out after 1.8 seconds of inactivity.
 - **System Performance Dashboard (`SysStatsPopup.qml`):**
-  - **5-Circle Symmetrical Ring Gauge Layout:**
-    - **CPU Load (`󰻠`):** Real-time processor utilization ring gauge with dynamic status badges (*Normal / High / Critical*).
-    - **GPU Load (`󰢮`):** Real-time GPU utilization ring gauge powered by `nvidia-smi` and Linux DRM sysfs (`gpu_busy_percent`) fallback.
-    - **CPU Temp (`󰔏`):** Thermal status ring gauge for CPU (*Good / Warm / Hot*).
-    - **GPU Temp (`󰔏`):** Thermal status ring gauge for GPU (*Good / Warm / Hot*).
-    - **Memory (`󰍛`):** Centered RAM utilization ring gauge with exact capacity metrics (*e.g. 10Gi / 15Gi*).
-  - **Storage Disk Usage Bar:** Full-width progress bar tracking root `/` partition storage space (*e.g. 105G / 250G*).
-  - **Styling Polish:** Scaled gauge icons (`24px`), swapped icon/value colors (`Theme.textMain` for icons, dynamic status colors for numbers), and clear text labels.
+  - **5-Circle Symmetrical Ring Gauge Layout:** CPU Load (`󰻠`), GPU Load (`󰢮`), CPU Temp (`󰔏`), GPU Temp (`󰔏`), and Memory (`󰍛`).
+  - **Storage Disk Usage Bar:** Full-width progress bar tracking root `/` partition storage space.
 - **Windows 11 Style Control Center Hub (`QuickSettingsPopup.qml`):**
-  - **3-Page Horizontal Sliding Drill-Down Navigation:**
-    - **Page 0 (Main Page):** Fixed User Profile + Battery status header, Wi-Fi & Bluetooth control pills, Dynamic Multi-Monitor Brightness slider(s), and Volume Overamplification slider (0–150%).
-    - **Page 1 (Detail List Page):** Real-time scanned Wi-Fi networks (SSID, signal %, connection status, connect action) or paired Bluetooth devices (clean name, status, connect action) with master toggle switch and scan button.
-    - **Page 2 (Wi-Fi Password Input Page):** Dedicated password input page sliding in when connecting to unremembered Wi-Fi networks. Features target SSID display, show/hide password toggle (`󰈈`/`󰈂`), status feedback (*Connecting… / Connected! / Connection failed*), Enter key acceptance, and automated `nmcli` connection process.
-  - **Volume Overamplification (0%–150% Boost):**
-    - Seamlessly supports volume boost up to **150%** via `wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ <pct>%`.
-    - Progress bar fill scales proportionally up to 150% with coral over-boost highlights (`#f38ba8`) and boosted icon indicators (`󱄡`).
-  - **Dynamic Multi-Monitor Screen Brightness Detection:**
-    - Automatically detects external monitors via `brightness_info.sh` supporting internal panels (`brightnessctl`) and external displays via DDC/CI (`ddcutil`) or secondary GPU backlights.
-    - **Single Monitor:** Displays single slider titled `"Screen Brightness"`.
-    - **Dual / Multi-Monitor:** Dynamically appends secondary slider titled `"Screen Brightness (first)"` and `"Screen Brightness (second)"`.
-    - **Robust 0% Brightness Parsing:** Uses `isNaN()` check to ensure 0% brightness is parsed accurately without jumping to 100%.
-  - **Reliable Bluetooth Power Toggle:** Split subcommand arguments (`["bluetoothctl", "power", "off"]`) for smooth Bluetooth power toggling.
-  - **Optically Centered Circle Icons:** `anchors.centerIn` with `anchors.horizontalCenterOffset: -1` in `ControlPill.qml` for optical alignment inside circular icon buttons.
-  - **Bluetooth & Wi-Fi List Delegate Parity:** Identical text font sizing and weights across Wi-Fi and Bluetooth list delegates (Icon: 16px, Name: 14px bold, Status/Action: 12px bold).
-- **Dynamic MPRIS Media Player Widget (`MediaPlayer.qml` & `MediaPopup.qml`):**
-  - Real-time media control powered natively by `Quickshell.Services.Mpris` (Spotify, Firefox/YouTube, Amberol, MPV, VLC, etc.) with **Smart-Select Active Player Filtering** prioritizing actively playing media over idle browser tabs.
-  - **Bar Layout:** Dual vertical `MarqueeText` instances in a `ColumnLayout` for Title (11px bold) and Artist (9px) preventing text overlaps.
-  - **Interactive Hover Detail Card (`MediaPopup.qml`):** Reordered vertical layout: $1:1$ Square Album Cover Art ($278\times278\text{px}$) $\rightarrow$ Track Title & Artist $\rightarrow$ Interactive Seek Progress Slider & Position Ticker $\rightarrow$ Optically Centered Playback Controls.
+  - **3-Page Horizontal Sliding Drill-Down Navigation:** Main Page, Detail List Page (scanned Wi-Fi & paired Bluetooth), and Wi-Fi Password Input Page.
+  - **Volume Overamplification (0%–150% Boost):** Volume boost up to **150%** via `wpctl`.
+  - **Dynamic Multi-Monitor Screen Brightness Detection:** Supports internal panels (`brightnessctl`) and external displays via DDC/CI (`ddcutil`).
 
 ---
 
@@ -98,7 +82,7 @@ This repository contains an isolated testing environment (`test-hypr`) for exper
 ```text
 dotfiles-test/
 ├── test-hypr/                      # Isolated Hyprland configuration
-│   ├── hyprland.conf               # Core Hyprland configuration (sourcing test-hypr files)
+│   ├── hyprland.conf               # Core Hyprland configuration (sourcing ~/.config/hypr files)
 │   ├── autostart.conf              # Autostart applications & background daemons (hyprpaper, restore-wallpaper.sh & quickshell)
 │   ├── keybinds.conf               # Rebound shortcuts ($mainMod = ALT, Super + P powermenu, Alt + A applauncher, Alt + W wallpaperselect)
 │   ├── input.conf                  # Keyboard layout & touchpad settings
@@ -107,16 +91,16 @@ dotfiles-test/
 │   └── scripts/                    # Wallpaper & utility scripts (set-wallpaper.sh, restore-wallpaper.sh, etc.)
 │
 └── quickshell/                     # Quickshell UI configuration
-    ├── shell.qml                   # Main entry point (Scope loading PywalService, Bar, NotificationServer, PowerMenuOverlay, AppLauncherPopup & WallpaperPopup)
+    ├── shell.qml                   # Main entry point (Scope loading PywalService, Bar variants, NotificationServer, PowerMenuOverlay, AppLauncherPopup & WallpaperPopup)
     ├── components/
-    │   ├── Bar.qml                 # Top Status Bar layout
+    │   ├── Bar.qml                 # Top Status Bar layout receiving screen property
     │   └── popups/                 # 🪟 CENTRALIZED POPUP REPOSITORY
     │       ├── CalendarPopup.qml   # Interactive monthly calendar, live clock & uptime popup
     │       ├── MediaPopup.qml      # Floating detail card with 1:1 cover art, seek bar & playback controls
     │       ├── SysStatsPopup.qml   # 5-Circle Performance Dashboard popup (CPU/GPU Load & Temp, Mem, Storage)
     │       ├── QuickSettingsPopup.qml # Windows 11 style 3-tier sliding Control Center popup
-    │       ├── OsdPopup.qml        # Real-time OSD overlay card for Volume & Brightness
-    │       ├── NotificationPopup.qml # Native desktop notification popup extending PanelWindow
+    │       ├── OsdPopup.qml        # Real-time OSD overlay card for Volume & Brightness (exclusionMode: Ignore)
+    │       ├── NotificationPopup.qml # Multi-toast stacked notification popup extending PanelWindow with slide animations
     │       ├── PowerPopup.qml      # Power menu popup dropdown extending BasePopup
     │       ├── PowerMenuOverlay.qml # Fullscreen Power Menu Overlay with Morphing Circle-to-Pill buttons (Super + P)
     │       ├── AppLauncherPopup.qml # Application Launcher popup extending PanelWindow with bottom-center search bar (Alt + A)
@@ -125,17 +109,17 @@ dotfiles-test/
     │   ├── Theme.qml               # Clean Singleton storing pure font & color properties
     │   └── PywalService.qml        # Background service syncing Pywal colors to Theme.qml
     ├── widgets/
-    │   ├── BasePopup.qml           # Reusable PanelWindow popup shell with dynamic Wayland keyboard focus & blur
+    │   ├── BasePopup.qml           # Reusable PanelWindow popup shell with dynamic Wayland keyboard focus, exclusionMode: Ignore & 54px top margin
     │   ├── ControlPill.qml         # Reusable control button pill with optical center offset
     │   └── bar/
-    │       ├── Workspace.qml       # Hybrid workspace switcher with sliding animation
+    │       ├── Workspace.qml       # Independent per-monitor workspace switcher with GTK app icons, instance dots & special workspace indicator (★)
     │       ├── Clock.qml           # Real-time clock & date widget with pill hover trigger
     │       ├── MediaPlayer.qml     # Dynamic MPRIS media player entry point with dual MarqueeText column
     │       ├── mediaPlayerWidget/  # Sub-components for media player
     │       │   ├── MarqueeText.qml # Reusable endless continuous marquee text
     │       │   └── CavaVisualizer.qml # 24-bar PipeWire Cava audio visualizer
     │       ├── SystemStats.qml     # RAM & CPU Temp performance monitor widget
-    │       ├── ControlCenter.qml   # Quick settings control pill widget (Brightness/Vol/BT/WiFi/Bat)
+    │       ├── ControlCenter.qml   # Quick settings control pill widget (Brightness/Vol/BT/WiFi/Bat) with single-instance event monitor
     │       └── Power.qml           # Standalone Power button widget
     └── scripts/
         ├── sys_info.sh             # Executable bash helper script for system metrics, GPU stats & volume
@@ -172,7 +156,7 @@ Link the repository directories to `~/.config/` so any edits sync automatically:
 git clone https://github.com/RaihanDaiva/dotfiles-test.git ~/dotfiles-test
 
 # Backup existing configs if necessary, then create symlinks
-ln -sf ~/dotfiles-test/test-hypr ~/.config/test-hypr
+ln -sf ~/dotfiles-test/test-hypr ~/.config/hypr
 ln -sf ~/dotfiles-test/quickshell ~/.config/quickshell
 
 # Make helper scripts executable
@@ -183,7 +167,7 @@ chmod +x ~/dotfiles-test/quickshell/scripts/*.sh
 Launch the isolated testing environment in a window:
 
 ```bash
-Hyprland -c ~/.config/test-hypr/hyprland.conf
+Hyprland -c ~/.config/hypr/hyprland.conf
 ```
 
 ### 3. Launching Quickshell

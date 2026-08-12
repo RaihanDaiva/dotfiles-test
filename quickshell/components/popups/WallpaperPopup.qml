@@ -10,6 +10,8 @@ import "../../theme"
 PanelWindow {
     id: wallpaperPopup
 
+    exclusionMode: ExclusionMode.Ignore
+
     property bool isOpen: false
     property string searchQuery: ""
     property int selectedIndex: 2

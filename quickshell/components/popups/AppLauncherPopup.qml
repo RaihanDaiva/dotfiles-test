@@ -11,6 +11,8 @@ import "../../theme"
 PanelWindow {
     id: launcherPopup
 
+    exclusionMode: ExclusionMode.Ignore
+
     property bool isOpen: false
     property string searchQuery: ""
     property int selectedIndex: 0

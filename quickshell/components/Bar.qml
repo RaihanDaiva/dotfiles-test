@@ -44,7 +44,9 @@ PanelWindow {
         anchors.leftMargin: 10
         spacing: 12
 
-        Workspace {}
+        Workspace {
+            barWindow: barWindow
+        }
 
         MediaPlayer {
             barWindow: barWindow
