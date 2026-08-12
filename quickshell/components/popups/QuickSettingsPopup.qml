@@ -13,6 +13,9 @@ BasePopup {
     property var controlRootItem: null
     targetItem: controlRootItem
 
+    // 🎯 REUSABLE & OSD REFERENCES
+    property var osdItem: null
+
     // 👤 USER & BATTERY DATA
     property string userNameText: "User"
     property int batCap: 100
@@ -455,6 +458,14 @@ BasePopup {
                             popupRoot.brightVal1 = pct
                             bright1Proc.command = ["brightnessctl", "s", pct + "%"]
                             bright1Proc.running = true
+                            if (popupRoot.osdItem) popupRoot.osdItem.showBrightness(pct, false)
+                        }
+                        onPressed: (mouse) => {
+                            var pct = Math.min(100, Math.max(0, Math.round((mouse.x / width) * 100)))
+                            popupRoot.brightVal1 = pct
+                            bright1Proc.command = ["brightnessctl", "s", pct + "%"]
+                            bright1Proc.running = true
+                            if (popupRoot.osdItem) popupRoot.osdItem.showBrightness(pct, false)
                         }
                     }
                 }
@@ -506,6 +517,21 @@ BasePopup {
                                 bright2Proc.command = ["brightnessctl", "s", pct + "%"]
                             }
                             bright2Proc.running = true
+                            if (popupRoot.osdItem) popupRoot.osdItem.showBrightness(pct, true)
+                        }
+                        onPressed: (mouse) => {
+                            var pct = Math.min(100, Math.max(0, Math.round((mouse.x / width) * 100)))
+                            popupRoot.brightVal2 = pct
+                            if (popupRoot.brightType2.indexOf("ddcutil") === 0) {
+                                bright2Proc.command = ["ddcutil", "setvcp", "10", pct.toString()]
+                            } else if (popupRoot.brightType2.indexOf("brightnessctl:") === 0) {
+                                var dev = popupRoot.brightType2.split(":")[1]
+                                bright2Proc.command = ["brightnessctl", "-d", dev, "s", pct + "%"]
+                            } else {
+                                bright2Proc.command = ["brightnessctl", "s", pct + "%"]
+                            }
+                            bright2Proc.running = true
+                            if (popupRoot.osdItem) popupRoot.osdItem.showBrightness(pct, true)
                         }
                     }
                 }
@@ -521,11 +547,13 @@ BasePopup {
 
                     Rectangle {
                         height: parent.height
-                        width: parent.width * (popupRoot.volumeVal / 100)
+                        width: parent.width * Math.min(1.0, Math.max(0, popupRoot.volumeVal / 150))
                         radius: parent.radius
                         color: popupRoot.volumeMuted
                             ? Qt.rgba(243/255, 139/255, 168/255, 0.25)
-                            : Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25)
+                            : (popupRoot.volumeVal > 100
+                                ? Qt.rgba(243/255, 139/255, 168/255, 0.35)
+                                : Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25))
                         Behavior on width { NumberAnimation { duration: 80 } }
                     }
 
@@ -534,8 +562,8 @@ BasePopup {
                         anchors.leftMargin: 12
                         anchors.rightMargin: 12
                         Text {
-                            text: popupRoot.volumeMuted ? "󰝟" : (popupRoot.volumeVal >= 66 ? "󰕾" : (popupRoot.volumeVal >= 33 ? "󰖀" : "󰕿"))
-                            color: popupRoot.volumeMuted ? "#f38ba8" : Theme.accent
+                            text: popupRoot.volumeMuted ? "󰝟" : (popupRoot.volumeVal > 100 ? "󱄡" : (popupRoot.volumeVal >= 66 ? "󰕾" : (popupRoot.volumeVal >= 33 ? "󰖀" : "󰕿")))
+                            color: popupRoot.volumeMuted ? "#f38ba8" : (popupRoot.volumeVal > 100 ? "#f38ba8" : Theme.accent)
                             font { family: Theme.fontMono; pixelSize: 18 }
                         }
                         Text {
@@ -546,7 +574,7 @@ BasePopup {
                         }
                         Text {
                             text: popupRoot.volumeVal + "%"
-                            color: popupRoot.volumeMuted ? "#f38ba8" : Theme.textMain
+                            color: popupRoot.volumeMuted ? "#f38ba8" : (popupRoot.volumeVal > 100 ? "#f38ba8" : Theme.textMain)
                             font { family: Theme.fontMain; pixelSize: 13; bold: true }
                         }
                     }
@@ -555,10 +583,18 @@ BasePopup {
                         anchors.fill: parent
                         cursorShape: Qt.PointingHandCursor
                         onPositionChanged: (mouse) => {
-                            var pct = Math.min(100, Math.max(0, Math.round((mouse.x / width) * 100)))
+                            var pct = Math.min(150, Math.max(0, Math.round((mouse.x / width) * 150)))
                             popupRoot.volumeVal = pct
-                            volProc.command = ["wpctl", "set-volume", "@DEFAULT_AUDIO_SINK@", pct + "%"]
+                            volProc.command = ["wpctl", "set-volume", "-l", "1.5", "@DEFAULT_AUDIO_SINK@", pct + "%"]
                             volProc.running = true
+                            if (popupRoot.osdItem) popupRoot.osdItem.showVolume(pct, popupRoot.volumeMuted)
+                        }
+                        onPressed: (mouse) => {
+                            var pct = Math.min(150, Math.max(0, Math.round((mouse.x / width) * 150)))
+                            popupRoot.volumeVal = pct
+                            volProc.command = ["wpctl", "set-volume", "-l", "1.5", "@DEFAULT_AUDIO_SINK@", pct + "%"]
+                            volProc.running = true
+                            if (popupRoot.osdItem) popupRoot.osdItem.showVolume(pct, popupRoot.volumeMuted)
                         }
                     }
                 }

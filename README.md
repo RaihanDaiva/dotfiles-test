@@ -24,14 +24,10 @@ This repository contains an isolated testing environment (`test-hypr`) for exper
   - Centralized popup repository under `components/popups/` for clean imports and maintainability.
 - **Unified Status Bar Pill Hover System:**
   - Standardized uniform pill hover rectangle (`height: 26px`, `radius: 8px`, translucent Pywal `0.15` background with `0.3` accent border) across all primary status bar widgets (`Clock.qml`, `MediaPlayer.qml`, `SystemStats.qml`).
-- **Interactive Calendar & Date Hub (`Clock.qml` & `CalendarPopup.qml`):**
-  - **Live Digital Header:** Displays real-time clock with seconds (`hh : mm : ss`) and full formatted date (*Senin, 10 Agustus 2026*).
-  - **Interactive 7x6 Monthly Calendar Grid:**
-    - Highlighting **Today** with a vibrant Pywal accent pill (`Theme.accent`) and high-contrast dark text.
-    - **English Day Headers (`Sun`, `Mon`, `Tue`, `Wed`, `Thu`, `Fri`, `Sat`):** Aligned 100% vertically over date columns using a shared 7-column `GridLayout` (`columnSpacing: 5`).
-    - Month navigation controls: Previous Month (`󰅁`), Next Month (`󰅂`), and Today Reset (`󰃭`).
-    - Dimmed dates for preceding and trailing month days.
-  - **System Uptime Indicator:** Live system uptime parsed asynchronously via `Quickshell.Io` `Process` from `/proc/uptime` (e.g. `󰅐 System Uptime: 4j 12m`).
+- **Real-Time On-Screen Display (OSD) Overlay (`OsdPopup.qml`):**
+  - Floating bottom-centered glassmorphism overlay card (`WlrLayer.Overlay`) rendering real-time volume and brightness indicators with smooth `OutCubic` entrance/exit animations.
+  - **0ms Real-Time Event Listener (`sys_event_monitor.sh`):** Streams PipeWire audio events via `pactl subscribe` and Linux kernel backlight events via `udevadm monitor --subsystem-match=backlight` for instant OSD updates when adjusting volume or brightness via keyboard **Fn** shortcuts.
+  - **Auto-Hide:** Automatically fades out after 1.8 seconds of inactivity.
 - **System Performance Dashboard (`SysStatsPopup.qml`):**
   - **5-Circle Symmetrical Ring Gauge Layout:**
     - **CPU Load (`󰻠`):** Real-time processor utilization ring gauge with dynamic status badges (*Normal / High / Critical*).
@@ -43,9 +39,12 @@ This repository contains an isolated testing environment (`test-hypr`) for exper
   - **Styling Polish:** Scaled gauge icons (`24px`), swapped icon/value colors (`Theme.textMain` for icons, dynamic status colors for numbers), and clear text labels.
 - **Windows 11 Style Control Center Hub (`QuickSettingsPopup.qml`):**
   - **3-Page Horizontal Sliding Drill-Down Navigation:**
-    - **Page 0 (Main Page):** Fixed User Profile + Battery status header, Wi-Fi & Bluetooth control pills, Dynamic Multi-Monitor Brightness slider(s), and Volume slider.
+    - **Page 0 (Main Page):** Fixed User Profile + Battery status header, Wi-Fi & Bluetooth control pills, Dynamic Multi-Monitor Brightness slider(s), and Volume Overamplification slider (0–150%).
     - **Page 1 (Detail List Page):** Real-time scanned Wi-Fi networks (SSID, signal %, connection status, connect action) or paired Bluetooth devices (clean name, status, connect action) with master toggle switch and scan button.
     - **Page 2 (Wi-Fi Password Input Page):** Dedicated password input page sliding in when connecting to unremembered Wi-Fi networks. Features target SSID display, show/hide password toggle (`󰈈`/`󰈂`), status feedback (*Connecting… / Connected! / Connection failed*), Enter key acceptance, and automated `nmcli` connection process.
+  - **Volume Overamplification (0%–150% Boost):**
+    - Seamlessly supports volume boost up to **150%** via `wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ <pct>%`.
+    - Progress bar fill scales proportionally up to 150% with coral over-boost highlights (`#f38ba8`) and boosted icon indicators (`󱄡`).
   - **Dynamic Multi-Monitor Screen Brightness Detection:**
     - Automatically detects external monitors via `brightness_info.sh` supporting internal panels (`brightnessctl`) and external displays via DDC/CI (`ddcutil`) or secondary GPU backlights.
     - **Single Monitor:** Displays single slider titled `"Screen Brightness"`.
@@ -87,7 +86,8 @@ dotfiles-test/
     │       ├── CalendarPopup.qml   # Interactive monthly calendar, live clock & uptime popup
     │       ├── MediaPopup.qml      # Floating detail card with 1:1 cover art, seek bar & playback controls
     │       ├── SysStatsPopup.qml   # 5-Circle Performance Dashboard popup (CPU/GPU Load & Temp, Mem, Storage)
-    │       └── QuickSettingsPopup.qml # Windows 11 style 3-tier sliding Control Center popup
+    │       ├── QuickSettingsPopup.qml # Windows 11 style 3-tier sliding Control Center popup
+    │       └── OsdPopup.qml        # Real-time OSD overlay card for Volume & Brightness
     ├── theme/
     │   ├── Theme.qml               # Clean Singleton storing pure font & color properties
     │   └── PywalService.qml        # Background service syncing Pywal colors to Theme.qml
@@ -104,6 +104,7 @@ dotfiles-test/
     │       └── SystemStats.qml     # Dynamic stats widget (RAM/Temp pill, Control pill with Brightness/Vol/BT/WiFi/Bat)
     └── scripts/
         ├── sys_info.sh             # Executable bash helper script for system metrics, GPU stats & volume
+        ├── sys_event_monitor.sh    # Real-time event streamer for PipeWire audio & kernel backlight
         ├── brightness_info.sh      # Helper script detecting internal and DDC/CI external display brightness
         ├── wifi_list.sh            # Helper script parsing unique signal-sorted Wi-Fi networks via nmcli
         └── bt_list.sh              # Helper script parsing Bluetooth device status and clean names via pipe delimiter
@@ -136,7 +137,7 @@ ln -sf ~/dotfiles-test/test-hypr ~/.config/test-hypr
 ln -sf ~/dotfiles-test/quickshell ~/.config/quickshell
 
 # Make helper scripts executable
-chmod +x ~/.config/quickshell/scripts/*.sh
+chmod +x ~/dotfiles-test/quickshell/scripts/*.sh
 ```
 
 ### 2. Testing in Nested Hyprland

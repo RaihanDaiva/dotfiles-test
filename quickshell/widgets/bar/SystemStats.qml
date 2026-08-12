@@ -27,6 +27,23 @@ Rectangle {
     property int volPercent: 80
     property string volMuted: "unmuted"
 
+    property int prevVol: -1
+    property int prevBright: -1
+
+    onVolPercentChanged: {
+        if (prevVol !== -1 && prevVol !== volPercent) {
+            osdPopup.showVolume(volPercent, volMuted === "muted")
+        }
+        prevVol = volPercent
+    }
+
+    onBrightPercentChanged: {
+        if (prevBright !== -1 && prevBright !== brightPercent) {
+            osdPopup.showBrightness(brightPercent, false)
+        }
+        prevBright = brightPercent
+    }
+
     // 🌟 POPUP METRICS
     property int cpuLoadPercent: 0
     property int cpuTempValue: 0
@@ -71,11 +88,17 @@ Rectangle {
         onStartCloseTimer: closeSysTimer.restart()
     }
 
+    // 🎚️ SUB-KOMPONEN 0: ON-SCREEN DISPLAY (OSD) OVERLAY POPUP CARD
+    OsdPopup {
+        id: osdPopup
+    }
+
     // 🪟 SUB-KOMPONEN 2: QUICK SETTINGS / CONTROL CENTER POPUP CARD (Dari components/popups/)
     QuickSettingsPopup {
         id: quickSettingsPopup
         barWindow: statsRoot.barWindow
         controlRootItem: controlPill
+        osdItem: osdPopup
 
         onKeepOpen: closeQuickTimer.stop()
         onStartCloseTimer: closeQuickTimer.restart()
@@ -120,6 +143,46 @@ Rectangle {
     // 󰂯 Dynamic Bluetooth Icon Logic
     readonly property string btIcon: (btStatus === "on" || btStatus === "connected") ? "󰂯" : "󰂲"
     readonly property color btColor: (btStatus === "on" || btStatus === "connected") ? Theme.accent : Theme.secondary
+
+    // ⚡ REAL-TIME SYSTEM EVENT MONITOR (0ms latency for Fn Volume & Brightness keys)
+    Process {
+        id: eventMonitorProc
+        command: [Quickshell.configDir + "/scripts/sys_event_monitor.sh"]
+        running: true
+
+        stdout: SplitParser {
+            onRead: data => {
+                var line = data.trim()
+                if (line.indexOf("VOL:") === 0) {
+                    var parts = line.split(":")
+                    if (parts.length >= 3) {
+                        var v = parseInt(parts[1])
+                        var m = parts[2]
+                        if (!isNaN(v)) {
+                            if (statsRoot.prevVol !== -1 && statsRoot.prevVol !== v) {
+                                osdPopup.showVolume(v, m === "muted")
+                            }
+                            statsRoot.volPercent = v
+                            statsRoot.volMuted = m
+                            statsRoot.prevVol = v
+                        }
+                    }
+                } else if (line.indexOf("BRIGHT:") === 0) {
+                    var parts = line.split(":")
+                    if (parts.length >= 2) {
+                        var b = parseInt(parts[1])
+                        if (!isNaN(b)) {
+                            if (statsRoot.prevBright !== -1 && statsRoot.prevBright !== b) {
+                                osdPopup.showBrightness(b, false)
+                            }
+                            statsRoot.brightPercent = b
+                            statsRoot.prevBright = b
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     Process {
         id: sysProcess
