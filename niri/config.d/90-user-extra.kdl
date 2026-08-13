@@ -1,0 +1,36 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// 90 — Your personal overrides for Niri + Custom Quickshell
+// ─────────────────────────────────────────────────────────────────────────────
+
+binds {
+    Mod+Return { spawn "kitty"; }
+    Alt+A { spawn "quickshell" "ipc" "call" "applauncher" "toggle"; }
+    Alt+W { spawn "quickshell" "ipc" "call" "wallpaperselect" "toggle"; }
+    Super+P { spawn "quickshell" "ipc" "call" "powermenu" "toggle"; }
+
+    Super+Shift+1 { move-column-to-workspace 1; }
+    Super+Shift+2 { move-column-to-workspace 2; }
+    Super+Shift+3 { move-column-to-workspace 3; }
+    Super+Shift+4 { move-column-to-workspace 4; }
+    Super+Shift+5 { move-column-to-workspace 5; }
+}
+
+// 🪟 Layer rules for Quickshell overlays (Unified Elevation & Soft Shadows)
+layer-rule {
+    match namespace="quickshell:popup"
+    shadow {
+        off
+        softness 30
+        spread 5
+        offset x=0 y=4
+    }
+}
+
+// 📱 Application Window Blur & Rounding Rules
+window-rule {
+    background-effect {
+        blur true
+    }
+    geometry-corner-radius 14
+    clip-to-geometry true
+}

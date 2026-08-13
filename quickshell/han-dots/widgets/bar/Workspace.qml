@@ -24,9 +24,10 @@ Rectangle {
     // 🖥️ HYPRLAND MONITOR SPECIFIC (eDP-1 / DP-1)
     readonly property var hypMonitor: screen ? Hyprland.monitorFor(screen) : Hyprland.focusedMonitor
 
-    // 📡 NIRI STATE (Workspaces & Active ID)
+    // 📡 NIRI STATE (Workspaces & Active ID Map)
     property int niriActiveWsId: 1
     property var niriWorkspacesList: [1, 2, 3, 4, 5]
+    property var niriWsMap: ({})
 
     // 🌟 WORKSPACE AKTIF UNTUK COMPOSITOR AKTIF (Niri / Hyprland)
     readonly property var activeWorkspace: {
@@ -89,14 +90,19 @@ Rectangle {
                     var data = JSON.parse(this.text)
                     if (Array.isArray(data)) {
                         var list = []
+                        var map = {}
                         for (var idx = 0; idx < data.length; idx++) {
                             var w = data[idx]
-                            var wid = w.idx || w.id || (idx + 1)
+                            var wid = w.idx !== undefined ? w.idx : (w.id !== undefined ? w.id : (idx + 1))
                             list.push(wid)
+                            if (w.id !== undefined) {
+                                map[w.id] = wid
+                            }
                             if (w.is_active || w.is_focused) {
                                 root.niriActiveWsId = wid
                             }
                         }
+                        root.niriWsMap = map
                         if (list.length > 0) root.niriWorkspacesList = list
                         pillUpdateTimer.restart()
                     }
@@ -119,8 +125,9 @@ Rectangle {
                         var formatted = []
                         for (var idx = 0; idx < data.length; idx++) {
                             var win = data[idx]
+                            var mappedWsId = (win.workspace_id !== undefined && root.niriWsMap[win.workspace_id] !== undefined) ? root.niriWsMap[win.workspace_id] : (win.workspace_idx !== undefined ? win.workspace_idx : (win.workspace_id !== undefined ? win.workspace_id : 1))
                             formatted.push({
-                                workspace: { id: win.workspace_id || win.workspace_idx || 1 },
+                                workspace: { id: mappedWsId },
                                 class: win.app_id || win.title || ""
                             })
                         }
@@ -132,20 +139,35 @@ Rectangle {
         }
     }
 
+    // ⚡ 0MS REAL-TIME NIRI EVENT-STREAM LISTENER
+    Process {
+        id: niriEventProc
+        command: ["niri", "msg", "-j", "event-stream"]
+        running: root.isNiri
+
+        stdout: SplitParser {
+            onRead: (data) => {
+                if (root.isNiri) {
+                    niriWsProc.running = false
+                    niriWsProc.running = true
+                    niriClientsProc.running = false
+                    niriClientsProc.running = true
+                }
+            }
+        }
+    }
+
     Timer {
-        interval: 1000
+        interval: 250
         running: true
         repeat: true
         triggeredOnStart: true
         onTriggered: {
             if (root.isNiri) {
-                niriWsProc.running = false
-                niriWsProc.running = true
-                niriClientsProc.running = false
-                niriClientsProc.running = true
+                if (!niriWsProc.running) niriWsProc.running = true
+                if (!niriClientsProc.running) niriClientsProc.running = true
             } else {
-                clientProc.running = false
-                clientProc.running = true
+                if (!clientProc.running) clientProc.running = true
             }
         }
     }
@@ -153,6 +175,8 @@ Rectangle {
     // 🚀 SWITCH WORKSPACE DISPATCHER (Hyprland / Niri)
     function switchWorkspace(targetWsId) {
         if (root.isNiri) {
+            root.niriActiveWsId = targetWsId
+            pillUpdateTimer.restart()
             var niriSwitch = Quickshell.createProcess(["niri", "msg", "action", "focus-workspace", targetWsId.toString()])
             niriSwitch.running = true
         } else {
@@ -435,7 +459,13 @@ Rectangle {
                 MouseArea {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: root.switchWorkspace(wsId)
+                    onClicked: {
+                        if (root.isNiri) {
+                            root.niriActiveWsId = wsId
+                            pillUpdateTimer.restart()
+                        }
+                        root.switchWorkspace(wsId)
+                    }
                 }
             }
         }

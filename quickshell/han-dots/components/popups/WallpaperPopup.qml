@@ -36,6 +36,10 @@ PanelWindow {
     implicitHeight: 290
     color: "transparent"
 
+    mask: Region {
+        item: wallpaperCard
+    }
+
     visible: isOpen || wallpaperCard.opacity > 0
 
     // 🖼️ Helper function to update search filtering and auto-center selection at index 2
@@ -197,7 +201,7 @@ PanelWindow {
         id: wallpaperCard
         anchors.fill: parent
         radius: 24
-        color: Qt.rgba(Theme.bgDark.r, Theme.bgDark.g, Theme.bgDark.b, 0.85)
+        color: Qt.rgba(Theme.bgDark.r, Theme.bgDark.g, Theme.bgDark.b, 0.96)
         border.color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.3)
         border.width: 1
 

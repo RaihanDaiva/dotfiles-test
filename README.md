@@ -158,6 +158,7 @@ git clone https://github.com/RaihanDaiva/dotfiles-test.git ~/dotfiles-test
 # Backup existing configs if necessary, then create symlinks
 ln -sf ~/dotfiles-test/test-hypr ~/.config/hypr
 ln -sf ~/dotfiles-test/quickshell/han-dots ~/.config/quickshell
+ln -sf ~/dotfiles-test/niri ~/.config/niri
 
 # Make helper scripts executable
 chmod +x ~/dotfiles-test/quickshell/han-dots/scripts/*.sh
@@ -179,11 +180,11 @@ quickshell
 
 ---
 
-## 🎨 Keyboard Shortcuts (Testing Session)
+## 🎨 Keyboard Shortcuts (Hyprland Session)
 
 | Shortcut | Action |
 | :--- | :--- |
-| `Alt + Return` | Open Terminal (Kitty) |
+| `Super + Return` | Open Terminal (Kitty) |
 | `Alt + A` | Open Custom Quickshell App Launcher |
 | `Alt + W` | Open Custom Quickshell Wallpaper Selector |
 | `Super + P` | Open Custom Quickshell Power Menu Overlay |
@@ -193,5 +194,72 @@ quickshell
 
 ---
 
+## 🧩 Keyboard Shortcuts Cheatsheet (Niri Compositor Session)
+
+### 🚀 Custom Quickshell & General Launchers
+| Shortcut | Action |
+| :--- | :--- |
+| `Mod + Return` | Open Terminal (Kitty) |
+| `Alt + A` / `Mod + Space` | Open Custom Quickshell App Launcher (`applauncher toggle`) |
+| `Alt + W` / `Ctrl + Alt + T` | Open Custom Quickshell Wallpaper Selector (`wallpaperselect toggle`) |
+| `Super + P` / `Mod + Shift + Q` | Open Fullscreen Power Menu Overlay (`powermenu toggle`) |
+| `Mod + V` | Open Clipboard History (`cliphist`) |
+| `Mod + Alt + L` | Lock Screen (`hyprlock`) |
+
+### 🪟 Window & Layout Management
+| Shortcut | Action |
+| :--- | :--- |
+| `Mod + Q` | Close Active Window |
+| `Mod + D` | Maximize Column (Fills width, preserves gaps/bar) |
+| `Mod + F` | Toggle Fullscreen Window (Borderless edge-to-edge) |
+| `Mod + A` | Toggle Window Floating / Tiling |
+| `Mod + Shift + V` | Switch Focus between Floating and Tiling Layers |
+| `Mod + R` | Cycle Preset Column Width ($1/3 \rightarrow 1/2 \rightarrow 2/3$) |
+| `Mod + C` | Center Focused Column on Screen |
+| `Mod + Ctrl + R` | Reset Window Height |
+| `Mod + -` / `Mod + =` | Adjust Column Width ($-10\%$ / $+10\%$) |
+| `Mod + Shift + -` / `Mod + Shift + =` | Adjust Window Height ($-10\%$ / $+10\%$) |
+| `Mod + [` / `Mod + ]` | Consume or Expel Window Left / Right |
+
+### 🎯 Focus & Window Navigation
+| Shortcut | Action |
+| :--- | :--- |
+| `Mod + Left` / `Mod + H` | Focus Column Left |
+| `Mod + Right` / `Mod + L` | Focus Column Right |
+| `Mod + Up` / `Mod + K` | Focus Window Up |
+| `Mod + Down` / `Mod + J` | Focus Window Down |
+| `Mod + Home` / `Mod + End` | Jump to First / Last Column |
+| `Alt + Tab` / `Alt + Shift + Tab` | Cycle Recent Windows |
+| `Mod + Shift + Left / Right / Up / Down` | Move Column Left / Right / Window Up / Down |
+| `Mod + Ctrl + Home / End` | Move Column to First / Last Position |
+
+### 🖥️ Multi-Monitor & Workspace Navigation
+| Shortcut | Action |
+| :--- | :--- |
+| `Alt + 1` .. `Alt + 5` | Focus Workspace 1 to 5 |
+| `Super + Shift + 1` .. `Super + Shift + 5` | Move Column to Workspace 1 to 5 |
+| `Mod + 1` .. `Mod + 9` | Focus Workspace 1 to 9 (Niri Native) |
+| `Mod + Ctrl + 1` .. `Mod + Ctrl + 9` | Move Column to Workspace 1 to 9 |
+| `Mod + Page_Down` / `Mod + Page_Up` | Focus Workspace Down / Up |
+| `Mod + WheelScrollDown / Up` | Mouse Scroll Workspace Down / Up |
+| `Mod + Ctrl + Left / Right / Up / Down` | Focus Monitor in Direction |
+| `Mod + Ctrl + Shift + Left / Right / Up / Down` | Move Column to Monitor in Direction |
+
+### 📸 Screenshots & Media Controls
+| Shortcut | Action |
+| :--- | :--- |
+| `Print` | Capture Full Screen |
+| `Ctrl + Print` | Capture Active Screen |
+| `Alt + Print` | Capture Active Window |
+| `Mod + Shift + S` | Region Screenshot (`grim -g "$(slurp)" - \| wl-copy`) |
+| `Mod + Shift + R` | Screen Recording (`gpu-screen-recorder-gtk`) |
+| `XF86AudioRaiseVolume` / `LowerVolume` | Adjust Volume (PipeWire `wpctl`) |
+| `XF86AudioMute` | Mute Audio (`wpctl`) |
+| `XF86MonBrightnessUp` / `Down` | Adjust Screen Brightness (`brightnessctl`) |
+| `XF86AudioPlay` / `Pause` / `Next` / `Prev` | Media Playback Controls (`playerctl`) |
+
+---
+
 ## 📝 Maintenance & Contribution
 This `README.md` is updated regularly alongside repository commits to reflect current features, directory structures, and code architecture changes.
+

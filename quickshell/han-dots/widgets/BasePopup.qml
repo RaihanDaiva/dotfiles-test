@@ -35,6 +35,12 @@ PanelWindow {
     anchors.left: true
     margins.top: 54
 
+    color: "transparent"
+
+    mask: Region {
+        item: popupCard
+    }
+
     // 📐 Kalkulasi Posisi Dinamis (Smart Auto-Centering & Clamp ke Ujung Bar)
     function updatePosition() {
         if (!targetItem) return
@@ -64,14 +70,13 @@ PanelWindow {
         if (isOpen) updatePosition()
     }
 
-    color: "transparent"
     visible: isOpen || hideAnim.running
 
     // 🪟 KARTU VISUAL POPUP DENGAN HYPRLAND BLUR
     Rectangle {
         id: popupCard
         anchors.fill: parent
-        color: Qt.rgba(Theme.bgDark.r, Theme.bgDark.g, Theme.bgDark.b, 0.5)
+        color: Qt.rgba(Theme.bgDark.r, Theme.bgDark.g, Theme.bgDark.b, 0.96)
         radius: 18
         border.color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.3)
         border.width: 1

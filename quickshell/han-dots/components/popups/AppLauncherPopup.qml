@@ -34,6 +34,10 @@ PanelWindow {
     implicitHeight: 540
     color: "transparent"
 
+    mask: Region {
+        item: launcherCard
+    }
+
     visible: isOpen || launcherCard.opacity > 0
 
     // 🖼️ Helper function to resolve Freedesktop system icons
@@ -147,7 +151,7 @@ PanelWindow {
         id: launcherCard
         anchors.fill: parent
         radius: 20
-        color: Qt.rgba(Theme.bgDark.r, Theme.bgDark.g, Theme.bgDark.b, 0.85)
+        color: Qt.rgba(Theme.bgDark.r, Theme.bgDark.g, Theme.bgDark.b, 0.96)
         border.color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.3)
         border.width: 1
 

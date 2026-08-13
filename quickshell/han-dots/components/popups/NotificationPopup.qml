@@ -108,7 +108,7 @@ PanelWindow {
                 Layout.fillWidth: true
                 implicitHeight: Math.max(84, notifContentRow.implicitHeight + 20)
                 radius: 14
-                color: Qt.rgba(Theme.bgDark.r, Theme.bgDark.g, Theme.bgDark.b, 0.5)
+                color: Qt.rgba(Theme.bgDark.r, Theme.bgDark.g, Theme.bgDark.b, 0.96)
                 border.color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.3)
                 border.width: 1
 
