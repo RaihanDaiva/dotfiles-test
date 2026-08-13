@@ -44,7 +44,13 @@ echo "restore-wallpaper: Wallpaper berhasil diterapkan!"
 if command -v wal > /dev/null 2>&1; then
     echo "restore-wallpaper: Mengembalikan warna Pywal..."
     # -R = restore dari cache terakhir, tidak perlu generate ulang
-    wal -R -q --noswallow 2>/dev/null || wal -i "$REAL_PATH" -n -q 2>/dev/null
+    wal -R -q --noswallow 2>/dev/null || wal -i "$REAL_PATH" -q 2>/dev/null
+
+    if [ -f "$HOME/.cache/wal/sequences" ]; then
+        for pts in /dev/pts/[0-9]*; do
+            cat "$HOME/.cache/wal/sequences" > "$pts" 2>/dev/null || true
+        done
+    fi
 
     # Load variabel warna untuk border Hyprland
     if [ -f "$HOME/.cache/wal/colors.sh" ]; then

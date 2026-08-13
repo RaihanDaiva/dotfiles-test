@@ -87,7 +87,7 @@ Item {
 
     // 📦 RAM & TEMP PILL CONTAINER
     Rectangle {
-        id: ramTempPill
+        id: ramTempPill 
         implicitWidth: ramTempLayout.implicitWidth + 12
         implicitHeight: 26
         radius: 8

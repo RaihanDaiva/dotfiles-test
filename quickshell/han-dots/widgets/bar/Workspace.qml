@@ -14,11 +14,25 @@ Rectangle {
     property var barWindow: null
     property var screen: barWindow ? barWindow.screen : null
 
-    // 🖥️ MONITOR HYPRLAND SPESIFIK (eDP-1 / DP-1) BERDASARKAN SCREEN BAR
+    // 🕵️ DETEKSI AUTOMATIS COMPOSITOR (Hyprland vs Niri)
+    readonly property bool isNiri: {
+        var sock = Quickshell.env("NIRI_SOCKET") || ""
+        var desk = Quickshell.env("XDG_CURRENT_DESKTOP") || ""
+        return sock !== "" || desk.toLowerCase().indexOf("niri") !== -1
+    }
+
+    // 🖥️ HYPRLAND MONITOR SPECIFIC (eDP-1 / DP-1)
     readonly property var hypMonitor: screen ? Hyprland.monitorFor(screen) : Hyprland.focusedMonitor
 
-    // 🌟 WORKSPACE AKTIF SPESIFIK UNTUK MONITOR INI (Bukan Global Focus)
+    // 📡 NIRI STATE (Workspaces & Active ID)
+    property int niriActiveWsId: 1
+    property var niriWorkspacesList: [1, 2, 3, 4, 5]
+
+    // 🌟 WORKSPACE AKTIF UNTUK COMPOSITOR AKTIF (Niri / Hyprland)
     readonly property var activeWorkspace: {
+        if (root.isNiri) {
+            return { id: root.niriActiveWsId }
+        }
         if (hypMonitor && hypMonitor.activeWorkspace) {
             return hypMonitor.activeWorkspace
         }
@@ -29,9 +43,10 @@ Rectangle {
     property real pillWidth: 32
 
     // 🌟 Deteksi Sifat Special Workspace (Scratchpad dengan ID Negatif)
-    readonly property bool isSpecialActive: root.activeWorkspace && root.activeWorkspace.id < 0
+    readonly property bool isSpecialActive: !root.isNiri && root.activeWorkspace && root.activeWorkspace.id < 0
 
     readonly property bool hasSpecialWorkspace: {
+        if (root.isNiri) return false
         for (var i = 0; i < Hyprland.workspaces.values.length; i++) {
             var w = Hyprland.workspaces.values[i]
             if (w.id < 0 || (w.name && w.name.indexOf("special") === 0)) {
@@ -41,12 +56,13 @@ Rectangle {
         return isSpecialActive
     }
 
-    // 📡 METRIKS APLIKASI TERBUKA DARI HYPRCTL (0ms Real-Time JSON Parsing)
+    // 📡 METRIKS APLIKASI TERBUKA (HYPRLAND: hyprctl | NIRI: niri msg)
     property var clientList: []
 
     Process {
         id: clientProc
         command: ["hyprctl", "clients", "-j"]
+        running: !root.isNiri
 
         stdout: StdioCollector {
             onStreamFinished: {
@@ -61,14 +77,86 @@ Rectangle {
         }
     }
 
+    // 📡 NIRI WORKSPACES IPC STREAMER
+    Process {
+        id: niriWsProc
+        command: ["niri", "msg", "-j", "workspaces"]
+        running: root.isNiri
+
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try {
+                    var data = JSON.parse(this.text)
+                    if (Array.isArray(data)) {
+                        var list = []
+                        for (var idx = 0; idx < data.length; idx++) {
+                            var w = data[idx]
+                            var wid = w.idx || w.id || (idx + 1)
+                            list.push(wid)
+                            if (w.is_active || w.is_focused) {
+                                root.niriActiveWsId = wid
+                            }
+                        }
+                        if (list.length > 0) root.niriWorkspacesList = list
+                        pillUpdateTimer.restart()
+                    }
+                } catch(e) {}
+            }
+        }
+    }
+
+    // 📡 NIRI WINDOWS IPC STREAMER
+    Process {
+        id: niriClientsProc
+        command: ["niri", "msg", "-j", "windows"]
+        running: root.isNiri
+
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try {
+                    var data = JSON.parse(this.text)
+                    if (Array.isArray(data)) {
+                        var formatted = []
+                        for (var idx = 0; idx < data.length; idx++) {
+                            var win = data[idx]
+                            formatted.push({
+                                workspace: { id: win.workspace_id || win.workspace_idx || 1 },
+                                class: win.app_id || win.title || ""
+                            })
+                        }
+                        root.clientList = formatted
+                        pillUpdateTimer.restart()
+                    }
+                } catch(e) {}
+            }
+        }
+    }
+
     Timer {
         interval: 1000
         running: true
         repeat: true
         triggeredOnStart: true
         onTriggered: {
-            clientProc.running = false
-            clientProc.running = true
+            if (root.isNiri) {
+                niriWsProc.running = false
+                niriWsProc.running = true
+                niriClientsProc.running = false
+                niriClientsProc.running = true
+            } else {
+                clientProc.running = false
+                clientProc.running = true
+            }
+        }
+    }
+
+    // 🚀 SWITCH WORKSPACE DISPATCHER (Hyprland / Niri)
+    function switchWorkspace(targetWsId) {
+        if (root.isNiri) {
+            var niriSwitch = Quickshell.createProcess(["niri", "msg", "action", "focus-workspace", targetWsId.toString()])
+            niriSwitch.running = true
+        } else {
+            Hyprland.dispatch("workspace " + targetWsId)
         }
     }
 
@@ -222,19 +310,22 @@ Rectangle {
         Repeater {
             id: workspaceRepeater
 
-            // 🎯 HANYA AMBIL WORKSPACE POSITIF (>0) UNTUK NOMOR REGULER
+            // 🎯 DAFTAR WORKSPACE (Hyprland / Niri Auto-Support)
             property var modelList: {
-                var list = [1, 2, 3, 4, 5]
+                var list = root.isNiri ? root.niriWorkspacesList.slice() : [1, 2, 3, 4, 5]
 
-                for (var i = 0; i < Hyprland.workspaces.values.length; i++) {
-                    var id = Hyprland.workspaces.values[i].id
-                    if (id > 0 && !list.includes(id)) {
-                        list.push(id)
+                if (!root.isNiri) {
+                    for (var i = 0; i < Hyprland.workspaces.values.length; i++) {
+                        var id = Hyprland.workspaces.values[i].id
+                        if (id > 0 && !list.includes(id)) {
+                            list.push(id)
+                        }
                     }
                 }
 
-                if (root.activeWorkspace && root.activeWorkspace.id > 0 && !list.includes(root.activeWorkspace.id)) {
-                    list.push(root.activeWorkspace.id)
+                var actId = root.activeWorkspace ? root.activeWorkspace.id : 1
+                if (actId > 0 && !list.includes(actId)) {
+                    list.push(actId)
                 }
 
                 return list.sort((a, b) => a - b)
@@ -249,7 +340,7 @@ Rectangle {
                 implicitHeight: 24
 
                 property int wsId: modelData
-                property var ws: Hyprland.workspaces.values.find(w => w.id == wsId)
+                property var ws: root.isNiri ? true : Hyprland.workspaces.values.find(w => w.id == wsId)
                 property bool isActive: root.activeWorkspace && root.activeWorkspace.id == wsId
                 property var wsApps: root.getWorkspaceApps(wsId)
 
@@ -302,8 +393,8 @@ Rectangle {
                                 Image {
                                     id: appIconImg
                                     source: modelData.icon ? (modelData.icon.indexOf("/") !== -1 ? "file://" + modelData.icon : "image://icon/" + modelData.icon) : ""
-                                    width: 14
-                                    height: 14
+                                    width: 17
+                                    height: 17
                                     fillMode: Image.PreserveAspectFit
                                     anchors.top: parent.top
                                     anchors.topMargin: 1
@@ -344,7 +435,7 @@ Rectangle {
                 MouseArea {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: Hyprland.dispatch("workspace " + wsId)
+                    onClicked: root.switchWorkspace(wsId)
                 }
             }
         }

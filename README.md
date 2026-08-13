@@ -157,10 +157,10 @@ git clone https://github.com/RaihanDaiva/dotfiles-test.git ~/dotfiles-test
 
 # Backup existing configs if necessary, then create symlinks
 ln -sf ~/dotfiles-test/test-hypr ~/.config/hypr
-ln -sf ~/dotfiles-test/quickshell ~/.config/quickshell
+ln -sf ~/dotfiles-test/quickshell/han-dots ~/.config/quickshell
 
 # Make helper scripts executable
-chmod +x ~/dotfiles-test/quickshell/scripts/*.sh
+chmod +x ~/dotfiles-test/quickshell/han-dots/scripts/*.sh
 ```
 
 ### 2. Testing in Nested Hyprland

@@ -33,9 +33,18 @@ hyprctl hyprpaper unload all 2>/dev/null
 hyprctl hyprpaper preload "$CACHE_PATH" 2>/dev/null
 hyprctl hyprpaper wallpaper ",$CACHE_PATH" 2>/dev/null
 
-# 5. Update Pywal Theme Colors
+# 5. Update Pywal Theme Colors & Broadcast to Terminals
 if command -v wal >/dev/null 2>&1; then
-    wal -i "$FULL_PATH" -n >/dev/null 2>&1
+    wal -i "$FULL_PATH" >/dev/null 2>&1
+    if [ -f "$HOME/.cache/wal/colors-kitty.conf" ]; then
+        cp "$HOME/.cache/wal/colors-kitty.conf" "$HOME/.config/kitty/current-theme.conf" 2>/dev/null || true
+        cp "$HOME/.cache/wal/colors-kitty.conf" "$HOME/.config/kitty/theme.conf" 2>/dev/null || true
+    fi
+    if [ -f "$HOME/.cache/wal/sequences" ]; then
+        for pts in /dev/pts/[0-9]*; do
+            cat "$HOME/.cache/wal/sequences" > "$pts" 2>/dev/null || true
+        done
+    fi
     if [ -f "$HOME/.cache/wal/colors.sh" ]; then
         source "$HOME/.cache/wal/colors.sh"
         hyprctl keyword general:col.active_border "$color11 $color14 45deg" 2>/dev/null

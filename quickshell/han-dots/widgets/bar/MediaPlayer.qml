@@ -169,7 +169,7 @@ Item {
                             MarqueeText {
                                 text: (player && player.trackTitle) ? player.trackTitle : "No Media"
                                 textFont.family: Theme.fontMain
-                                textFont.pixelSize: 11
+                                textFont.pixelSize: 12
                                 textFont.bold: true
                                 textColor: Theme.textMain
                                 targetWidth: 90
