@@ -11,14 +11,26 @@ This repository contains an isolated testing environment (`test-hypr`) for exper
 ### 🏛️ Status Bar & Multi-Monitor Widgets (Quickshell)
 - **Multi-Monitor Native Architecture:** Instantiates the top status bar on all connected displays (`eDP-1` laptop display, `DP-1` external display, HDMI) via `Variants` over `Quickshell.screens`.
 - **Mathematical Screen Center Alignment:** Independent component anchoring ensures the center island (Clock) stays in the exact mathematical center of the screen regardless of left/right island sizes.
-- **Independent Per-Monitor Workspace Active Pill Tracking (`Workspace.qml`):**
-  - Binds active workspace detection to `Hyprland.monitorFor(screen).activeWorkspace`.
-  - Each monitor tracks and highlights its own active workspace independently (e.g. Workspace 1 highlighted on main monitor while Workspace 5 is highlighted on second monitor).
+- **iNiR-Style Multi-Monitor Workspace Engine (`Workspace.qml`):**
+  - **Main Monitor (Laptop `eDP-1`):** Holds Workspaces 1..5 (`baseWsId = 1`), visually displaying Roman numerals `I`, `II`, `III`, `IV`, `V`.
+  - **Second Monitor (`DP-1` / HDMI):** Holds Workspaces 6..10 (`baseWsId = 6`), visually displaying Roman numerals `I`, `II`, `III`, `IV`, `V` (`1..5`).
+  - **Per-Monitor Active Rectangle & App Icons:** Independent accent pill sliding smoothly per monitor. App icons are filtered per display output (`client.output === screenName`).
+  - **Dynamic Next-Workspace Display (`Occupied + 1 Next Workspace`):** Dynamically calculates visible workspace buttons based on occupied workspaces + 1 next empty workspace (capped at 5), eliminating empty workspace button clutter.
+- **Wayland LayerShell Surface Masking (`Region { item: card }`):**
+  - Applied `mask: Region { item: container }` across `Bar.qml`, `AppLauncherPopup.qml`, `WallpaperPopup.qml`, and `BasePopup.qml`.
+  - Clips Wayland LayerShell surface geometry precisely to 20px rounded card corners, erasing sharp square background box artifacts behind popups.
+- **Frosted Glass Status Bar Backdrop Blur:**
+  - Configured `WlrLayershell.namespace: "quickshell:bar"` with 65% translucent background opacity.
+  - Paired with Niri `layer-rule { match namespace="quickshell:bar" geometry-corner-radius 20 background-effect { blur true } }` for 60FPS frosted glass status bar backdrop blur.
+- **Niri Wiki Teknik 2 Dual-Wallpaper Engine (`apply_wallpaper.sh` & `restore-wallpaper.sh`):**
+  - **Crisp Workspace Wallpaper:** Rendered via `awww-daemon` (60FPS smooth circle grow/outer transition animation) on normal workspace cards.
+  - **Blurred Overview Backdrop Wallpaper:** Automatically generated via ImageMagick (`magick -resize 50% -blur 0x25`) and rendered via `swaybg` (`namespace="^wallpaper$" place-within-backdrop true`) on Niri's overview backdrop.
+  - **Dynamic Pywal Active Window Border Sync:** Automatically extracts Pywal colors and updates Niri's `focus-ring { active-gradient from="$color11" to="$color14" angle=45 }` inside `20-layout-and-overview.kdl` on every wallpaper change.
 - **Special Workspace Indicator (`★`) & Negative Workspace ID Filtering:**
   - Filters out negative workspace IDs (`id > 0`) from regular workspace items, preventing scratchpad IDs (e.g. `-98`) from rendering on the left.
   - Adds a dedicated Special Workspace button (`★`) at the far right end of the workspace bar. When a scratchpad is focused, the sliding accent pill (`activePill`) smoothly moves to `★`.
 - **Real-Time GTK Application Icons & Instance Count Dots (`Workspace.qml`):**
-  - Background process streaming `hyprctl clients -j` to parse open window classes per workspace.
+  - Background process streaming `niri msg -j windows` / `hyprctl clients -j` to parse open window classes per workspace.
   - Maps window classes to system GTK/Freedesktop icons (`image://icon/`).
   - Displays open app icons to the right of each workspace Roman numeral.
   - Adds instance count indicator dots (`••`) beneath icons when multiple instances of the same application are open in a workspace.
@@ -53,7 +65,7 @@ This repository contains an isolated testing environment (`test-hypr`) for exper
   - **Bottom-Center Overlay Layout:** Slide-up animation with top 5-item horizontal carousel ($16:9$ thumbnails) and bottom search bar pill (`Search Wallpapers`).
   - **Focused Config Directory Scanning (`wallpaper_list.sh`):** Scans wallpapers exclusively from `$HOME/.config/wallpapers/`.
   - **Active Wallpaper Persistence & Auto-Centering:** Detects current wallpaper on boot (`readlink -f ~/.cache/current_wallpaper.jpg`) and automatically highlights and centers it in the middle of the carousel (`ListView.Center`).
-  - **Automated Pywal & Hyprpaper Execution (`apply_wallpaper.sh`):** Auto-starts `hyprpaper` if dead, applies wallpaper to all monitors, updates Pywal color scheme & Hyprland active border colors, and refreshes Cava.
+  - **Automated Pywal, Awww & Swaybg Execution (`apply_wallpaper.sh`):** Applies 60FPS awww transition on workspace cards, generates & applies ImageMagick blurred wallpaper on Niri overview backdrop via `swaybg`, updates Pywal color scheme & active window gradient borders, and refreshes Cava.
 - **Sequenced Popup Transition Manager (`shell.qml`):**
   - Built-in 200ms transition timer (`popupOpenTimer`) handling `requestOpen()` signals between `AppLauncherPopup` (`Alt + A`) and `WallpaperPopup` (`Alt + W`).
   - Ensures when switching between popups, the active popup slides down and closes completely BEFORE the new popup slides up smoothly onto a clean desktop.
@@ -182,15 +194,15 @@ quickshell
 
 ## 🎨 Keyboard Shortcuts (Hyprland Session)
 
-| Shortcut | Action |
-| :--- | :--- |
-| `Super + Return` | Open Terminal (Kitty) |
-| `Alt + A` | Open Custom Quickshell App Launcher |
-| `Alt + W` | Open Custom Quickshell Wallpaper Selector |
-| `Super + P` | Open Custom Quickshell Power Menu Overlay |
-| `Alt + Q` | Close Active Window |
-| `Alt + M` | Exit Hyprland Session |
-| `Alt + 1` .. `Alt + 5` | Switch Workspaces |
+| Shortcut               | Action                                    |
+| :--------------------- | :---------------------------------------- |
+| `Super + Return`       | Open Terminal (Kitty)                     |
+| `Alt + A`              | Open Custom Quickshell App Launcher       |
+| `Alt + W`              | Open Custom Quickshell Wallpaper Selector |
+| `Super + P`            | Open Custom Quickshell Power Menu Overlay |
+| `Alt + Q`              | Close Active Window                       |
+| `Alt + M`              | Exit Hyprland Session                     |
+| `Alt + 1` .. `Alt + 5` | Switch Workspaces                         |
 
 ---
 
@@ -200,10 +212,11 @@ quickshell
 | Shortcut | Action |
 | :--- | :--- |
 | `Mod + Return` | Open Terminal (Kitty) |
-| `Alt + A` / `Mod + Space` | Open Custom Quickshell App Launcher (`applauncher toggle`) |
-| `Alt + W` / `Ctrl + Alt + T` | Open Custom Quickshell Wallpaper Selector (`wallpaperselect toggle`) |
+| `Alt + A` / `Super + A` | Open Custom Quickshell App Launcher (`applauncher toggle`) |
+| `Alt + W` / `Super + W` / `Ctrl + Alt + T` | Open Custom Quickshell Wallpaper Selector (`wallpaperselect toggle`) |
 | `Super + P` / `Mod + Shift + Q` | Open Fullscreen Power Menu Overlay (`powermenu toggle`) |
-| `Mod + V` | Open Clipboard History (`cliphist`) |
+| `Mod + Space` | Open App Launcher (`applauncher toggle`) |
+| `Mod + V` | Open Clipboard History (`cliphist list \| wofi --dmenu \| ...`) |
 | `Mod + Alt + L` | Lock Screen (`hyprlock`) |
 
 ### 🪟 Window & Layout Management
@@ -229,7 +242,7 @@ quickshell
 | `Mod + Up` / `Mod + K` | Focus Window Up |
 | `Mod + Down` / `Mod + J` | Focus Window Down |
 | `Mod + Home` / `Mod + End` | Jump to First / Last Column |
-| `Alt + Tab` / `Alt + Shift + Tab` | Cycle Recent Windows |
+| `Alt + Tab` / `Alt + Shift + Tab` | Cycle Recent Windows (`recent-windows` preview) |
 | `Mod + Shift + Left / Right / Up / Down` | Move Column Left / Right / Window Up / Down |
 | `Mod + Ctrl + Home / End` | Move Column to First / Last Position |
 
@@ -260,6 +273,36 @@ quickshell
 
 ---
 
+## 🎨 Window Effects & Blur Rules (Niri Compositor)
+
+To enable smooth window backdrop blur and rounded corners without punching through to the wallpaper, Niri uses the following `window-rule` in `niri/config.d/90-user-extra.kdl`:
+
+```kdl
+// 📱 Application Window Blur & Rounding Rules
+window-rule {
+    background-effect {
+        blur true
+        xray false // Blur underlying windows instead of jumping to wallpaper
+    }
+    geometry-corner-radius 14
+    clip-to-geometry true
+}
+
+// 🪟 Active / Inactive Opacity Rules
+window-rule {
+    match is-active=true
+    opacity 0.95
+}
+
+window-rule {
+    match is-active=false
+    opacity 0.80
+}
+```
+
+---
+
 ## 📝 Maintenance & Contribution
 This `README.md` is updated regularly alongside repository commits to reflect current features, directory structures, and code architecture changes.
+
 

@@ -147,7 +147,7 @@ PanelWindow {
     }
 
     // 🪟 CARD CONTAINER RECTANGLE WITH HYPRLAND BLUR & SLIDE-UP ANIMATION
-    Rectangle {
+    Rectangle { 
         id: launcherCard
         anchors.fill: parent
         radius: 20

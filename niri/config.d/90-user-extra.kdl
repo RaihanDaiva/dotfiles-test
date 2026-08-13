@@ -4,8 +4,8 @@
 
 binds {
     Mod+Return { spawn "kitty"; }
-    Alt+A { spawn "quickshell" "ipc" "call" "applauncher" "toggle"; }
-    Alt+W { spawn "quickshell" "ipc" "call" "wallpaperselect" "toggle"; }
+    Super+A { spawn "quickshell" "ipc" "call" "applauncher" "toggle"; }
+    Super+W { spawn "quickshell" "ipc" "call" "wallpaperselect" "toggle"; }
     Super+P { spawn "quickshell" "ipc" "call" "powermenu" "toggle"; }
 
     Super+Shift+1 { move-column-to-workspace 1; }
@@ -15,7 +15,27 @@ binds {
     Super+Shift+5 { move-column-to-workspace 5; }
 }
 
-// 🪟 Layer rules for Quickshell overlays (Unified Elevation & Soft Shadows)
+blur {
+    passes 4
+    offset 2.5
+}
+
+// 🖼️ Teknik 2 Wiki Niri: Swaybg Blur Wallpaper khusus di Overview Backdrop
+layer-rule {
+    match namespace="^wallpaper$"
+    place-within-backdrop true
+}
+
+// 🪟 Layer rules for Quickshell Bar (Frosted Glass Backdrop Blur & Rounded Corners)
+layer-rule {
+    match namespace="quickshell:bar"
+    geometry-corner-radius 20
+    background-effect {
+        blur true
+    }
+}
+
+// 🪟 Layer rules for Quickshell overlays
 layer-rule {
     match namespace="quickshell:popup"
     shadow {
@@ -26,11 +46,13 @@ layer-rule {
     }
 }
 
-// 📱 Application Window Blur & Rounding Rules
+// 📱 Application Window Blur & Rounding Rules (xray false to blur windows below!)
 window-rule {
     background-effect {
         blur true
+        xray false
     }
+
     geometry-corner-radius 14
     clip-to-geometry true
 }

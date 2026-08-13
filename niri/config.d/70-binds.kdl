@@ -56,7 +56,7 @@ binds {
     Mod+T { spawn "kitty"; }
     Mod+Return { spawn "kitty"; }
     Super+E { spawn "thunar"; }
-    Super+W { spawn "zen-browser"; }
+    Super+B { spawn "zen-browser"; }
 
     // ═══════════════════════════════════════════════════════════════════════
     // Window management
@@ -72,10 +72,10 @@ binds {
     // Mod+M { maximize-window-to-edges; }
 
     // Fullscreen (app goes borderless edge-to-edge).
-    Mod+F { fullscreen-window; }
+    F11 { fullscreen-window; }
 
     // Toggle floating / tiling.
-    Mod+A { toggle-window-floating; }
+    Mod+F { toggle-window-floating; }
 
     // Switch focus between tiling and floating layers.
     Mod+Shift+V { switch-focus-between-floating-and-tiling; }

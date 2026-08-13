@@ -21,12 +21,21 @@ Rectangle {
         return sock !== "" || desk.toLowerCase().indexOf("niri") !== -1
     }
 
+    // 🖥️ MONITOR IDENTIFICATION & WORKSPACE RANGE (Main = 1..5, Second = 6..10)
+    readonly property string screenName: screen ? (screen.name || "") : ""
+    readonly property bool isSecondaryMonitor: {
+        if (!screenName) return false
+        var name = screenName.toLowerCase()
+        return name.indexOf("edp") === -1 && name !== "1" && name.indexOf("primary") === -1
+    }
+
+    readonly property int baseWsId: isSecondaryMonitor ? 6 : 1
+
     // 🖥️ HYPRLAND MONITOR SPECIFIC (eDP-1 / DP-1)
     readonly property var hypMonitor: screen ? Hyprland.monitorFor(screen) : Hyprland.focusedMonitor
 
     // 📡 NIRI STATE (Workspaces & Active ID Map)
-    property int niriActiveWsId: 1
-    property var niriWorkspacesList: [1, 2, 3, 4, 5]
+    property int niriActiveWsId: baseWsId
     property var niriWsMap: ({})
 
     // 🌟 WORKSPACE AKTIF UNTUK COMPOSITOR AKTIF (Niri / Hyprland)
@@ -78,7 +87,7 @@ Rectangle {
         }
     }
 
-    // 📡 NIRI WORKSPACES IPC STREAMER
+    // 📡 NIRI WORKSPACES IPC STREAMER (Main Monitor = 1..5, Second Monitor = 6..10)
     Process {
         id: niriWsProc
         command: ["niri", "msg", "-j", "workspaces"]
@@ -89,21 +98,25 @@ Rectangle {
                 try {
                     var data = JSON.parse(this.text)
                     if (Array.isArray(data)) {
-                        var list = []
                         var map = {}
+                        var myOutput = root.screenName
+
                         for (var idx = 0; idx < data.length; idx++) {
                             var w = data[idx]
-                            var wid = w.idx !== undefined ? w.idx : (w.id !== undefined ? w.id : (idx + 1))
-                            list.push(wid)
+                            var wid = w.idx !== undefined ? w.idx : 1
+                            var isSec = w.output && w.output.toLowerCase().indexOf("edp") === -1 && w.output !== "1"
+                            var mappedId = isSec ? (wid > 5 ? wid : wid + 5) : (wid > 5 ? wid - 5 : wid)
+
                             if (w.id !== undefined) {
-                                map[w.id] = wid
+                                map[w.id] = { mappedId: mappedId, output: w.output || "", niriId: w.id }
                             }
-                            if (w.is_active || w.is_focused) {
-                                root.niriActiveWsId = wid
+
+                            if ((w.is_active || w.is_focused) && (!myOutput || w.output === myOutput)) {
+                                root.niriActiveWsId = mappedId
                             }
                         }
+
                         root.niriWsMap = map
-                        if (list.length > 0) root.niriWorkspacesList = list
                         pillUpdateTimer.restart()
                     }
                 } catch(e) {}
@@ -125,9 +138,13 @@ Rectangle {
                         var formatted = []
                         for (var idx = 0; idx < data.length; idx++) {
                             var win = data[idx]
-                            var mappedWsId = (win.workspace_id !== undefined && root.niriWsMap[win.workspace_id] !== undefined) ? root.niriWsMap[win.workspace_id] : (win.workspace_idx !== undefined ? win.workspace_idx : (win.workspace_id !== undefined ? win.workspace_id : 1))
+                            var mapInfo = win.workspace_id !== undefined ? root.niriWsMap[win.workspace_id] : null
+                            var mappedWsId = mapInfo ? mapInfo.mappedId : 1
+                            var winOutput = mapInfo ? mapInfo.output : (win.output || "")
+
                             formatted.push({
                                 workspace: { id: mappedWsId },
+                                output: winOutput,
                                 class: win.app_id || win.title || ""
                             })
                         }
@@ -177,7 +194,21 @@ Rectangle {
         if (root.isNiri) {
             root.niriActiveWsId = targetWsId
             pillUpdateTimer.restart()
-            var niriSwitch = Quickshell.createProcess(["niri", "msg", "action", "focus-workspace", targetWsId.toString()])
+
+            // Resolve targetWsId back to Niri workspace ID/index
+            var niriTargetId = targetWsId
+            for (var rawId in root.niriWsMap) {
+                if (root.niriWsMap[rawId] && root.niriWsMap[rawId].mappedId === targetWsId) {
+                    niriTargetId = root.niriWsMap[rawId].niriId
+                    break
+                }
+            }
+
+            if (root.isSecondaryMonitor && typeof niriTargetId === "number" && niriTargetId > 5) {
+                niriTargetId = niriTargetId - 5
+            }
+
+            var niriSwitch = Quickshell.createProcess(["niri", "msg", "action", "focus-workspace", niriTargetId.toString()])
             niriSwitch.running = true
         } else {
             Hyprland.dispatch("workspace " + targetWsId)
@@ -223,10 +254,16 @@ Rectangle {
 
         var appMap = {}
         var order = []
+        var myOutput = root.screenName
 
         for (var i = 0; i < root.clientList.length; i++) {
             var client = root.clientList[i]
             if (client && client.workspace && client.workspace.id === targetWsId) {
+                // Filter by monitor output if multi-monitor
+                if (myOutput && client.output && client.output !== myOutput) {
+                    continue
+                }
+
                 var rawClass = client.class || client.initialClass || ""
                 if (!rawClass) continue
 
@@ -334,25 +371,40 @@ Rectangle {
         Repeater {
             id: workspaceRepeater
 
-            // 🎯 DAFTAR WORKSPACE (Hyprland / Niri Auto-Support)
+            // 🎯 DAFTAR WORKSPACE DINAMIS (Occupied Workspaces + 1 Next Empty Workspace, Capped at 5)
             property var modelList: {
-                var list = root.isNiri ? root.niriWorkspacesList.slice() : [1, 2, 3, 4, 5]
+                var base = root.baseWsId
+                var myOutput = root.screenName
+                var maxLocalIdx = 1
 
-                if (!root.isNiri) {
-                    for (var i = 0; i < Hyprland.workspaces.values.length; i++) {
-                        var id = Hyprland.workspaces.values[i].id
-                        if (id > 0 && !list.includes(id)) {
-                            list.push(id)
+                // 1. Check active workspace
+                var actWsId = root.activeWorkspace ? root.activeWorkspace.id : base
+                var localActIdx = actWsId >= base ? (actWsId - base + 1) : 1
+                if (localActIdx > maxLocalIdx && localActIdx <= 5) {
+                    maxLocalIdx = localActIdx
+                }
+
+                // 2. Check occupied workspaces from clientList
+                for (var i = 0; i < root.clientList.length; i++) {
+                    var c = root.clientList[i]
+                    if (c && c.workspace) {
+                        var wsId = c.workspace.id
+                        if (!myOutput || !c.output || c.output === myOutput) {
+                            var localIdx = wsId >= base ? (wsId - base + 1) : (wsId <= 5 ? wsId : 1)
+                            if (localIdx > maxLocalIdx && localIdx <= 5) {
+                                maxLocalIdx = localIdx
+                            }
                         }
                     }
                 }
 
-                var actId = root.activeWorkspace ? root.activeWorkspace.id : 1
-                if (actId > 0 && !list.includes(actId)) {
-                    list.push(actId)
+                // Display occupied workspaces + 1 next empty workspace (max 5)
+                var visibleCount = Math.min(5, maxLocalIdx + 1)
+                var list = []
+                for (var k = 0; k < visibleCount; k++) {
+                    list.push(base + k)
                 }
-
-                return list.sort((a, b) => a - b)
+                return list
             }
 
             model: modelList
@@ -383,9 +435,10 @@ Rectangle {
                     anchors.centerIn: parent
                     spacing: 5
 
-                    // 1. ANGKA ROMAWI WORKSPACE
+                    // 1. ANGKA ROMAWI WORKSPACE (Always I..V on both monitors)
                     Text {
-                        text: root.romanNums[wsId - 1] !== undefined ? root.romanNums[wsId - 1] : wsId
+                        property int displayIdx: (wsId - 1) % 5
+                        text: root.romanNums[displayIdx] !== undefined ? root.romanNums[displayIdx] : (displayIdx + 1)
                         color: ws ? Theme.textMain : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.35)
                         font {
                             family: Theme.fontMain

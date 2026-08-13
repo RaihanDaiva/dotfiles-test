@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Wayland
 import "../widgets/bar"
 import "../theme"
 
@@ -8,6 +9,8 @@ PanelWindow {
     id: barWindow
     implicitHeight: 40
     color: 'transparent'
+
+    WlrLayershell.namespace: "quickshell:bar"
 
     anchors {
         top: true
@@ -21,9 +24,14 @@ PanelWindow {
         right: 15
     }
 
+    mask: Region {
+        item: barBackground
+    }
+
     Rectangle {
+        id: barBackground
         anchors.fill: parent
-        color: Qt.rgba(Theme.bgDark.r, Theme.bgDark.g, Theme.bgDark.b, 0.5)
+        color: Qt.rgba(Theme.bgDark.r, Theme.bgDark.g, Theme.bgDark.b, 0.65)
         radius: 20
         border.color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.3)
         border.width: 1

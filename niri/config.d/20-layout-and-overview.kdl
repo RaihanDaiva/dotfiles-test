@@ -48,28 +48,15 @@ layout {
     // Drawn around the focused window on the active monitor.
     // With prefer-no-csd, it draws *around* the window geometry.
     focus-ring {
-        off
-        width 1
-        active-color   "#808080"
-        inactive-color "#505050"
-
-        // Gradient alternative (CSS linear-gradient style):
-        // active-gradient from="#80c8ff" to="#c7ff7f" angle=45
-        // relative-to="workspace-view" makes the gradient span the whole view.
+        on
+        width 2
+        active-gradient from="#6B8D65" to="#5E99A3" angle=45
+        inactive-color "transparent"
     }
 
     // ── Border ──────────────────────────────────────────────────────────────
-    // Always-visible border (unlike focus-ring which only shows on the active window).
-    // iNiR disables both ring and border by default; the shell draws its own highlights.
     border {
         off
-        width 4
-        active-color   "#707070"
-        inactive-color "#d0d0d0"
-        urgent-color   "#cc4444"
-
-        // Pastel rainbow example:
-        // active-gradient from="#e5989b" to="#ffb4a2" angle=45 relative-to="workspace-view" in="oklch longer hue"
     }
 
     // ── Shadow ──────────────────────────────────────────────────────────────
@@ -101,15 +88,18 @@ layout {
 // Triggered by Mod+Tab or hot corners. Shows a zoomed-out workspace view.
 // Note: iNiR also has its own app-launcher overlay (Mod+Space).
 overview {
-    zoom 0.75
+    zoom 0.70
 
-    // Solid color between workspaces (default: transparent).
-    // backdrop-color "#777777"
+    // Solid dark backdrop color surrounding workspace cards in Overview
+    backdrop-color "#0f0f14"
 
-    // Disable the shadow behind each workspace in the overview.
-    // workspace-shadow {
-    //     off
-    // }
+    // Soft drop shadow around each workspace card in Overview
+    workspace-shadow {
+        softness 50
+        spread 10
+        offset x=0 y=0
+        color "#000000a0"
+    }
 }
 
 recent-windows {
