@@ -103,10 +103,10 @@ binds {
     // Mod+Ctrl+F { expand-column-to-available-width; }
 
     // Fine-grained width/height adjustment (±10% of screen).
-    Mod+Minus { set-column-width "-10%"; }
-    Mod+Equal { set-column-width "+10%"; }
-    Mod+Shift+Minus { set-window-height "-10%"; }
-    Mod+Shift+Equal { set-window-height "+10%"; }
+    Mod+Semicolon { set-column-width "-10%"; }
+    Mod+Apostrophe { set-column-width "+10%"; }
+    Mod+Shift+Semicolon { set-window-height "-10%"; }
+    Mod+Shift+Apostrophe { set-window-height "+10%"; }
 
     // Consume the window to the right into the focused column (stack vertically),
     // or expel the bottom window from the column to its own column.

@@ -3,7 +3,9 @@ import Quickshell
 import Quickshell.Services.Notifications
 import "./components/"
 import "./components/popups/"
+import "./services/"
 import "./theme/"
+import "./widgets"
 
 Scope {
     // 🔄 Service pemantau warna Pywal di background
@@ -19,8 +21,13 @@ Scope {
             Bar {
                 screen: modelData
             }
+            // 🖼️ Desktop Clock Widget (Tampil di atas Wallpaper / Layer Bottom)
+            DesktopClock {
+                screen: modelData
+            }
         }
     } 
+
 
     // 🔔 Notification Popup Overlay Card (Menggunakan BasePopup & Pywal Theme)
     NotificationPopup {
@@ -80,6 +87,7 @@ Scope {
         id: notifServer 
         onNotification: (notif) => {
             notifPopup.showNotification(notif)
+            NotificationStore.addNotification(notif)
         }
     }
 }

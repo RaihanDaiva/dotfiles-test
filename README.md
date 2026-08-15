@@ -1,8 +1,8 @@
 # ❄️ Dotfiles Test: Hyprland & Quickshell Ricing Setup
 
-A modular, modern Linux desktop environment configuration built for **Hyprland** and **Quickshell** (QtQuick/QML-based Wayland shell). 
+A modular, modern Linux desktop environment configuration built for **Hyprland**, **Niri**, and **Quickshell** (QtQuick/QML-based Wayland shell). 
 
-This repository contains an isolated testing environment (`test-hypr`) for experimentation alongside a custom status bar and popups built from scratch with Quickshell.
+This repository contains an isolated testing environment (`test-hypr`) for experimentation alongside a custom status bar, desktop widgets, and popups built from scratch with Quickshell.
 
 ---
 
@@ -35,17 +35,35 @@ This repository contains an isolated testing environment (`test-hypr`) for exper
   - Displays open app icons to the right of each workspace Roman numeral.
   - Adds instance count indicator dots (`••`) beneath icons when multiple instances of the same application are open in a workspace.
   - **Dynamic Sliding Pill Width:** `activePill.width` smoothly expands and contracts (`Behavior on width`) to wrap around Roman numerals, app icons, and instance dots.
-- **Modular 3-Widget Right Island Architecture:**
+- **Modular 4-Widget Right Island Architecture:**
   - **SystemStats (`SystemStats.qml`):** Dedicated RAM usage & CPU temperature monitor pill triggering `SysStatsPopup`. Dynamic Pywal `Theme.accent` color applied across all status icons including CPU Temp (`󰔏`).
   - **ControlCenter (`ControlCenter.qml`):** Quick settings control pill (Brightness %, Volume %, Bluetooth, Wi-Fi, Battery %) triggering `QuickSettingsPopup` & `OsdPopup`. Restricted `eventMonitorProc` to primary screen (`Quickshell.screens[0]`) to eliminate duplicate OSD popups on multi-monitor setups.
+  - **NotificationPill (`NotificationPill.qml`):** Dedicated notification bell button (`󰂚` / `󱅫`) with real-time unread badge count positioned between ControlCenter and Power, triggering `NotificationCenterPopup`.
   - **Power (`Power.qml`):** Standalone circular Power button (`󰐥`) triggering `PowerPopup`.
+- **🔔 Full Notification Center (`NotificationCenterPopup.qml` & `NotificationStore.qml`):**
+  - Extends `BasePopup.qml` with glassmorphism blur and rounded corners.
+  - Features real-time unread badge counter, empty state (`No Notifications`), scrollable notification list with app icons, timestamps, individual item dismiss buttons (`✖`), and a **"Clear All" button** (`󰎟 Clear All`) at the very bottom.
+  - **Central State Management:** Managed via `NotificationStore.qml` singleton, keeping notifications synced across all displays.
+- **🕒 Minimalist Desktop Clock Widget (`LargeClock.qml` & `DesktopClock.qml`):**
+  - Built with primary system typography (`Theme.fontMain` / `GoogleSans-Regular`).
+  - **Two-Line Reference Layout:** Large bold time (`HH:mm`) on line 1, lowercase date (`ddd, dd/MM`, e.g. `sab, 15/08`) on line 2.
+  - **Wayland Desktop LayerShell Surface (`DesktopClock.qml`):** Encapsulated in `PanelWindow` on `WlrLayer.Bottom` with `exclusionMode: ExclusionMode.Ignore` and `Variants` multi-monitor screen binding, rendering cleanly as a native desktop widget on top of the wallpaper.
+- **⚡ Instant Wi-Fi & Bluetooth Status Resolution:**
+  - Triggers `sys_info.sh`, `wifi_list.sh`, and `bt_list.sh` immediately at startup (`Component.onCompleted`) and upon opening `QuickSettingsPopup` (`onIsOpenChanged`).
+  - Resolves startup fallback glitches, instantly populating active Wi-Fi SSID (`IKOQ`) and connected Bluetooth device names (`soundcore R50i`).
+- **🪟 Mutually Exclusive Popup Manager (`PopupManager.qml`):**
+  - Centralized singleton (`PopupManager.qml`) integrated directly into `BasePopup.qml` (`onIsOpenChanged`).
+  - Automatically closes any previously active dropdown popup whenever a new popup is opened, completely preventing popup stacking/overlapping.
+- **🖱️ Refined Activation Modes (On-Click Only vs Hover):**
+  - **On-Click Only (`Click to Toggle`):** Applied to ControlCenter, NotificationPill, SystemStats, and Power to prevent accidental triggers and ensure stable slider/list interaction.
+  - **Hover & Click:** Preserved on `Clock.qml` for quick monthly calendar previews.
 - **Logical Visual Hierarchy:**
   - **Active Workspace:** High-contrast dark text (`Theme.bgDark`) over the bright accent pill.
   - **Occupied Workspace:** Bright text (`Theme.textMain`) indicating running applications.
   - **Empty Workspace:** Muted 35% opacity text (`Theme.textMain` 0.35 alpha) to reduce visual clutter.
 - **Floating Overlay Popups & LayerShell Exclusion Mode (`BasePopup.qml` & `components/popups/`):**
   - Reusable `PanelWindow` shell encapsulated in `widgets/BasePopup.qml`.
-  - **`exclusionMode: ExclusionMode.Ignore`:** Applied across all popup windows (`BasePopup.qml`, `AppLauncherPopup.qml`, `WallpaperPopup.qml`, `OsdPopup.qml`, `PowerMenuOverlay.qml`, `NotificationPopup.qml`) ensuring popups float 100% cleanly over tiled windows without splitting or altering workspace tiling grids.
+  - **`exclusionMode: ExclusionMode.Ignore`:** Applied across all popup windows (`BasePopup.qml`, `AppLauncherPopup.qml`, `WallpaperPopup.qml`, `OsdPopup.qml`, `PowerMenuOverlay.qml`, `NotificationPopup.qml`, `NotificationCenterPopup.qml`) ensuring popups float 100% cleanly over tiled windows without splitting or altering workspace tiling grids.
   - **Precise Below-Bar Positioning:** Dynamic top margin calculation (`margins.top: 54` or `barTop + barHeight + 6`) placing dropdown popups flush EXACTLY `6px` below the status bar.
   - Built-in Wayland LayerShell setup (`WlrLayershell.namespace: "quickshell:popup"`), Hyprland glassmorphism blur, translucent Pywal background (`0.5` alpha), and dual slide/fade enter-exit animations.
   - **Dynamic Wayland Keyboard Focus:** `requiresKeyboardFocus` property switching `WlrLayershell.keyboardFocus` dynamically to `WlrKeyboardFocus.OnDemand` whenever text input is active.
@@ -69,23 +87,6 @@ This repository contains an isolated testing environment (`test-hypr`) for exper
 - **Sequenced Popup Transition Manager (`shell.qml`):**
   - Built-in 200ms transition timer (`popupOpenTimer`) handling `requestOpen()` signals between `AppLauncherPopup` (`Alt + A`) and `WallpaperPopup` (`Alt + W`).
   - Ensures when switching between popups, the active popup slides down and closes completely BEFORE the new popup slides up smoothly onto a clean desktop.
-- **Multi-Toast Stacked Notification Daemon & Overlay (`NotificationPopup.qml` & `NotificationServer`):**
-  - Built directly on Quickshell's native DBus `NotificationServer` daemon (`Quickshell.Services.Notifications`).
-  - **Multi-Toast Stacked Toast System:** Manages dynamic array model (`notifList`) supporting up to 4 stacked notification toasts vertically at top-right.
-  - **Sequential Shift:** New notifications prepend to Row 1 (top), smoothly pushing older notifications down to Row 2, Row 3, etc.
-  - **Smooth Horizontal Slide Animations:** IN animation slides from far right screen edge (`+400px` $\rightarrow$ `0px`), OUT animation slides back to far right (`0px` $\rightarrow$ `+400px`).
-  - **Independent Timers & Dismissal:** Individual 5-second auto-dismiss timers and `✖` close buttons per card, with remaining toasts smoothly sliding up on dismissal.
-  - **Reliable Property Assignment:** Explicit property binding in `showNotification()` for 100% reliable app name, summary, body text, and GTK app icon rendering.
-- **Real-Time On-Screen Display (OSD) Overlay (`OsdPopup.qml`):**
-  - Floating bottom-centered glassmorphism overlay card (`WlrLayer.Overlay`) rendering real-time volume and brightness indicators with smooth `OutCubic` entrance/exit animations.
-  - **0ms Real-Time Event Listener (`sys_event_monitor.sh`):** Streams PipeWire audio events via `pactl subscribe` and Linux kernel backlight events via `udevadm monitor --subsystem-match=backlight` for instant OSD updates when adjusting volume or brightness via keyboard **Fn** shortcuts.
-- **System Performance Dashboard (`SysStatsPopup.qml`):**
-  - **5-Circle Symmetrical Ring Gauge Layout:** CPU Load (`󰻠`), GPU Load (`󰢮`), CPU Temp (`󰔏`), GPU Temp (`󰔏`), and Memory (`󰍛`).
-  - **Storage Disk Usage Bar:** Full-width progress bar tracking root `/` partition storage space.
-- **Windows 11 Style Control Center Hub (`QuickSettingsPopup.qml`):**
-  - **3-Page Horizontal Sliding Drill-Down Navigation:** Main Page, Detail List Page (scanned Wi-Fi & paired Bluetooth), and Wi-Fi Password Input Page.
-  - **Volume Overamplification (0%–150% Boost):** Volume boost up to **150%** via `wpctl`.
-  - **Dynamic Multi-Monitor Screen Brightness Detection:** Supports internal panels (`brightnessctl`) and external displays via DDC/CI (`ddcutil`).
 
 ---
 
@@ -103,26 +104,32 @@ dotfiles-test/
 │   └── scripts/                    # Wallpaper & utility scripts (set-wallpaper.sh, restore-wallpaper.sh, etc.)
 │
 └── quickshell/                     # Quickshell UI configuration
-    ├── shell.qml                   # Main entry point (Scope loading PywalService, Bar variants, NotificationServer, PowerMenuOverlay, AppLauncherPopup & WallpaperPopup)
+    ├── shell.qml                   # Main entry point (Scope loading PywalService, Bar variants, DesktopClock, NotificationServer, etc.)
     ├── components/
     │   ├── Bar.qml                 # Top Status Bar layout receiving screen property
+    │   ├── DesktopClock.qml        # Wayland Desktop LayerShell surface wrapper for LargeClock
     │   └── popups/                 # 🪟 CENTRALIZED POPUP REPOSITORY
     │       ├── CalendarPopup.qml   # Interactive monthly calendar, live clock & uptime popup
     │       ├── MediaPopup.qml      # Floating detail card with 1:1 cover art, seek bar & playback controls
     │       ├── SysStatsPopup.qml   # 5-Circle Performance Dashboard popup (CPU/GPU Load & Temp, Mem, Storage)
     │       ├── QuickSettingsPopup.qml # Windows 11 style 3-tier sliding Control Center popup
+    │       ├── NotificationCenterPopup.qml # Notification Center popup extending BasePopup with Clear All button
     │       ├── OsdPopup.qml        # Real-time OSD overlay card for Volume & Brightness (exclusionMode: Ignore)
     │       ├── NotificationPopup.qml # Multi-toast stacked notification popup extending PanelWindow with slide animations
     │       ├── PowerPopup.qml      # Power menu popup dropdown extending BasePopup
     │       ├── PowerMenuOverlay.qml # Fullscreen Power Menu Overlay with Morphing Circle-to-Pill buttons (Super + P)
     │       ├── AppLauncherPopup.qml # Application Launcher popup extending PanelWindow with bottom-center search bar (Alt + A)
     │       └── WallpaperPopup.qml  # Horizontal Wallpaper Selector Carousel popup extending PanelWindow (Alt + W)
+    ├── services/
+    │   ├── NotificationStore.qml   # Central Singleton tracking active notification list
+    │   └── PopupManager.qml        # Central Singleton enforcing mutually exclusive popup behavior
     ├── theme/
     │   ├── Theme.qml               # Clean Singleton storing pure font & color properties
     │   └── PywalService.qml        # Background service syncing Pywal colors to Theme.qml
     ├── widgets/
-    │   ├── BasePopup.qml           # Reusable PanelWindow popup shell with dynamic Wayland keyboard focus, exclusionMode: Ignore & 54px top margin
+    │   ├── BasePopup.qml           # Reusable PanelWindow popup shell with PopupManager integration & 54px top margin
     │   ├── ControlPill.qml         # Reusable control button pill with optical center offset
+    │   ├── LargeClock.qml          # Minimalist 2-line desktop clock widget using Theme.fontMain
     │   └── bar/
     │       ├── Workspace.qml       # Independent per-monitor workspace switcher with GTK app icons, instance dots & special workspace indicator (★)
     │       ├── Clock.qml           # Real-time clock & date widget with pill hover trigger
@@ -131,7 +138,8 @@ dotfiles-test/
     │       │   ├── MarqueeText.qml # Reusable endless continuous marquee text
     │       │   └── CavaVisualizer.qml # 24-bar PipeWire Cava audio visualizer
     │       ├── SystemStats.qml     # RAM & CPU Temp performance monitor widget
-    │       ├── ControlCenter.qml   # Quick settings control pill widget (Brightness/Vol/BT/WiFi/Bat) with single-instance event monitor
+    │       ├── ControlCenter.qml   # Quick settings control pill widget (Brightness/Vol/BT/WiFi/Bat)
+    │       ├── NotificationPill.qml # Standalone notification bell button with unread count badge
     │       └── Power.qml           # Standalone Power button widget
     └── scripts/
         ├── sys_info.sh             # Executable bash helper script for system metrics, GPU stats & volume
@@ -149,9 +157,9 @@ dotfiles-test/
 
 ### Prerequisites
 Ensure the following packages are installed on your system (e.g. Arch Linux / CachyOS):
-- `hyprland`
+- `hyprland` / `niri`
 - `quickshell`
-- `hyprpaper`
+- `hyprpaper` / `awww` / `swaybg`
 - `libnotify` (`notify-send`)
 - `cava` (for real-time PipeWire audio visualizer)
 - `pywal` (`wal`)
@@ -304,5 +312,3 @@ window-rule {
 
 ## 📝 Maintenance & Contribution
 This `README.md` is updated regularly alongside repository commits to reflect current features, directory structures, and code architecture changes.
-
-

@@ -88,6 +88,23 @@ BasePopup {
     // 󰂯 Dynamic Bluetooth Icon
     readonly property string btIcon: (btStatus !== "off") ? "󰂯" : "󰂲"
 
+    Component.onCompleted: {
+        sysProc.running = true
+        wifiProc.running = true
+        btProc.running = true
+    }
+
+    onIsOpenChanged: {
+        if (isOpen) {
+            sysProc.running = false
+            sysProc.running = true
+            wifiProc.running = false
+            wifiProc.running = true
+            btProc.running = false
+            btProc.running = true
+        }
+    }
+
     // ─── 1. SYSTEM INFO PROCESS (sys_info.sh) ────────────────────────────────
     Process {
         id: sysProc
@@ -136,10 +153,20 @@ BasePopup {
                 if (connectedSSID !== "") {
                     wifiSSID    = connectedSSID
                     wifiEnabled = true
-                    wifiSignal  = nets.length > 0 ? nets[0].signal : 75
-                } else if (nets.length === 0) {
+                    for (var k = 0; k < nets.length; k++) {
+                        if (nets[k].connected) {
+                            wifiSignal = nets[k].signal
+                            break
+                        }
+                    }
+                } else if (nets.length > 0) {
+                    wifiSSID    = "Disconnected"
+                    wifiEnabled = true
+                    wifiSignal  = 0
+                } else {
                     wifiSSID    = "Off"
                     wifiEnabled = false
+                    wifiSignal  = -1
                 }
             }
         }
@@ -169,7 +196,7 @@ BasePopup {
                 }
                 devs.sort(function(a, b) { return (b.connected ? 1 : 0) - (a.connected ? 1 : 0) })
                 btDevices = devs
-                btConnectedName = foundConnected !== "" ? foundConnected : "Not connected"
+                btConnectedName = foundConnected !== "" ? foundConnected : (devs.length > 0 ? "On" : "Not connected")
             }
         }
     }
@@ -200,7 +227,7 @@ BasePopup {
     Timer {
         id: sysTimer
         interval: 3000
-        running: popupRoot.isOpen
+        running: true
         repeat: true
         triggeredOnStart: true
         onTriggered: { sysProc.running = false; sysProc.running = true }

@@ -67,7 +67,7 @@ PanelWindow {
         anchors.centerIn: parent
     }
 
-    // 📍 3. PULAU KANAN (System Stats, Control Center, & Power)
+    // 📍 3. PULAU KANAN (System Stats, Control Center, Notification Pill & Power)
     RowLayout {
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
@@ -79,6 +79,10 @@ PanelWindow {
         }
 
         ControlCenter {
+            barWindow: barWindow
+        }
+
+        NotificationPill {
             barWindow: barWindow
         }
 

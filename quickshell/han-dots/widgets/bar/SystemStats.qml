@@ -103,12 +103,8 @@ Item {
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
-            onEntered: {
-                closeSysTimer.stop()
-                sysStatsPopup.isOpen = true
-            }
-            onExited: {
-                closeSysTimer.restart()
+            onClicked: {
+                sysStatsPopup.isOpen = !sysStatsPopup.isOpen
             }
         }
 

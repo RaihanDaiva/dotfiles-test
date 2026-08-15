@@ -50,7 +50,7 @@ layout {
     focus-ring {
         on
         width 2
-        active-gradient from="#6B8D65" to="#5E99A3" angle=45
+        active-gradient from="#8C7239" to="#999661" angle=45
         inactive-color "transparent"
     }
 

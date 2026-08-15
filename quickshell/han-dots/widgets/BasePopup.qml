@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
+import "../services"
 import "../theme"
 
 // 🪟 REUSABLE BASE POPUP SHELL (PanelWindow dengan Hyprland Blur & Smart Clamped Positioning)
@@ -67,7 +68,12 @@ PanelWindow {
     }
 
     onIsOpenChanged: {
-        if (isOpen) updatePosition()
+        if (isOpen) {
+            updatePosition()
+            PopupManager.requestOpen(popupRoot)
+        } else {
+            PopupManager.notifyClosed(popupRoot)
+        }
     }
 
     visible: isOpen || hideAnim.running

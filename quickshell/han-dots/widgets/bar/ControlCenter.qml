@@ -182,12 +182,8 @@ Item {
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
-            onEntered: {
-                closeQuickTimer.stop()
-                quickSettingsPopup.isOpen = true
-            }
-            onExited: {
-                closeQuickTimer.restart()
+            onClicked: {
+                quickSettingsPopup.isOpen = !quickSettingsPopup.isOpen
             }
         }
 
