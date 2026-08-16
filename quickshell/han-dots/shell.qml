@@ -29,6 +29,11 @@ Scope {
     } 
 
 
+    // 🔐 Native Wayland Lockscreen Widget (Session Lock + PAM Auth)
+    Lockscreen {
+        id: lockscreen
+    }
+
     // 🔔 Notification Popup Overlay Card (Menggunakan BasePopup & Pywal Theme)
     NotificationPopup {
         id: notifPopup

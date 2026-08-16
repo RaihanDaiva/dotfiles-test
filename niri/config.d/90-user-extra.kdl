@@ -7,6 +7,7 @@ binds {
     Super+A { spawn "quickshell" "ipc" "call" "applauncher" "toggle"; }
     Super+W { spawn "quickshell" "ipc" "call" "wallpaperselect" "toggle"; }
     Super+P { spawn "quickshell" "ipc" "call" "powermenu" "toggle"; }
+        // Super+Alt+L { spawn "quickshell" "ipc" "call" "lockscreen" "lock"; }
 
     Super+Shift+1 { move-column-to-workspace 1; }
     Super+Shift+2 { move-column-to-workspace 2; }

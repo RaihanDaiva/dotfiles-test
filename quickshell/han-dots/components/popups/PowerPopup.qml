@@ -21,7 +21,7 @@ BasePopup {
     Process { id: shutdownProc; command: ["systemctl", "poweroff"] }
     Process { id: rebootProc; command: ["systemctl", "reboot"] }
     Process { id: suspendProc; command: ["systemctl", "suspend"] }
-    Process { id: lockProc; command: ["hyprlock"] }
+    Process { id: lockProc; command: ["quickshell", "ipc", "call", "lockscreen", "lock"] }
     Process { id: logoutProc; command: ["hyprctl", "dispatch", "exit"] }
 
     // 📦 VERTICAL LIST CONTAINER

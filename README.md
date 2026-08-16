@@ -8,6 +8,17 @@ This repository contains an isolated testing environment (`test-hypr`) for exper
 
 ## 🚀 Features
 
+### 🔐 Native Wayland Lockscreen (`Lockscreen.qml`)
+- **Native Wayland Session Lock (`WlSessionLock` & `WlSessionLockSurface`):** Securely locks the desktop session via the `ext-session-lock-v1` protocol.
+- **Native Linux PAM Authentication (`PamContext`):** Verifies user credentials directly against PAM (`Quickshell.Services.Pam`), returning smooth visual feedback on success or failure.
+- **Instant System Wallpaper Background:** Synchronously loads the current active wallpaper from `~/.cache/current_wallpaper.jpg` with texture caching from frame 0.
+- **Minimalist Layout & Top-Left Clock:** Large bold clock (`LargeClock.qml`, 100px time, 30px date) positioned in the top-left corner alongside user profile (`whoami`).
+- **Minimalist Underline Password Field:** Clean input field featuring an animated `2px` bottom line that smoothly shifts color to Pywal accent (`Theme.accent`) on active focus and red (`#f38ba8`) on authentication errors.
+- **Guaranteed Keyboard Focus (`FocusScope` & `Keys`):** Top-level `FocusScope` capturing all keypresses including `Return`/`Enter`, `Backspace`, and `Escape`, ensuring instant keyboard focus without requiring manual mouse clicks.
+- **Smooth Fade-In & Fade-Out Transitions:** 400ms entrance fade-in and 350ms exit fade-out sequence on the 65% Pywal translucent dark overlay before releasing the Wayland session lock.
+- **Zero-Shift Status Message Slot:** Fixed 24px reserved slot for authentication messages (`Authenticating...` / `Incorrect password`), completely preventing layout shifting or field jumping when feedback appears.
+- **IPC Control:** Triggerable via keyboard binds or terminal using `quickshell ipc call lockscreen lock` / `toggle`.
+
 ### 🏛️ Status Bar & Multi-Monitor Widgets (Quickshell)
 - **Multi-Monitor Native Architecture:** Instantiates the top status bar on all connected displays (`eDP-1` laptop display, `DP-1` external display, HDMI) via `Variants` over `Quickshell.screens`.
 - **Mathematical Screen Center Alignment:** Independent component anchoring ensures the center island (Clock) stays in the exact mathematical center of the screen regardless of left/right island sizes.
@@ -104,10 +115,11 @@ dotfiles-test/
 │   └── scripts/                    # Wallpaper & utility scripts (set-wallpaper.sh, restore-wallpaper.sh, etc.)
 │
 └── quickshell/                     # Quickshell UI configuration
-    ├── shell.qml                   # Main entry point (Scope loading PywalService, Bar variants, DesktopClock, NotificationServer, etc.)
+    ├── shell.qml                   # Main entry point (Scope loading PywalService, Bar variants, DesktopClock, Lockscreen, NotificationServer, etc.)
     ├── components/
     │   ├── Bar.qml                 # Top Status Bar layout receiving screen property
     │   ├── DesktopClock.qml        # Wayland Desktop LayerShell surface wrapper for LargeClock
+    │   ├── Lockscreen.qml          # 🔐 Native Wayland Session Lock widget with PAM Auth & Underline input field
     │   └── popups/                 # 🪟 CENTRALIZED POPUP REPOSITORY
     │       ├── CalendarPopup.qml   # Interactive monthly calendar, live clock & uptime popup
     │       ├── MediaPopup.qml      # Floating detail card with 1:1 cover art, seek bar & playback controls
@@ -208,6 +220,7 @@ quickshell
 | `Alt + A`              | Open Custom Quickshell App Launcher       |
 | `Alt + W`              | Open Custom Quickshell Wallpaper Selector |
 | `Super + P`            | Open Custom Quickshell Power Menu Overlay |
+| `Super + Alt + L`      | Lock Screen Native Quickshell (`lockscreen lock`) |
 | `Alt + Q`              | Close Active Window                       |
 | `Alt + M`              | Exit Hyprland Session                     |
 | `Alt + 1` .. `Alt + 5` | Switch Workspaces                         |
@@ -223,9 +236,9 @@ quickshell
 | `Alt + A` / `Super + A` | Open Custom Quickshell App Launcher (`applauncher toggle`) |
 | `Alt + W` / `Super + W` / `Ctrl + Alt + T` | Open Custom Quickshell Wallpaper Selector (`wallpaperselect toggle`) |
 | `Super + P` / `Mod + Shift + Q` | Open Fullscreen Power Menu Overlay (`powermenu toggle`) |
+| `Mod + Alt + L` | Lock Screen Native (`quickshell ipc call lockscreen lock`) |
 | `Mod + Space` | Open App Launcher (`applauncher toggle`) |
 | `Mod + V` | Open Clipboard History (`cliphist list \| wofi --dmenu \| ...`) |
-| `Mod + Alt + L` | Lock Screen (`hyprlock`) |
 
 ### 🪟 Window & Layout Management
 | Shortcut | Action |

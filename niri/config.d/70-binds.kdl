@@ -40,7 +40,7 @@ binds {
     Mod+V { spawn "bash" "-c" "cliphist list | wofi --dmenu | cliphist decode | wl-copy"; }
 
     // Lock screen
-    Mod+Alt+L allow-when-locked=true { spawn "hyprlock"; }
+    Mod+Alt+L allow-when-locked=true { spawn "quickshell" "ipc" "call" "lockscreen" "lock"; }
 
     // Region Screenshots
     Mod+Shift+S { spawn "bash" "-c" "grim -g \"$(slurp)\" - | wl-copy"; }

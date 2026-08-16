@@ -34,7 +34,7 @@ PanelWindow {
     Process { id: shutdownProc; command: ["systemctl", "poweroff"] }
     Process { id: rebootProc; command: ["systemctl", "reboot"] }
     Process { id: suspendProc; command: ["systemctl", "suspend"] }
-    Process { id: lockProc; command: ["hyprlock"] }
+    Process { id: lockProc; command: ["quickshell", "ipc", "call", "lockscreen", "lock"] }
     Process { id: logoutProc; command: ["hyprctl", "dispatch", "exit"] }
 
     function executeAction(index) {
@@ -52,7 +52,7 @@ PanelWindow {
 
         function toggle() {
             powerMenuRoot.isOpen = !powerMenuRoot.isOpen
-            if (powerMenuRoot.isOpen) powerMenuRoot.selectedIndex = 1 // Default highlight Reboot or none
+            if (powerMenuRoot.isOpen) powerMenuRoot.selectedIndex = 0 // Default highlight Shutdown or none
         }
 
         function open() {
