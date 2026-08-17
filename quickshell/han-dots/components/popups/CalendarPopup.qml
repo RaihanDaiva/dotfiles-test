@@ -241,12 +241,16 @@ BasePopup {
             Repeater {
                 model: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
-                Text {
-                    text: modelData
-                    color: Theme.accent
-                    font { family: Theme.fontMain; pixelSize: 13; bold: true }
-                    horizontalAlignment: Text.AlignHCenter
+                Item {
                     Layout.fillWidth: true
+                    implicitHeight: 24
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: modelData
+                        color: Theme.accent
+                        font { family: Theme.fontMain; pixelSize: 13; bold: true }
+                    }
                 }
             }
         }
@@ -266,12 +270,14 @@ BasePopup {
                     Layout.fillWidth: true
                     implicitHeight: 34
                     radius: 10
-                    color: modelData.isToday ? Theme.accent : "transparent"
+                    color: modelData.isToday ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25) : "transparent"
+                    border.color: modelData.isToday ? Theme.accent : "transparent"
+                    border.width: 1
 
                     Text {
                         anchors.centerIn: parent
                         text: modelData.day
-                        color: modelData.isToday ? Theme.bgDark : (modelData.isCurrentMonth ? Theme.textMain : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.3))
+                        color: modelData.isToday ? Theme.textMain : (modelData.isCurrentMonth ? Theme.textMain : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.3))
                         font {
                             family: Theme.fontMain
                             pixelSize: 14

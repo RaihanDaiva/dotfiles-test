@@ -208,8 +208,7 @@ Rectangle {
                 niriTargetId = niriTargetId - 5
             }
 
-            var niriSwitch = Quickshell.createProcess(["niri", "msg", "action", "focus-workspace", niriTargetId.toString()])
-            niriSwitch.running = true
+            Quickshell.execDetached(["niri", "msg", "action", "focus-workspace", niriTargetId.toString()])
         } else {
             Hyprland.dispatch("workspace " + targetWsId)
         }

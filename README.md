@@ -12,8 +12,9 @@ This repository contains an isolated testing environment (`test-hypr`) for exper
 - **Native Wayland Session Lock (`WlSessionLock` & `WlSessionLockSurface`):** Securely locks the desktop session via the `ext-session-lock-v1` protocol.
 - **Native Linux PAM Authentication (`PamContext`):** Verifies user credentials directly against PAM (`Quickshell.Services.Pam`), returning smooth visual feedback on success or failure.
 - **Instant System Wallpaper Background:** Synchronously loads the current active wallpaper from `~/.cache/current_wallpaper.jpg` with texture caching from frame 0.
-- **Minimalist Layout & Top-Left Clock:** Large bold clock (`LargeClock.qml`, 100px time, 30px date) positioned in the top-left corner alongside user profile (`whoami`).
-- **Minimalist Underline Password Field:** Clean input field featuring an animated `2px` bottom line that smoothly shifts color to Pywal accent (`Theme.accent`) on active focus and red (`#f38ba8`) on authentication errors.
+- **Constant Dark Translucent Overlay:** Translucent dark backdrop (`Theme._darkBg` at 65% opacity) and high-contrast light text (`Theme._darkText`) remaining constant in both Light and Dark modes.
+- **Circular User Avatar & Centered Password Field:** HD circular profile picture with `MultiEffect` mask positioned above username and centered password text input (`horizontalAlignment: AlignHCenter`).
+- **Lockscreen Media Player Card:** Scaled-up rounded rectangle card below `LargeClock` featuring album cover, marquee scrolling track title & artist, playback controls (Prev, Play/Pause, Next), and a frosted glass album art background with `OpacityMask` corner clipping.
 - **Guaranteed Keyboard Focus (`FocusScope` & `Keys`):** Top-level `FocusScope` capturing all keypresses including `Return`/`Enter`, `Backspace`, and `Escape`, ensuring instant keyboard focus without requiring manual mouse clicks.
 - **Smooth Fade-In & Fade-Out Transitions:** 400ms entrance fade-in and 350ms exit fade-out sequence on the 65% Pywal translucent dark overlay before releasing the Wayland session lock.
 - **Zero-Shift Status Message Slot:** Fixed 24px reserved slot for authentication messages (`Authenticating...` / `Incorrect password`), completely preventing layout shifting or field jumping when feedback appears.

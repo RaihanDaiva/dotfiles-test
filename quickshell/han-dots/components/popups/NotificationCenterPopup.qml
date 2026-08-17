@@ -48,13 +48,13 @@ BasePopup {
             Text {
                 text: "󰂚"
                 color: Theme.accent
-                font { family: Theme.fontMono; pixelSize: 18 }
+                font { family: Theme.fontMono; pixelSize: 24 }
             }
 
             Text {
                 text: "Notification Center"
                 color: Theme.textMain
-                font { family: Theme.fontMain; pixelSize: 14; bold: true }
+                font { family: Theme.fontMain; pixelSize: 16; bold: true }
                 Layout.fillWidth: true
             }
 

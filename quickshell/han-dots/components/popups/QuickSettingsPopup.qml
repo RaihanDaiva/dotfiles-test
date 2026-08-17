@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
+import QtQuick.Effects
 import Quickshell
 import Quickshell.Io
 import "../../widgets"
@@ -45,7 +46,7 @@ BasePopup {
     property string brightType1: "backlight"
 
     property string brightName2: "Screen Brightness (second)"
-    property int brightVal2: 100
+    property int brightVal2: 100 
     property string brightType2: "ddcutil:1"
 
     property int volumeVal: 80
@@ -88,11 +89,64 @@ BasePopup {
     // 󰂯 Dynamic Bluetooth Icon
     readonly property string btIcon: (btStatus !== "off") ? "󰂯" : "󰂲"
 
+    // 🍃 POWER PROFILE METRICS ("power-saver", "balanced", "performance")
+    property string powerProfile: "balanced"
+
+    function cyclePowerProfile() {
+        var next = "balanced"
+        if (powerProfile === "balanced") next = "performance"
+        else if (powerProfile === "performance") next = "power-saver"
+        else if (powerProfile === "power-saver") next = "balanced"
+
+        powerProfile = next
+        powerProfileSetProc.command = ["powerprofilesctl", "set", next]
+        powerProfileSetProc.running = true
+    }
+
     Component.onCompleted: {
         sysProc.running = true
         wifiProc.running = true
         btProc.running = true
+        powerProfileGetProc.running = true
+        // Baca brightness langsung saat startup — jauh lebih cepat dari brightness_info.sh
+        qsStartBrightCurrentProc.running = true
+        qsStartBrightMaxProc.running = true
     }
+
+    // 🔆 BRIGHTNESS STARTUP READER — mencegah flash 100% sebelum brightness_info.sh selesai
+    property int _qsBrightCur: -1
+    property int _qsBrightMax: -1
+
+    Process {
+        id: qsStartBrightCurrentProc
+        command: ["brightnessctl", "g"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var cur = parseInt(this.text.trim())
+                if (!isNaN(cur)) {
+                    popupRoot._qsBrightCur = cur
+                    if (popupRoot._qsBrightMax > 0)
+                        popupRoot.brightVal1 = Math.round(popupRoot._qsBrightCur * 100 / popupRoot._qsBrightMax)
+                }
+            }
+        }
+    }
+
+    Process {
+        id: qsStartBrightMaxProc
+        command: ["brightnessctl", "m"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var mx = parseInt(this.text.trim())
+                if (!isNaN(mx) && mx > 0) {
+                    popupRoot._qsBrightMax = mx
+                    if (popupRoot._qsBrightCur >= 0)
+                        popupRoot.brightVal1 = Math.round(popupRoot._qsBrightCur * 100 / mx)
+                }
+            }
+        }
+    }
+
 
     onIsOpenChanged: {
         if (isOpen) {
@@ -102,8 +156,26 @@ BasePopup {
             wifiProc.running = true
             btProc.running = false
             btProc.running = true
+            powerProfileGetProc.running = false
+            powerProfileGetProc.running = true
         }
     }
+
+    // 🍃 POWER PROFILE PROCESSES
+    Process {
+        id: powerProfileGetProc
+        command: ["powerprofilesctl", "get"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var prof = this.text.trim()
+                if (prof === "power-saver" || prof === "balanced" || prof === "performance") {
+                    popupRoot.powerProfile = prof
+                }
+            }
+        }
+    }
+
+    Process { id: powerProfileSetProc }
 
     // ─── 1. SYSTEM INFO PROCESS (sys_info.sh) ────────────────────────────────
     Process {
@@ -122,7 +194,7 @@ BasePopup {
                 if (lines.length >= 6  && lines[5]  !== "") btStatus     = lines[5].trim()
                 if (lines.length >= 15 && lines[14] !== "") volumeVal    = parseInt(lines[14]) || 80
                 if (lines.length >= 16 && lines[15] !== "") volumeMuted  = (lines[15].trim() === "muted")
-                if (lines.length >= 17 && lines[16] !== "") brightnessVal = parseInt(lines[16]) || 100
+                if (lines.length >= 17 && lines[16] !== "") popupRoot.brightVal1 = parseInt(lines[16]) || 100
                 if (lines.length >= 18 && lines[17] !== "") userNameText = lines[17].trim()
             }
         }
@@ -297,7 +369,7 @@ BasePopup {
 
     Timer {
         id: brightPollTimer
-        interval: 3000
+        interval: 3000 
         running: popupRoot.isOpen
         repeat: true
         triggeredOnStart: true
@@ -333,18 +405,74 @@ BasePopup {
             Layout.fillWidth: true
             spacing: 10
 
-            Rectangle {
-                implicitWidth: 40
-                implicitHeight: 40
-                radius: 20
-                color: Theme.accent
+            // 👤 CIRCULAR USER AVATAR IMAGE WITH HD MIPMAPPING & PERFECT INSET MASK
+            Item {
+                implicitWidth: 44
+                implicitHeight: 44
+
+                Image {
+                    id: userAvatarImg
+                    anchors.fill: parent
+                    anchors.margins: 2
+                    fillMode: Image.PreserveAspectCrop
+                    smooth: true
+                    mipmap: true
+                    sourceSize: Qt.size(160, 160)
+                    visible: status === Image.Ready
+
+                    layer.enabled: true
+                    layer.effect: MultiEffect {
+                        maskEnabled: true
+                        maskSource: avatarMask
+                    }
+
+                    readonly property var avatarPaths: [
+                        Quickshell.configDir + "/assets/image/avatar.png",
+                        Quickshell.configDir + "/assets/image/avatar.jpg",
+                        Quickshell.configDir + "/assets/image/avatar.jpeg",
+                        Quickshell.configDir + "/assets/image/profile.png",
+                        Quickshell.configDir + "/assets/image/user.png",
+                        "file://" + Quickshell.env("HOME") + "/.face",
+                        "file://" + Quickshell.env("HOME") + "/.face.icon"
+                    ]
+                    property int pathIndex: 0
+
+                    source: avatarPaths[0]
+
+                    onStatusChanged: {
+                        if (status === Image.Error) {
+                            if (pathIndex < avatarPaths.length - 1) {
+                                pathIndex++
+                                source = avatarPaths[pathIndex]
+                            }
+                        }
+                    }
+                }
+
+                Rectangle {
+                    id: avatarMask
+                    anchors.fill: userAvatarImg
+                    radius: width / 2
+                    visible: false
+                    layer.enabled: true
+                }
+
+                // ⭕ BORDER RING LINGKARAN (DILUAR GAMBAR)
+                Rectangle {
+                    anchors.fill: parent
+                    radius: width / 2
+                    color: "transparent"
+                    border.color: Theme.accent
+                    border.width: 1.5
+                }
 
                 Text {
                     anchors.centerIn: parent
                     anchors.horizontalCenterOffset: 1
                     text: "󰀉"
-                    color: Theme.bgDark
+                    color: Theme.accent
                     font { family: Theme.fontMono; pixelSize: 22 }
+                    visible: userAvatarImg.status !== Image.Ready
                 }
             }
 
@@ -353,7 +481,7 @@ BasePopup {
                 Text {
                     text: popupRoot.userNameText
                     color: Theme.textMain
-                    font { family: Theme.fontMain; pixelSize: 15; bold: true }
+                    font { family: Theme.fontMain; pixelSize: 16; bold: true }
                 }
                 RowLayout {
                     spacing: 4
@@ -443,6 +571,38 @@ BasePopup {
                         onExpandClicked: {
                             popupRoot.expandedMode = "bt"
                         }
+                    }
+                }
+
+                // 🎛️ SECOND ROW: POWER MODE & DARK/LIGHT MODE PILLS
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 10
+
+                    // 🍃 POWER PROFILE PILL
+                    ControlPill {
+                        Layout.fillWidth: true
+                        iconText: popupRoot.powerProfile === "power-saver" ? "󰌪" : (popupRoot.powerProfile === "performance" ? "󰓅" : "󱐋")
+                        titleText: "Power Mode"
+                        subtitleText: popupRoot.powerProfile === "power-saver" ? "Power Saver" : (popupRoot.powerProfile === "performance" ? "Performance" : "Balanced")
+                        isActive: popupRoot.powerProfile !== "balanced"
+                        showChevron: false
+
+                        onToggleClicked: popupRoot.cyclePowerProfile()
+                        onExpandClicked: popupRoot.cyclePowerProfile()
+                    }
+
+                    // 🌓 DARK / LIGHT MODE PILL
+                    ControlPill {
+                        Layout.fillWidth: true
+                        iconText: Theme.isDarkMode ? "󰔎" : "󰌵"
+                        titleText: "Theme"
+                        subtitleText: Theme.isDarkMode ? "Dark Mode" : "Light Mode"
+                        isActive: Theme.isDarkMode
+                        showChevron: false
+
+                        onToggleClicked: Theme.toggleDarkMode()
+                        onExpandClicked: Theme.toggleDarkMode()
                     }
                 }
 

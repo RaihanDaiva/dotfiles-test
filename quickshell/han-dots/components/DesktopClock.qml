@@ -30,10 +30,12 @@ PanelWindow {
     implicitWidth: clockItem.implicitWidth
     implicitHeight: clockItem.implicitHeight
 
-    // 🕒 KOMPONEN JAM UTAMA
+    // 🕒 KOMPONEN JAM UTAMA (Warna Konstan Terang Seperti Lockscreen)
     LargeClock {
         id: clockItem
         timePixelSize: 64
         datePixelSize: 18
+        timeColor: Theme._darkText
+        dateColor: Qt.rgba(Theme._darkText.r, Theme._darkText.g, Theme._darkText.b, 0.85)
     }
 }

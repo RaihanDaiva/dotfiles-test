@@ -30,44 +30,24 @@ BasePopup {
         anchors.fill: parent
         spacing: 6
 
-        // 👤 USER PROFILE & UPTIME HEADER
+        // Header (Icon & Title)
         RowLayout {
             Layout.fillWidth: true
-            spacing: 10
+            spacing: 8
 
-            Rectangle {
-                implicitWidth: 32
-                implicitHeight: 32
-                radius: 16
-                color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.2)
-
-                Text {
-                    anchors.centerIn: parent
-                    anchors.horizontalCenterOffset: -1
-                    text: "󰀉"
-                    color: Theme.accent
-                    font { family: Theme.fontMono; pixelSize: 16 }
-                }
+            Text {
+                text: "󰐥"
+                color: Theme.accent
+                font { family: Theme.fontMono; pixelSize: 24 }
             }
 
-            ColumnLayout {
+            Text {
+                text: "Power Options"
+                color: Theme.textMain
+                font { family: Theme.fontMain; pixelSize: 16; bold: true }
                 Layout.fillWidth: true
-                spacing: 1
-
-                Text {
-                    text: powerPopup.userNameText
-                    color: Theme.textMain
-                    font { family: Theme.fontMain; pixelSize: 13; bold: true }
-                    elide: Text.ElideRight
-                }
-
-                Text {
-                    text: powerPopup.uptimeText
-                    color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.6)
-                    font { family: Theme.fontMain; pixelSize: 10 }
-                    elide: Text.ElideRight
-                }
             }
+
         }
 
         // ➖ SEPARATOR LINE
@@ -100,20 +80,20 @@ BasePopup {
                 Text {
                     text: "󰐥"
                     color: shutdownHover.hovered ? Theme.accent : Theme.accent
-                    font { family: Theme.fontMono; pixelSize: 16 }
+                    font { family: Theme.fontMono; pixelSize: 18 }
                 }
 
                 Text {
                     text: "Shutdown"
                     color: shutdownHover.hovered ? Theme.accent : Theme.textMain
-                    font { family: Theme.fontMain; pixelSize: 13; bold: true }
+                    font { family: Theme.fontMain; pixelSize: 15; bold: true }
                     Layout.fillWidth: true
                 }
 
                 Text {
                     text: "󰅂"
                     color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.4)
-                    font { family: Theme.fontMono; pixelSize: 12 }
+                    font { family: Theme.fontMono; pixelSize: 14 }
                 }
             }
 
@@ -150,20 +130,20 @@ BasePopup {
                 Text {
                     text: "󰑐"
                     color: rebootHover.hovered ? Theme.accent : Theme.accent
-                    font { family: Theme.fontMono; pixelSize: 16 }
+                    font { family: Theme.fontMono; pixelSize: 18 }
                 }
 
                 Text {
                     text: "Reboot"
                     color: rebootHover.hovered ? Theme.accent : Theme.textMain
-                    font { family: Theme.fontMain; pixelSize: 13; bold: true }
+                    font { family: Theme.fontMain; pixelSize: 15; bold: true }
                     Layout.fillWidth: true
                 }
 
                 Text {
                     text: "󰅂"
                     color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.4)
-                    font { family: Theme.fontMono; pixelSize: 12 }
+                    font { family: Theme.fontMono; pixelSize: 14 }
                 }
             }
 
@@ -200,20 +180,20 @@ BasePopup {
                 Text {
                     text: "󰤄"
                     color: suspendHover.hovered ? Theme.accent : Theme.accent
-                    font { family: Theme.fontMono; pixelSize: 16 }
+                    font { family: Theme.fontMono; pixelSize: 18 }
                 }
 
                 Text {
                     text: "Suspend"
                     color: suspendHover.hovered ? Theme.accent : Theme.textMain
-                    font { family: Theme.fontMain; pixelSize: 13; bold: true }
+                    font { family: Theme.fontMain; pixelSize: 15; bold: true }
                     Layout.fillWidth: true
                 }
 
                 Text {
                     text: "󰅂"
                     color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.4)
-                    font { family: Theme.fontMono; pixelSize: 12 }
+                    font { family: Theme.fontMono; pixelSize: 14 }
                 }
             }
 
@@ -250,20 +230,20 @@ BasePopup {
                 Text {
                     text: "󰌾"
                     color: lockHover.hovered ? Theme.accent : Theme.accent
-                    font { family: Theme.fontMono; pixelSize: 16 }
+                    font { family: Theme.fontMono; pixelSize: 18 }
                 }
 
                 Text {
                     text: "Lock Screen"
                     color: lockHover.hovered ? Theme.accent : Theme.textMain
-                    font { family: Theme.fontMain; pixelSize: 13; bold: true }
+                    font { family: Theme.fontMain; pixelSize: 15; bold: true }
                     Layout.fillWidth: true
                 }
 
                 Text {
                     text: "󰅂"
                     color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.4)
-                    font { family: Theme.fontMono; pixelSize: 12 }
+                    font { family: Theme.fontMono; pixelSize: 14 }
                 }
             }
 
@@ -300,20 +280,20 @@ BasePopup {
                 Text {
                     text: "󰍃"
                     color: logoutHover.hovered ? Theme.accent : Theme.accent
-                    font { family: Theme.fontMono; pixelSize: 16 }
+                    font { family: Theme.fontMono; pixelSize: 18 }
                 }
 
                 Text {
                     text: "Log Out"
                     color: logoutHover.hovered ? Theme.accent : Theme.textMain
-                    font { family: Theme.fontMain; pixelSize: 13; bold: true }
+                    font { family: Theme.fontMain; pixelSize: 15; bold: true }
                     Layout.fillWidth: true
                 }
 
                 Text {
                     text: "󰅂"
                     color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.4)
-                    font { family: Theme.fontMono; pixelSize: 12 }
+                    font { family: Theme.fontMono; pixelSize: 14 }
                 }
             }
 

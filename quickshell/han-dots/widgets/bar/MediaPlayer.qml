@@ -142,6 +142,9 @@ Item {
                             anchors.fill: parent
                             source: (player && player.trackArtUrl) ? player.trackArtUrl : ""
                             fillMode: Image.PreserveAspectCrop
+                            smooth: true
+                            mipmap: true
+                            sourceSize: Qt.size(120, 120)
                             visible: status === Image.Ready
                         }
 
@@ -180,11 +183,11 @@ Item {
                                 text: mediaRoot.getArtistName(player)
                                 textFont.family: Theme.fontMain
                                 textFont.pixelSize: 9
-                                textColor: Theme.secondary
+                                textColor: Theme.textMain
                                 targetWidth: 90
                                 isPlaying: mediaRoot.player ? mediaRoot.player.isPlaying : false
                             }
-                        }
+                        } 
                     }
                 }
             }

@@ -42,9 +42,6 @@ binds {
     // Lock screen
     Mod+Alt+L allow-when-locked=true { spawn "quickshell" "ipc" "call" "lockscreen" "lock"; }
 
-    // Region Screenshots
-    Mod+Shift+S { spawn "bash" "-c" "grim -g \"$(slurp)\" - | wl-copy"; }
-
     // Wallpaper Selector & Power Menu
     Ctrl+Alt+T { spawn "quickshell" "ipc" "call" "wallpaperselect" "toggle"; }
     Mod+Shift+Q { spawn "quickshell" "ipc" "call" "powermenu" "toggle"; }
@@ -220,7 +217,7 @@ binds {
     // Screenshots (Niri native — iNiR has its own region selector above)
     // ═══════════════════════════════════════════════════════════════════════
 
-    Print      { screenshot; }
+    Mod+Shift+S { screenshot; }
     Ctrl+Print { screenshot-screen; }
     Alt+Print  { screenshot-window; }
 

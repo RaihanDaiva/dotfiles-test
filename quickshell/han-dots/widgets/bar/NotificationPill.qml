@@ -54,7 +54,7 @@ Item {
             Text {
                 text: notifWidgetRoot.notifList.length > 0 ? "󱅫" : "󰂚"
                 color: Theme.accent
-                font { family: Theme.fontMono; pixelSize: 17 }
+                font { family: Theme.fontMono; pixelSize: 18 }
 
                 Behavior on color { ColorAnimation { duration: 150 } }
             }
@@ -65,7 +65,7 @@ Item {
                 visible: notifWidgetRoot.notifList.length > 0
                 text: notifWidgetRoot.notifList.length.toString()
                 color: Theme.textMain
-                font { family: Theme.fontMain; pixelSize: 11; bold: true }
+                font { family: Theme.fontMain; pixelSize: 13; bold: true }
             }
         }
 

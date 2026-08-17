@@ -45,22 +45,25 @@ BasePopup {
         anchors.fill: parent
         spacing: 14
 
-        // 📌 1. HEADER TITLE & SUBTITLE
-        ColumnLayout {
+        
+        // 1. Header (Icon & Title)
+        RowLayout {
             Layout.fillWidth: true
-            spacing: 3
+            spacing: 8
 
             Text {
-                text: "Performance"
+                text: "󰓅"
+                color: Theme.accent
+                font { family: Theme.fontMono; pixelSize: 24 }
+            }
+
+            Text {
+                text: "System Monitor"
                 color: Theme.textMain
-                font { family: Theme.fontMain; pixelSize: 22; bold: true }
+                font { family: Theme.fontMain; pixelSize: 16; bold: true }
+                Layout.fillWidth: true
             }
 
-            Text {
-                text: "See your device's current performance"
-                color: Theme.secondary
-                font { family: Theme.fontMain; pixelSize: 13 }
-            }
         }
 
         // ➖ GARIS PEMISAH TOP

@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
+import Quickshell.Services.Pipewire
 import "../../components/popups"
 import "../../theme"
 
@@ -31,6 +32,7 @@ Item {
     // 🎚️ SUB-KOMPONEN 0: ON-SCREEN DISPLAY (OSD) OVERLAY POPUP CARD
     OsdPopup {
         id: osdPopup
+        screen: controlWidgetRoot.barWindow ? controlWidgetRoot.barWindow.screen : null
     }
 
     // 🪟 SUB-KOMPONEN 1: QUICK SETTINGS / CONTROL CENTER POPUP CARD
@@ -91,45 +93,157 @@ Item {
     readonly property string btIcon: (btStatus === "on" || btStatus === "connected") ? "󰂯" : "󰂲"
     readonly property color btColor: (btStatus === "on" || btStatus === "connected") ? Theme.accent : Theme.secondary
 
-    // ⚡ REAL-TIME SYSTEM EVENT MONITOR (0ms latency for Fn Volume & Brightness keys - Primary Screen Only)
-    Process {
-        id: eventMonitorProc
-        command: [Quickshell.configDir + "/scripts/sys_event_monitor.sh"]
-        running: !controlWidgetRoot.Window.window || !controlWidgetRoot.Window.window.screen || controlWidgetRoot.Window.window.screen === Quickshell.screens[0]
+    // 🔆 BRIGHTNESS STARTUP READER (membaca nilai asli sebelum sys_info.sh selesai)
+    property int _brightCurrent: -1
+    property int _brightMax: -1
 
+    Process {
+        id: brightCurrentProc
+        command: ["brightnessctl", "g"]
+        running: true
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var cur = parseInt(this.text.trim())
+                if (!isNaN(cur)) {
+                    controlWidgetRoot._brightCurrent = cur
+                    if (controlWidgetRoot._brightMax > 0)
+                        controlWidgetRoot.brightPercent = Math.round(controlWidgetRoot._brightCurrent * 100 / controlWidgetRoot._brightMax)
+                }
+            }
+        }
+    }
+
+    Process {
+        id: brightMaxProc
+        command: ["brightnessctl", "m"]
+        running: true
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var mx = parseInt(this.text.trim())
+                if (!isNaN(mx) && mx > 0) {
+                    controlWidgetRoot._brightMax = mx
+                    if (controlWidgetRoot._brightCurrent >= 0)
+                        controlWidgetRoot.brightPercent = Math.round(controlWidgetRoot._brightCurrent * 100 / mx)
+                }
+            }
+        }
+    }
+
+    // 🔆 REAL-TIME KERNEL BACKLIGHT EVENT LISTENER (0ms latency, zero CPU usage saat idle)
+    Process {
+        id: brightUdevProc
+        command: ["udevadm", "monitor", "--subsystem-match=backlight"]
+        running: true
         stdout: SplitParser {
-            onRead: data => {
-                var line = data.trim()
-                if (line.indexOf("VOL:") === 0) {
-                    var parts = line.split(":")
-                    if (parts.length >= 3) {
-                        var v = parseInt(parts[1])
-                        var m = parts[2]
-                        if (!isNaN(v)) {
-                            if (controlWidgetRoot.prevVol !== -1 && controlWidgetRoot.prevVol !== v) {
-                                osdPopup.showVolume(v, m === "muted")
-                            }
-                            controlWidgetRoot.volPercent = v
-                            controlWidgetRoot.volMuted = m
-                            controlWidgetRoot.prevVol = v
+            onRead: (data) => {
+                brightFetchProc.running = false
+                brightFetchProc.running = true
+            }
+        }
+    }
+
+    Process {
+        id: brightFetchProc
+        command: ["brightnessctl", "g"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var cur = parseInt(this.text.trim())
+                if (!isNaN(cur) && cur >= 0) {
+                    controlWidgetRoot._brightCurrent = cur
+                    if (controlWidgetRoot._brightMax > 0) {
+                        var bp = Math.round(cur * 100 / controlWidgetRoot._brightMax)
+                        if (controlWidgetRoot.prevBright !== -1 && controlWidgetRoot.prevBright !== bp) {
+                            osdPopup.showBrightness(bp, false)
                         }
-                    }
-                } else if (line.indexOf("BRIGHT:") === 0) {
-                    var parts = line.split(":")
-                    if (parts.length >= 2) {
-                        var b = parseInt(parts[1])
-                        if (!isNaN(b)) {
-                            if (controlWidgetRoot.prevBright !== -1 && controlWidgetRoot.prevBright !== b) {
-                                osdPopup.showBrightness(b, false)
-                            }
-                            controlWidgetRoot.brightPercent = b
-                            controlWidgetRoot.prevBright = b
-                        }
+                        controlWidgetRoot.brightPercent = bp
+                        controlWidgetRoot.prevBright = bp
                     }
                 }
             }
         }
     }
+
+    // 📡 QUICKSHELL IPC HANDLER FOR BRIGHTNESS SHORTCUTS
+    IpcHandler {
+        target: "brightness"
+
+        function raise() {
+            brightSetProc.command = ["brightnessctl", "s", "+5%"]
+            brightSetProc.running = true
+        }
+
+        function lower() {
+            brightSetProc.command = ["brightnessctl", "s", "5%-"]
+            brightSetProc.running = true
+        }
+    }
+
+    Process { id: brightSetProc }
+
+    // 🔊 REAL-TIME PULSE/PIPEWIRE VOLUME EVENT LISTENER (0ms latency, instant OSD)
+    property bool prevMuted: false
+
+    Process {
+        id: volSubscribeProc
+        command: ["pactl", "subscribe"]
+        running: true
+        stdout: SplitParser {
+            onRead: (line) => {
+                if (line.indexOf("change") !== -1 && line.indexOf("sink") !== -1) {
+                    volReadProc.running = false
+                    volReadProc.running = true
+                }
+            }
+        }
+    }
+
+    Process {
+        id: volReadProc
+        command: ["wpctl", "get-volume", "@DEFAULT_AUDIO_SINK@"]
+        running: true
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var text = this.text.trim()
+                var isMuted = text.indexOf("[MUTED]") !== -1
+                var match = text.match(/Volume:\s*([0-9.]+)/)
+                if (match && match[1]) {
+                    var raw = parseFloat(match[1])
+                    if (!isNaN(raw)) {
+                        var v = Math.round(raw * 100)
+                        if (controlWidgetRoot.prevVol !== -1 && (controlWidgetRoot.prevVol !== v || controlWidgetRoot.prevMuted !== isMuted)) {
+                            osdPopup.showVolume(v, isMuted)
+                        }
+                        controlWidgetRoot.volPercent = v
+                        controlWidgetRoot.volMuted = isMuted ? "muted" : "unmuted"
+                        controlWidgetRoot.prevVol = v
+                        controlWidgetRoot.prevMuted = isMuted
+                    }
+                }
+            }
+        }
+    }
+
+    // 📡 QUICKSHELL IPC HANDLER FOR VOLUME SHORTCUTS
+    IpcHandler {
+        target: "volume"
+
+        function raise() {
+            volActionProc.command = ["wpctl", "set-volume", "-l", "1.5", "@DEFAULT_AUDIO_SINK@", "5%+"]
+            volActionProc.running = true
+        }
+
+        function lower() {
+            volActionProc.command = ["wpctl", "set-volume", "@DEFAULT_AUDIO_SINK@", "5%-"]
+            volActionProc.running = true
+        }
+
+        function mute() {
+            volActionProc.command = ["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", "toggle"]
+            volActionProc.running = true
+        }
+    }
+
+    Process { id: volActionProc }
 
     // 📡 METRICS POLLING PROCESS (sys_info.sh)
     Process {

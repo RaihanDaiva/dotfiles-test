@@ -80,6 +80,9 @@ BasePopup {
                 anchors.fill: parent
                 source: (player && player.trackArtUrl) ? player.trackArtUrl : ""
                 fillMode: Image.PreserveAspectCrop
+                smooth: true
+                mipmap: true
+                sourceSize: Qt.size(300, 300)
                 visible: status === Image.Ready
 
                 layer.enabled: true
