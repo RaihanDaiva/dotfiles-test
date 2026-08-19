@@ -465,13 +465,16 @@ Rectangle {
                                 implicitWidth: 16
                                 implicitHeight: 22
 
-                                // 🖼️ IKON APLIKASI GTK / FREEDESKTOP
+                                // 🖼️ IKON APLIKASI GTK / FREEDESKTOP (HD MIPMAP SHARPENING)
                                 Image {
                                     id: appIconImg
                                     source: modelData.icon ? (modelData.icon.indexOf("/") !== -1 ? "file://" + modelData.icon : "image://icon/" + modelData.icon) : ""
                                     width: 17
                                     height: 17
                                     fillMode: Image.PreserveAspectFit
+                                    smooth: true
+                                    mipmap: true
+                                    sourceSize: Qt.size(64, 64)
                                     anchors.top: parent.top
                                     anchors.topMargin: 1
                                     anchors.horizontalCenter: parent.horizontalCenter

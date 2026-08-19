@@ -277,7 +277,7 @@ BasePopup {
                     Text {
                         anchors.centerIn: parent
                         text: modelData.day
-                        color: modelData.isToday ? Theme.textMain : (modelData.isCurrentMonth ? Theme.textMain : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.3))
+                        color: modelData.isToday ? Theme.accent : (modelData.isCurrentMonth ? Theme.textMain : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.3))
                         font {
                             family: Theme.fontMain
                             pixelSize: 14

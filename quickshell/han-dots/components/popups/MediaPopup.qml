@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 import QtQuick.Effects
+import Qt5Compat.GraphicalEffects
 import "../../widgets"
 import "../../theme"
 
@@ -25,7 +26,7 @@ BasePopup {
     // Posisi yang aktif ditampilkan: pakai seekPosition saat dragging, currentPosition saat normal
     readonly property real displayPosition: isSeeking ? seekPosition : currentPosition
 
-    // 📐 UKURAN POPUP PROPOSIONAL DI-SCALE UP (310x450 px)
+    // 📐 UKURAN POPUP PROPOSIONAL DI-SCALE UP (310x485 px)
     implicitWidth: 310
     implicitHeight: 485
 
@@ -59,6 +60,46 @@ BasePopup {
         var m = Math.floor(sec / 60)
         var s = Math.floor(sec % 60)
         return m + ":" + (s < 10 ? "0" : "") + s
+    }
+
+    // 🌫️ FROSTED BLURRED ALBUM ART BACKGROUND (MATCHING LOCKSCREEN STYLE)
+    Item {
+        anchors.fill: parent
+        anchors.margins: -16
+        z: -1
+
+        layer.enabled: true
+        layer.effect: OpacityMask {
+            maskSource: Rectangle {
+                width: popupRoot.implicitWidth
+                height: popupRoot.implicitHeight
+                radius: 18
+            }
+        }
+
+        // Blurred Album Cover Image
+        Image {
+            id: popupBlurCover
+            anchors.fill: parent
+            anchors.margins: -15
+            source: (player && player.trackArtUrl) ? player.trackArtUrl : ""
+            fillMode: Image.PreserveAspectCrop
+            smooth: true
+            mipmap: true
+            sourceSize: Qt.size(300, 300)
+            visible: status === Image.Ready
+
+            layer.enabled: true
+            layer.effect: FastBlur {
+                radius: 40
+            }
+        }
+
+        // Dark Frosted Tint Overlay for Contrast & Legibility
+        Rectangle {
+            anchors.fill: parent
+            color: Qt.rgba(Theme._darkBg.r, Theme._darkBg.g, Theme._darkBg.b, popupBlurCover.visible ? 0.68 : 0.88)
+        }
     }
 
     // 📦 KONTEN UTAMA MEDIA PLAYER POPUP

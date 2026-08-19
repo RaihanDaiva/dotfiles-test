@@ -136,11 +136,11 @@ PanelWindow {
             // MODEL DATA: [icon, label, defaultColor, highlightColor]
             Repeater {
                 model: [
-                    { icon: "󰐥", label: "Shutdown", color: Theme.accent },
-                    { icon: "󰑐", label: "Reboot", color: Theme.accent },
-                    { icon: "󰤄", label: "Sleep", color: Theme.accent },
-                    { icon: "󰌾", label: "Lock Screen", color: Theme.accent },
-                    { icon: "󰍃", label: "Log Out", color: Theme.accent }
+                    { icon: "󰐥", label: "Shutdown", color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25)},
+                    { icon: "󰑐", label: "Reboot", color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25)},
+                    { icon: "󰤄", label: "Sleep", color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25)},
+                    { icon: "󰌾", label: "Lock Screen", color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25)},
+                    { icon: "󰍃", label: "Log Out", color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25)}
                 ]
 
                 delegate: Rectangle {
@@ -153,8 +153,8 @@ PanelWindow {
                     implicitHeight: 64
                     radius: 32
 
-                    color: isSelected ? modelData.color : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.08)
-                    border.color: isSelected ? modelData.color : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.15)
+                    color: isSelected ? modelData.color : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.1)
+                    border.color: isSelected ? Theme.accent : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.15)
                     border.width: 1
 
                     Behavior on implicitWidth { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
@@ -190,7 +190,7 @@ PanelWindow {
                                 anchors.centerIn: parent
                                 anchors.horizontalCenterOffset: -1
                                 text: modelData.icon
-                                color: isSelected ? Theme.bgDark : Theme.textMain
+                                color: isSelected ? Theme.accent : Theme.textMain
                                 font { family: Theme.fontMono; pixelSize: 24; bold: true }
 
                                 Behavior on color { ColorAnimation { duration: 180 } }
@@ -200,7 +200,7 @@ PanelWindow {
                         // Label Text (Fades and expands in when Pill)
                         Text {
                             text: modelData.label
-                            color: Theme.bgDark
+                            color: isSelected ? Theme.accent : Theme.textMain
                             font { family: Theme.fontMain; pixelSize: 16; bold: true }
                             Layout.fillWidth: true
                             elide: Text.ElideRight

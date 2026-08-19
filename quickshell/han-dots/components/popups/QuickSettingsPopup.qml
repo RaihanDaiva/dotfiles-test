@@ -933,7 +933,7 @@ BasePopup {
 
                         delegate: Rectangle {
                             width: ListView.view.width
-                            implicitHeight: 34
+                            implicitHeight: 36
                             radius: 8
                             color: modelData.connected
                                 ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.18)
@@ -950,33 +950,78 @@ BasePopup {
                                     color: modelData.connected ? Theme.accent : Theme.textMain
                                     font { family: Theme.fontMono; pixelSize: 16 }
                                 }
+
                                 Text {
                                     text: modelData.ssid
                                     color: Theme.textMain
-                                    font { family: Theme.fontMain; pixelSize: 14; bold: modelData.connected }
+                                    font { family: Theme.fontMain; pixelSize: 13; bold: modelData.connected }
                                     elide: Text.ElideRight
                                     Layout.fillWidth: true
                                 }
+
                                 Text {
                                     text: modelData.signal + "%"
                                     color: Theme.secondary
-                                    font { family: Theme.fontMain; pixelSize: 12 }
+                                    font { family: Theme.fontMain; pixelSize: 11 }
                                 }
-                                Text {
-                                    text: modelData.connected ? "Connected" : "Connect"
-                                    color: modelData.connected ? Theme.accent : Theme.secondary
-                                    font { family: Theme.fontMain; pixelSize: 12; bold: modelData.connected }
+
+                                // 🔘 WI-FI ACTION BUTTON (CONNECT / DISCONNECT)
+                                Rectangle {
+                                    implicitWidth: wifiActionText.implicitWidth + 14
+                                    implicitHeight: 22
+                                    radius: 11
+                                    color: modelData.connected
+                                        ? (wifiActionHover.hovered ? Qt.rgba(243/255, 139/255, 168/255, 0.3) : Qt.rgba(243/255, 139/255, 168/255, 0.18))
+                                        : (wifiActionHover.hovered ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25) : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.08))
+
+                                    Behavior on color { ColorAnimation { duration: 150 } }
+
+                                    Text {
+                                        id: wifiActionText
+                                        anchors.centerIn: parent
+                                        text: modelData.connected ? "Disconnect" : "Connect"
+                                        color: modelData.connected ? "#f38ba8" : Theme.accent
+                                        font { family: Theme.fontMain; pixelSize: 11; bold: true }
+                                    }
+
+                                    HoverHandler { id: wifiActionHover }
+
                                     MouseArea {
                                         anchors.fill: parent
                                         cursorShape: Qt.PointingHandCursor
                                         onClicked: {
-                                            if (!modelData.connected) {
-                                                popupRoot.connectingSSID = modelData.ssid
-                                                popupRoot.connectStatusMsg = ""
-                                                popupRoot.isConnecting = false
-                                                popupRoot.showPassword = false
-                                                passInput.text = ""
-                                                popupRoot.expandedMode = "wifi_connect"
+                                            if (modelData.connected) {
+                                                var p = Qt.createQmlObject('import Quickshell.Io; Process{}', popupRoot)
+                                                p.command = ["nmcli", "connection", "down", "id", modelData.ssid]
+                                                p.stdout = Qt.createQmlObject('import Quickshell.Io; StdioCollector{}', p)
+                                                p.stdout.streamFinished.connect(function() {
+                                                    wifiProc.running = false
+                                                    wifiProc.running = true
+                                                })
+                                                p.running = true
+                                            } else {
+                                                // Try connecting via saved NetworkManager profile first
+                                                var ssid = modelData.ssid
+                                                var tryConnProc = Qt.createQmlObject('import Quickshell.Io; Process{}', popupRoot)
+                                                tryConnProc.command = ["nmcli", "connection", "up", "id", ssid]
+                                                tryConnProc.stdout = Qt.createQmlObject('import Quickshell.Io; StdioCollector{}', tryConnProc)
+                                                tryConnProc.stderr = Qt.createQmlObject('import Quickshell.Io; StdioCollector{}', tryConnProc)
+                                                tryConnProc.exited.connect(function(exitCode, exitStatus) {
+                                                    if (exitCode === 0) {
+                                                        // Connected using saved password!
+                                                        wifiProc.running = false
+                                                        wifiProc.running = true
+                                                    } else {
+                                                        // New network or wrong password -> prompt for password
+                                                        popupRoot.connectingSSID = ssid
+                                                        popupRoot.connectStatusMsg = ""
+                                                        popupRoot.isConnecting = false
+                                                        popupRoot.showPassword = false
+                                                        passInput.text = ""
+                                                        popupRoot.expandedMode = "wifi_connect"
+                                                    }
+                                                })
+                                                tryConnProc.running = true
                                             }
                                         }
                                     }
@@ -1005,7 +1050,7 @@ BasePopup {
 
                         delegate: Rectangle {
                             width: ListView.view.width
-                            implicitHeight: 34
+                            implicitHeight: 36
                             radius: 8
                             color: modelData.connected
                                 ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.18)
@@ -1022,26 +1067,52 @@ BasePopup {
                                     color: modelData.connected ? Theme.accent : Theme.secondary
                                     font { family: Theme.fontMono; pixelSize: 16 }
                                 }
+
                                 Text {
                                     text: modelData.name
                                     color: Theme.textMain
-                                    font { family: Theme.fontMain; pixelSize: 14; bold: modelData.connected }
+                                    font { family: Theme.fontMain; pixelSize: 13; bold: modelData.connected }
                                     elide: Text.ElideRight
                                     Layout.fillWidth: true
                                 }
-                                Text {
-                                    text: modelData.connected ? "Connected" : "Connect"
-                                    color: modelData.connected ? Theme.accent : Theme.secondary
-                                    font { family: Theme.fontMain; pixelSize: 12; bold: modelData.connected }
+
+                                // 🔘 BLUETOOTH ACTION BUTTON (CONNECT / DISCONNECT)
+                                Rectangle {
+                                    implicitWidth: btActionText.implicitWidth + 14
+                                    implicitHeight: 22
+                                    radius: 11
+                                    color: modelData.connected
+                                        ? (btActionHover.hovered ? Qt.rgba(243/255, 139/255, 168/255, 0.3) : Qt.rgba(243/255, 139/255, 168/255, 0.18))
+                                        : (btActionHover.hovered ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25) : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.08))
+
+                                    Behavior on color { ColorAnimation { duration: 150 } }
+
+                                    Text {
+                                        id: btActionText
+                                        anchors.centerIn: parent
+                                        text: modelData.connected ? "Disconnect" : "Connect"
+                                        color: modelData.connected ? "#f38ba8" : Theme.accent
+                                        font { family: Theme.fontMain; pixelSize: 11; bold: true }
+                                    }
+
+                                    HoverHandler { id: btActionHover }
+
                                     MouseArea {
                                         anchors.fill: parent
                                         cursorShape: Qt.PointingHandCursor
                                         onClicked: {
-                                            if (!modelData.connected) {
-                                                var p = Qt.createQmlObject('import Quickshell.Io; Process{}', popupRoot)
+                                            var p = Qt.createQmlObject('import Quickshell.Io; Process{}', popupRoot)
+                                            if (modelData.connected) {
+                                                p.command = ["bluetoothctl", "disconnect", modelData.mac]
+                                            } else {
                                                 p.command = ["bluetoothctl", "connect", modelData.mac]
-                                                p.running = true
                                             }
+                                            p.stdout = Qt.createQmlObject('import Quickshell.Io; StdioCollector{}', p)
+                                            p.stdout.streamFinished.connect(function() {
+                                                btProc.running = false
+                                                btProc.running = true
+                                            })
+                                            p.running = true
                                         }
                                     }
                                 }

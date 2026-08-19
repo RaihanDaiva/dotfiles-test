@@ -38,56 +38,56 @@ PanelWindow {
 
         // ✨ ANIMASI FADE WARNA BACKGROUND (Saat ganti wallpaper)
         Behavior on color {
-            ColorAnimation {
-                duration: 200
-                easing.type: Easing.InOutQuad
-            }
+        ColorAnimation {
+            duration: 200
+            easing.type: Easing.InOutQuad
         }
     }
+}
 
-    // 📍 1. PULAU KIRI (Workspace & Media Player)
-    RowLayout {
-        anchors.left: parent.left
-        anchors.verticalCenter: parent.verticalCenter
-        anchors.leftMargin: 10
-        spacing: 12
+// 📍 1. PULAU KIRI (Workspace & Media Player)
+RowLayout {
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    anchors.leftMargin: 10
+    spacing: 12
 
-        Workspace {
-            barWindow: barWindow
-        }
-
-        MediaPlayer {
-            barWindow: barWindow
-        }
-    }
-
-    // 📍 2. PULAU TENGAH (Clock - 100% Persis di Tengah Layar)
-    Clock {
+    Workspace {
         barWindow: barWindow
-        anchors.centerIn: parent
     }
 
-    // 📍 3. PULAU KANAN (System Stats, Control Center, Notification Pill & Power)
-    RowLayout {
-        anchors.right: parent.right
-        anchors.verticalCenter: parent.verticalCenter
-        anchors.rightMargin: 10
-        spacing: 8
-
-        SystemStats {
-            barWindow: barWindow
-        }
-
-        ControlCenter {
-            barWindow: barWindow
-        }
-
-        NotificationPill {
-            barWindow: barWindow
-        }
-
-        Power {
-            barWindow: barWindow
-        }
+    MediaPlayer {
+        barWindow: barWindow
     }
+}
+
+// 📍 2. PULAU TENGAH (Clock - 100% Persis di Tengah Layar)
+Clock {
+    barWindow: barWindow
+    anchors.centerIn: parent
+}
+
+// 📍 3. PULAU KANAN (System Stats, Control Center, Notification Pill & Power)
+RowLayout {
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+    anchors.rightMargin: 10
+    spacing: 8
+
+    SystemStats {
+        barWindow: barWindow
+    }
+
+    ControlCenter {
+        barWindow: barWindow
+    }
+
+    NotificationPill {
+        barWindow: barWindow
+    }
+
+    Power {
+        barWindow: barWindow
+    }
+}
 }

@@ -52,17 +52,16 @@ This repository contains an isolated testing environment (`test-hypr`) for exper
   - **ControlCenter (`ControlCenter.qml`):** Quick settings control pill (Brightness %, Volume %, Bluetooth, Wi-Fi, Battery %) triggering `QuickSettingsPopup` & `OsdPopup`. Restricted `eventMonitorProc` to primary screen (`Quickshell.screens[0]`) to eliminate duplicate OSD popups on multi-monitor setups.
   - **NotificationPill (`NotificationPill.qml`):** Dedicated notification bell button (`󰂚` / `󱅫`) with real-time unread badge count positioned between ControlCenter and Power, triggering `NotificationCenterPopup`.
   - **Power (`Power.qml`):** Standalone circular Power button (`󰐥`) triggering `PowerPopup`.
-- **🔔 Full Notification Center (`NotificationCenterPopup.qml` & `NotificationStore.qml`):**
+- **🔔 Full Notification Center & Toast Popups with App Redirection (`NotificationCenterPopup.qml`, `NotificationPopup.qml`, `NotificationStore.qml`):**
   - Extends `BasePopup.qml` with glassmorphism blur and rounded corners.
   - Features real-time unread badge counter, empty state (`No Notifications`), scrollable notification list with app icons, timestamps, individual item dismiss buttons (`✖`), and a **"Clear All" button** (`󰎟 Clear All`) at the very bottom.
-  - **Central State Management:** Managed via `NotificationStore.qml` singleton, keeping notifications synced across all displays.
-- **🕒 Minimalist Desktop Clock Widget (`LargeClock.qml` & `DesktopClock.qml`):**
-  - Built with primary system typography (`Theme.fontMain` / `GoogleSans-Regular`).
-  - **Two-Line Reference Layout:** Large bold time (`HH:mm`) on line 1, lowercase date (`ddd, dd/MM`, e.g. `sab, 15/08`) on line 2.
-  - **Wayland Desktop LayerShell Surface (`DesktopClock.qml`):** Encapsulated in `PanelWindow` on `WlrLayer.Bottom` with `exclusionMode: ExclusionMode.Ignore` and `Variants` multi-monitor screen binding, rendering cleanly as a native desktop widget on top of the wallpaper.
-- **⚡ Instant Wi-Fi & Bluetooth Status Resolution:**
-  - Triggers `sys_info.sh`, `wifi_list.sh`, and `bt_list.sh` immediately at startup (`Component.onCompleted`) and upon opening `QuickSettingsPopup` (`onIsOpenChanged`).
-  - Resolves startup fallback glitches, instantly populating active Wi-Fi SSID (`IKOQ`) and connected Bluetooth device names (`soundcore R50i`).
+  - **Interactive App Redirection:** Clicking any notification card (toast or notification center item) automatically invokes default notification actions and switches workspaces to focus the target application window in Niri (`niri msg action focus-window --id <win_id>`) with dynamic alias matching for Discord, Vesktop, Spotify, Zen, Firefox, Telegram, Code, etc.
+- **⚡ Wi-Fi & Bluetooth QuickSettings Control (`QuickSettingsPopup.qml`):**
+  - Interactive Disconnect pill buttons (`#f38ba8`) for active Wi-Fi connections (`nmcli connection down`) and Bluetooth devices (`bluetoothctl disconnect`).
+  - **Saved Network Auto-Connect:** Clicking "Connect" on previously saved Wi-Fi networks connects instantly using saved NetworkManager credentials without requiring re-entering passwords.
+- **🎵 Frosted Blurred Album Art Media Popup (`MediaPopup.qml`):**
+  - Floating 310x485px detail card with 1:1 cover art, seek bar & playback controls.
+  - Features an atmospheric frosted blurred album art background (`FastBlur` radius 40, `OpacityMask` radius 18, and translucent dark overlay), dynamically matching song poster artwork.
 - **🪟 Mutually Exclusive Popup Manager (`PopupManager.qml`):**
   - Centralized singleton (`PopupManager.qml`) integrated directly into `BasePopup.qml` (`onIsOpenChanged`).
   - Automatically closes any previously active dropdown popup whenever a new popup is opened, completely preventing popup stacking/overlapping.

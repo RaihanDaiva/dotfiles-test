@@ -14,6 +14,53 @@ PanelWindow {
     // 🎯 PUBLIC PROPERTIES & LIST MODEL FOR STACKED NOTIFICATIONS
     property var notifList: []
 
+    function activateNotification(itemData) {
+        if (!itemData) return
+
+        if (itemData.notifObj) {
+            try {
+                if (typeof itemData.notifObj.invokeAction === "function") {
+                    itemData.notifObj.invokeAction("default")
+                } else if (typeof itemData.notifObj.activate === "function") {
+                    itemData.notifObj.activate()
+                }
+            } catch(e) {}
+        }
+
+        var app = (itemData.appName || "").trim()
+        var icon = (itemData.iconPath || "").trim().toLowerCase()
+
+        if (app === "" || app.toLowerCase() === "system" || app.toLowerCase() === "notification") {
+            if (icon.indexOf("discord") !== -1 || icon.indexOf("vesktop") !== -1) app = "discord"
+            else if (icon.indexOf("spotify") !== -1) app = "spotify"
+            else if (icon.indexOf("firefox") !== -1) app = "firefox"
+            else if (icon.indexOf("zen") !== -1) app = "zen"
+            else if (icon.indexOf("telegram") !== -1) app = "telegram"
+            else if (icon.indexOf("whatsapp") !== -1) app = "whatsapp"
+            else if (icon.indexOf("code") !== -1 || icon.indexOf("vscode") !== -1) app = "code"
+            else if (icon.indexOf("kitty") !== -1) app = "kitty"
+        }
+
+        if (app !== "" && app.toLowerCase() !== "system" && app.toLowerCase() !== "quickshell") {
+            var safeApp = app.replace(/'/g, "'\\''")
+            var cmd = "app='" + safeApp + "'; " +
+                      "if [ \"$(echo $app | tr '[:upper:]' '[:lower:]')\" = \"discord\" ] || [ \"$(echo $app | tr '[:upper:]' '[:lower:]')\" = \"vesktop\" ]; then " +
+                      "  win_id=$(niri msg -j windows 2>/dev/null | jq -r '.[] | select((.app_id | ascii_downcase | contains(\"discord\")) or (.app_id | ascii_downcase | contains(\"vesktop\")) or (.title | ascii_downcase | contains(\"discord\"))) | .id' | head -n1); " +
+                      "else " +
+                      "  win_id=$(niri msg -j windows 2>/dev/null | jq -r --arg app \"$app\" '.[] | select((.app_id | ascii_downcase | contains($app | ascii_downcase)) or (.title | ascii_downcase | contains($app | ascii_downcase))) | .id' | head -n1); " +
+                      "fi; " +
+                      "if [ -n \"$win_id\" ] && [ \"$win_id\" != \"null\" ]; then " +
+                      "  niri msg action focus-window --id \"$win_id\"; " +
+                      "else " +
+                      "  gtk-launch \"$app\" 2>/dev/null || gtk-launch \"$(echo $app | tr '[:upper:]' '[:lower:]')\" 2>/dev/null; " +
+                      "fi"
+
+            var proc = Qt.createQmlObject('import Quickshell.Io; Process{}', notifPopup)
+            proc.command = ["bash", "-c", cmd]
+            proc.running = true
+        }
+    }
+
     function getIconSource(icon, appName) {
         var target = (icon && icon !== "") ? icon : (appName ? appName.toLowerCase() : "")
         if (!target || target === "") return ""
@@ -156,6 +203,16 @@ PanelWindow {
                 }
 
                 HoverHandler { id: cardHover }
+
+                // 🖱️ CLICK TOAST CARD TO REDIRECT TO APP
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        notifPopup.activateNotification(itemData)
+                        notifCard.startCloseAnimation()
+                    }
+                }
 
                 RowLayout {
                     id: notifContentRow
