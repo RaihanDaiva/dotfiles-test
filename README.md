@@ -65,50 +65,20 @@ This repository contains an isolated testing environment (`test-hypr`) for exper
   - **Dynamic Theme & Opacity Fallback:** Automatically resolves background tint using `Theme.bgDark` in both Light and Dark modes. When cover art blur is disabled, outer frosted overlay hides completely to respect global popup opacity settings.
 - **⚙️ Elements & Popup Customizer Window (`settingsPopup/SettingsPopup.qml` & `SettingsStore.qml`):**
   - **Standalone Draggable Window:** Floating overlay window with draggable header handle (`MouseArea`), smooth screen auto-centering (`Component.onCompleted`), and `WlrLayershell` overlay layer.
-  - **Sidebar Navigation Panel:** Clean left-side navigation panel (140px width) with category selection (e.g. `🪟 Popups`).
-  - **Modular Category Page Architecture (`category/PopupsCategory.qml`):** Dynamic category loading via `Loader` separating customization pages cleanly.
-  - **Custom Styled UI Controls:**
-    - `CustomSlider`: 6px thin track with `Theme.accent` progress bar and 16px circular thumb handle.
-    - `CustomSwitch`: 46×24px pill track with smooth color animations and 18px inner circle knob (`Theme.bgDark` on active pill).
-  - **Live Customization Options:** Real-time controls for Global Popup Opacity (50%–100%), Corner Radius (10px–28px), Border Width (0px–8px), Frosted Album Art Background toggle, and Media Player Layout Style selector (`Classic` vs `Minimalist`).
-  - **Persistent JSON Configuration (`services/SettingsStore.qml`):** Automatically saves and loads all user preferences to `~/.config/quickshell/settings.json`, including Light/Dark mode state and window open state across Quickshell restarts.
+  - **Sidebar Navigation Panel:** Left-side navigation panel with category tabs (**Popups** `󰖯` and **Buttons** `󰓠`). Refactored sidebar navigation buttons to use `StyledButton`.
+  - **Modular Category Page Architecture (`category/`):**
+    - `PopupsCategory.qml`: Category page for popup opacity, corner radius, border width, cover art blur toggle, and media player style.
+    - `ButtonsCategory.qml`: Dedicated category page for button theme customization (**Solid Fill** vs **Glass Outlined**) with interactive live preview showcase.
+  - **Custom Styled UI Widgets (`widgets/`):**
+    - `StyledSwitch`: 46×24px pill track switch toggle with smooth color and position animations (`NumberAnimation` & `ColorAnimation`). Applied across `PopupsCategory` and `QuickSettingsPopup`.
+    - `StyledButton` & `buttonStyle/`: Modular reusable button shell wrapper with dynamic style resolver (`getStyleSource()`) supporting **Solid Fill** (`ButtonStyleSolid.qml`) and **Glass Outlined** (`ButtonStyleTranslucent.qml`). Allows adding $N+$ button styles by dropping QML files into `buttonStyle/`.
+    - `ControlPill`: ControlPill active style dynamically syncs with `SettingsStore.buttonStyle` (Solid vs Glass) with optimized contrast colors for titles (`Theme.textMain`), subtitles (`Theme.accent`), left circle icons, and chevrons.
+  - **Calendar Grid Integration (`CalendarPopup.qml`):** Refactored 7×6 calendar day grid cells from manual `Rectangle` to `StyledButton`, automatically inheriting global button styles while handling `isToday` state and month opacity (`0.35`).
+  - **Persistent JSON Configuration (`services/SettingsStore.qml`):** Automatically saves and loads all user preferences (`buttonStyle`, `isDarkMode`, `popupOpacity`, `popupRadius`, `popupBorderWidth`, etc.) to `~/.config/quickshell/settings.json`.
   - **QuickSettings Integration (`QuickSettingsPopup.qml`):** Dedicated gear button (`󰒓`) in the ControlCenter header for instant access to the customizer window.
 - **🪟 Mutually Exclusive Popup Manager (`PopupManager.qml`):**
   - Centralized singleton (`PopupManager.qml`) integrated directly into `BasePopup.qml` (`onIsOpenChanged`).
   - Automatically closes any previously active dropdown popup whenever a new popup is opened, completely preventing popup stacking/overlapping.
-- **🖱️ Refined Activation Modes (On-Click Only vs Hover):**
-  - **On-Click Only (`Click to Toggle`):** Applied to ControlCenter, NotificationPill, SystemStats, and Power to prevent accidental triggers and ensure stable slider/list interaction.
-  - **Hover & Click:** Preserved on `Clock.qml` for quick monthly calendar previews.
-- **Logical Visual Hierarchy:**
-  - **Active Workspace:** High-contrast dark text (`Theme.bgDark`) over the bright accent pill.
-  - **Occupied Workspace:** Bright text (`Theme.textMain`) indicating running applications.
-  - **Empty Workspace:** Muted 35% opacity text (`Theme.textMain` 0.35 alpha) to reduce visual clutter.
-- **Floating Overlay Popups & LayerShell Exclusion Mode (`BasePopup.qml` & `components/popups/`):**
-  - Reusable `PanelWindow` shell encapsulated in `widgets/BasePopup.qml`.
-  - **`exclusionMode: ExclusionMode.Ignore`:** Applied across all popup windows (`BasePopup.qml`, `AppLauncherPopup.qml`, `WallpaperPopup.qml`, `OsdPopup.qml`, `PowerMenuOverlay.qml`, `NotificationPopup.qml`, `NotificationCenterPopup.qml`) ensuring popups float 100% cleanly over tiled windows without splitting or altering workspace tiling grids.
-  - **Precise Below-Bar Positioning:** Dynamic top margin calculation (`margins.top: 54` or `barTop + barHeight + 6`) placing dropdown popups flush EXACTLY `6px` below the status bar.
-  - Built-in Wayland LayerShell setup (`WlrLayershell.namespace: "quickshell:popup"`), Hyprland glassmorphism blur, translucent Pywal background (`0.5` alpha), and dual slide/fade enter-exit animations.
-  - **Dynamic Wayland Keyboard Focus:** `requiresKeyboardFocus` property switching `WlrLayershell.keyboardFocus` dynamically to `WlrKeyboardFocus.OnDemand` whenever text input is active.
-- **Power Button & Vertical Pill Power Menu (`PowerPopup.qml`):**
-  - Dedicated circular Power button (`󰐥`) positioned cleanly as its own standalone pill widget on the right island.
-  - **Vertical Pill Dropdown Menu (Opsi B):** Profile header with live uptime display + 5 rounded action pills for **Shutdown** (`systemctl poweroff`), **Reboot** (`systemctl reboot`), **Suspend** (`systemctl suspend`), **Lock Screen** (`hyprlock`), and **Log Out** (`hyprctl dispatch exit`).
-- **Fullscreen Power Menu Overlay (`PowerMenuOverlay.qml`):**
-  - Replaces `wlogout` with a native Quickshell overlay triggered by `Super + P` (`quickshell ipc call powermenu toggle`).
-  - **Bottom-Center Floating Card:** Slide-up entrance animation (`Translate y: 50 → 0`) with dark backdrop overlay.
-  - **Circle-to-Pill Morphing Animation:** Buttons default to compact circles ($64\times64\text{px}$) showing Nerd Font icons and expand into horizontal pills ($180\times64\text{px}$) on hover/selection to reveal action labels.
-- **Custom Application Launcher (`AppLauncherPopup.qml`):**
-  - Custom launcher triggered by `Alt + A` (`quickshell ipc call applauncher toggle`).
-  - **Bottom-Center Overlay Layout:** Slide-up animation with top `ListView` app list and bottom search bar pill (`Search Apps`).
-  - **Native Freedesktop Icon Provider:** Resolves system app GTK icons via `image://icon/<name>`.
-- **Custom Wallpaper Selector (`WallpaperPopup.qml`):**
-  - Custom wallpaper picker triggered by `Alt + W` (`quickshell ipc call wallpaperselect toggle`).
-  - **Bottom-Center Overlay Layout:** Slide-up animation with top 5-item horizontal carousel ($16:9$ thumbnails) and bottom search bar pill (`Search Wallpapers`).
-  - **Focused Config Directory Scanning (`wallpaper_list.sh`):** Scans wallpapers exclusively from `$HOME/.config/wallpapers/`.
-  - **Active Wallpaper Persistence & Auto-Centering:** Detects current wallpaper on boot (`readlink -f ~/.cache/current_wallpaper.jpg`) and automatically highlights and centers it in the middle of the carousel (`ListView.Center`).
-  - **Automated Pywal, Awww & Swaybg Execution (`apply_wallpaper.sh`):** Applies 60FPS awww transition on workspace cards, generates & applies ImageMagick blurred wallpaper on Niri overview backdrop via `swaybg`, updates Pywal color scheme & active window gradient borders, and refreshes Cava.
-- **Sequenced Popup Transition Manager (`shell.qml`):**
-  - Built-in 200ms transition timer (`popupOpenTimer`) handling `requestOpen()` signals between `AppLauncherPopup` (`Alt + A`) and `WallpaperPopup` (`Alt + W`).
-  - Ensures when switching between popups, the active popup slides down and closes completely BEFORE the new popup slides up smoothly onto a clean desktop.
 
 ---
 
@@ -132,10 +102,15 @@ dotfiles-test/
     │   ├── DesktopClock.qml        # Wayland Desktop LayerShell surface wrapper for LargeClock
     │   ├── Lockscreen.qml          # 🔐 Native Wayland Session Lock widget with PAM Auth & Underline input field
     │   └── popups/                 # 🪟 CENTRALIZED POPUP REPOSITORY
-    │       ├── CalendarPopup.qml   # Interactive monthly calendar, live clock & uptime popup
-    │       ├── MediaPopup.qml      # Floating detail card with 1:1 cover art, seek bar & playback controls
-    │       ├── SysStatsPopup.qml   # 5-Circle Performance Dashboard popup (CPU/GPU Load & Temp, Mem, Storage)
-    │       ├── QuickSettingsPopup.qml # Windows 11 style 3-tier sliding Control Center popup
+    │       ├── CalendarPopup.qml   # Interactive monthly calendar using StyledButton day grid
+    │       ├── sysStatsPopup/      # Performance Dashboard popup (CPU/GPU Load & Temp, Mem, Storage)
+    │       ├── mediaPopup/         # 🎵 Floating detail card with 1:1 cover art, seek bar & playback controls
+    │       │   ├── MediaPopup.qml  # Media popup shell wrapper with theme & opacity fallback
+    │       │   └── mediaStyle/     # Layout style implementations (MediaStyleClassic.qml & MediaStyleMinimalist.qml)
+    │       ├── settingsPopup/      # ⚙️ Elements & Popup Customizer floating window
+    │       │   ├── SettingsPopup.qml # Standalone draggable window shell with sidebar navigation panel
+    │       │   └── category/       # Modular settings category pages (PopupsCategory.qml & ButtonsCategory.qml)
+    │       ├── QuickSettingsPopup.qml # Windows 11 style 3-tier sliding Control Center popup with Customizer gear button & StyledSwitch
     │       ├── NotificationCenterPopup.qml # Notification Center popup extending BasePopup with Clear All button
     │       ├── OsdPopup.qml        # Real-time OSD overlay card for Volume & Brightness (exclusionMode: Ignore)
     │       ├── NotificationPopup.qml # Multi-toast stacked notification popup extending PanelWindow with slide animations
@@ -145,14 +120,21 @@ dotfiles-test/
     │       └── WallpaperPopup.qml  # Horizontal Wallpaper Selector Carousel popup extending PanelWindow (Alt + W)
     ├── services/
     │   ├── NotificationStore.qml   # Central Singleton tracking active notification list
+    │   ├── SettingsStore.qml       # ⚙️ Central Singleton handling settings persistence to ~/.config/quickshell/settings.json
     │   └── PopupManager.qml        # Central Singleton enforcing mutually exclusive popup behavior
     ├── theme/
-    │   ├── Theme.qml               # Clean Singleton storing pure font & color properties
+    │   ├── Theme.qml               # Clean Singleton storing pure font & color properties (bound to SettingsStore.isDarkMode)
     │   └── PywalService.qml        # Background service syncing Pywal colors to Theme.qml
     ├── widgets/
-    │   ├── BasePopup.qml           # Reusable PanelWindow popup shell with PopupManager integration & 54px top margin
-    │   ├── ControlPill.qml         # Reusable control button pill with optical center offset
+    │   ├── BasePopup.qml           # Reusable PanelWindow popup shell with SettingsStore opacity/radius/border bindings & z: 9999 border overlay
+    │   ├── ControlPill.qml         # Reusable control button pill dynamically syncing active style (Solid vs Glass) with SettingsStore.buttonStyle
+    │   ├── StyledSwitch.qml        # 🔘 Reusable Material 3 / Catppuccin 46×24px switch toggle widget
     │   ├── LargeClock.qml          # Minimalist 2-line desktop clock widget using Theme.fontMain
+    │   ├── styledButton/           # 🔘 REUSABLE STYLED BUTTON WIDGET FOLDER
+    │   │   ├── StyledButton.qml    # Reusable button wrapper with dynamic style loader
+    │   │   └── buttonStyle/        # Button style implementations
+    │   │       ├── ButtonStyleSolid.qml       # Solid Fill button style (Material 3)
+    │   │       └── ButtonStyleTranslucent.qml # Glass Outlined button style (Catppuccin)
     │   └── bar/
     │       ├── Workspace.qml       # Independent per-monitor workspace switcher with GTK app icons, instance dots & special workspace indicator (★)
     │       ├── Clock.qml           # Real-time clock & date widget with pill hover trigger
@@ -163,6 +145,16 @@ dotfiles-test/
     │       ├── SystemStats.qml     # RAM & CPU Temp performance monitor widget
     │       ├── ControlCenter.qml   # Quick settings control pill widget (Brightness/Vol/BT/WiFi/Bat)
     │       ├── NotificationPill.qml # Standalone notification bell button with unread count badge
+    │       └── Power.qml           # Standalone Power button widget
+    └── scripts/
+        ├── sys_info.sh             # Executable bash helper script for system metrics, GPU stats & volume
+        ├── sys_event_monitor.sh    # Real-time event streamer for PipeWire audio & kernel backlight
+        ├── brightness_info.sh      # Helper script detecting internal and DDC/CI external display brightness
+        ├── wifi_list.sh            # Helper script parsing unique signal-sorted Wi-Fi networks via nmcli
+        ├── bt_list.sh              # Helper script parsing Bluetooth device status and clean names via pipe delimiter
+        ├── wallpaper_list.sh       # Helper script parsing wallpapers exclusively from ~/.config/wallpapers/
+        └── apply_wallpaper.sh      # Executable script setting hyprpaper, pywal colors, hyprland borders & cava
+```
     │       └── Power.qml           # Standalone Power button widget
     └── scripts/
         ├── sys_info.sh             # Executable bash helper script for system metrics, GPU stats & volume

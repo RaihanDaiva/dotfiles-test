@@ -1,5 +1,7 @@
 import "../../../services"
 import "../../../theme"
+import "../../../widgets"
+import "../../../widgets/styledButton"
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -8,15 +10,6 @@ import Quickshell.Wayland
 
 // ⚙️ SETTINGS & POPUP CUSTOMIZER (STANDALONE DRAGGABLE FLOATING WINDOW)
 PanelWindow {
-    id: settingsPopup
-
-    // property bool isOpen: SettingsStore.settingsPopupOpen
-    property bool isOpen: true
-    property string activeTab: "popups"
-    // 📍 DRAGGABLE FLOATING POSITION PROPERTIES
-    property real posX: 1200
-    property real posY: 150
-
     // Nanti di uncomment
     // Component.onCompleted: {
     //     if (Quickshell.screens && Quickshell.screens.length > 0) {
@@ -24,6 +17,15 @@ PanelWindow {
     //         posY = Math.max(10, Math.round(Quickshell.screens[0].height / 2 - implicitHeight / 2));
     //     }
     // }
+
+    id: settingsPopup
+
+    // property bool isOpen: SettingsStore.settingsPopupOpen
+    property bool isOpen: true
+    property string activeTab: "buttons"
+    // 📍 DRAGGABLE FLOATING POSITION PROPERTIES
+    property real posX: 1200
+    property real posY: 150
 
     exclusionMode: ExclusionMode.Ignore
     onIsOpenChanged: {
@@ -221,51 +223,23 @@ PanelWindow {
                         }
 
                         // 🪟 Popups Tab Button
-                        Rectangle {
-                            id: popupsTabBtn
-
+                        StyledButton {
+                            text: "Popups"
+                            iconText: "󰖯"
                             Layout.fillWidth: true
                             implicitHeight: 36
-                            radius: 8
-                            color: (settingsPopup.activeTab === "popups") ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.18) : (tab1Hover.hovered ? Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.06) : "transparent")
-                            border.color: (settingsPopup.activeTab === "popups") ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.4) : "transparent"
-                            border.width: 1
+                            selected: settingsPopup.activeTab === "popups"
+                            onClicked: settingsPopup.activeTab = "popups"
+                        }
 
-                            RowLayout {
-                                anchors.fill: parent
-                                anchors.leftMargin: 10
-                                anchors.rightMargin: 10
-                                spacing: 8
-
-                                Text {
-                                    text: "🪟"
-                                    font.pixelSize: 13
-                                }
-
-                                Text {
-                                    text: "Popups"
-                                    color: (settingsPopup.activeTab === "popups") ? Theme.accent : Theme.textMain
-
-                                    font {
-                                        family: Theme.fontMain
-                                        pixelSize: 13
-                                        bold: (settingsPopup.activeTab === "popups")
-                                    }
-
-                                }
-
-                            }
-
-                            HoverHandler {
-                                id: tab1Hover
-                            }
-
-                            MouseArea {
-                                anchors.fill: parent
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: settingsPopup.activeTab = "popups"
-                            }
-
+                        // 🔘 Buttons Tab Button
+                        StyledButton {
+                            text: "Buttons"
+                            iconText: "󰓠"
+                            Layout.fillWidth: true
+                            implicitHeight: 36
+                            selected: settingsPopup.activeTab === "buttons"
+                            onClicked: settingsPopup.activeTab = "buttons"
                         }
 
                         Item {
@@ -282,7 +256,7 @@ PanelWindow {
 
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    source: Qt.resolvedUrl("./category/PopupsCategory.qml")
+                    source: Qt.resolvedUrl("./category/" + (settingsPopup.activeTab === "buttons" ? "ButtonsCategory.qml" : "PopupsCategory.qml"))
                 }
 
             }

@@ -1,5 +1,7 @@
 import "../../../../services"
 import "../../../../theme"
+import "../../../../widgets"
+import "../../../../widgets/styledButton"
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -27,14 +29,30 @@ Item {
                 Layout.fillWidth: true
                 spacing: 10
 
-                Text {
-                    text: "🪟 Global Popup Settings"
-                    color: Theme.accent
+                RowLayout {
+                    spacing: 8
 
-                    font {
-                        family: Theme.fontMain
-                        pixelSize: 14
-                        bold: true
+                    Text {
+                        text: "󰖯"
+                        color: Theme.accent
+
+                        font {
+                            family: Theme.fontMono
+                            pixelSize: 15
+                        }
+
+                    }
+
+                    Text {
+                        text: "Global Popup Settings"
+                        color: Theme.accent
+
+                        font {
+                            family: Theme.fontMain
+                            pixelSize: 14
+                            bold: true
+                        }
+
                     }
 
                 }
@@ -222,14 +240,30 @@ Item {
                 Layout.fillWidth: true
                 spacing: 10
 
-                Text {
-                    text: "🎵 Media Player Popup"
-                    color: Theme.accent
+                RowLayout {
+                    spacing: 8
 
-                    font {
-                        family: Theme.fontMain
-                        pixelSize: 14
-                        bold: true
+                    Text {
+                        text: "󰝚"
+                        color: Theme.accent
+
+                        font {
+                            family: Theme.fontMono
+                            pixelSize: 15
+                        }
+
+                    }
+
+                    Text {
+                        text: "Media Player Popup"
+                        color: Theme.accent
+
+                        font {
+                            family: Theme.fontMain
+                            pixelSize: 14
+                            bold: true
+                        }
+
                     }
 
                 }
@@ -279,7 +313,7 @@ Item {
                             Layout.fillWidth: true
                         }
 
-                        CustomSwitch {
+                        StyledSwitch {
                             checked: SettingsStore.mediaBlurBgEnabled
                             onCheckedChanged: SettingsStore.mediaBlurBgEnabled = checked
                         }
@@ -337,59 +371,93 @@ Item {
                             spacing: 6
 
                             // Classic Option Pill
-                            Rectangle {
+                            StyledButton {
+                                text: "Classic"
                                 implicitWidth: 70
                                 implicitHeight: 32
-                                radius: 8
-                                color: (SettingsStore.mediaPlayerStyle !== "minimalist") ? Theme.accent : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.1)
+                                selected: SettingsStore.mediaPlayerStyle !== "minimalist"
+                                onClicked: SettingsStore.mediaPlayerStyle = "classic"
+                            }
 
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: "Classic"
-                                    color: (SettingsStore.mediaPlayerStyle !== "minimalist") ? Theme.bgDark : Theme.textMain
+                            // Minimalist Option Pill
+                            StyledButton {
+                                text: "Minimalist"
+                                implicitWidth: 80
+                                implicitHeight: 32
+                                selected: SettingsStore.mediaPlayerStyle === "minimalist"
+                                onClicked: SettingsStore.mediaPlayerStyle = "minimalist"
+                            }
 
-                                    font {
-                                        family: Theme.fontMain
-                                        pixelSize: 12
-                                        bold: true
-                                    }
+                        }
 
-                                }
+                    }
 
-                                MouseArea {
-                                    anchors.fill: parent
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: SettingsStore.mediaPlayerStyle = "classic"
+                }
+
+                // 3. Global Button Theme Style Selector
+                Rectangle {
+                    Layout.fillWidth: true
+                    implicitHeight: 64
+                    radius: 12
+                    color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.06)
+                    border.color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.1)
+
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.margins: 12
+                        spacing: 12
+
+                        ColumnLayout {
+                            spacing: 2
+
+                            Text {
+                                text: "Global Button Style"
+                                color: Theme.textMain
+
+                                font {
+                                    family: Theme.fontMain
+                                    pixelSize: 13
+                                    bold: true
                                 }
 
                             }
 
-                            // Minimalist Option Pill
-                            Rectangle {
-                                implicitWidth: 80
+                            Text {
+                                text: (SettingsStore.buttonStyle === "solid") ? "Solid Fill (Material 3)" : "Translucent Outlined (Glass)"
+                                color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.7)
+
+                                font {
+                                    family: Theme.fontMain
+                                    pixelSize: 11
+                                }
+
+                            }
+
+                        }
+
+                        Item {
+                            Layout.fillWidth: true
+                        }
+
+                        RowLayout {
+                            spacing: 6
+
+                            StyledButton {
+                                text: "Solid"
+                                buttonStyle: "solid"
+                                implicitWidth: 65
                                 implicitHeight: 32
-                                radius: 8
-                                color: (SettingsStore.mediaPlayerStyle === "minimalist") ? Theme.accent : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.1)
+                                selected: SettingsStore.buttonStyle === "solid"
+                                onClicked: SettingsStore.buttonStyle = "solid"
+                            }
 
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: "Minimalist"
-                                    color: (SettingsStore.mediaPlayerStyle === "minimalist") ? Theme.bgDark : Theme.textMain
-
-                                    font {
-                                        family: Theme.fontMain
-                                        pixelSize: 12
-                                        bold: true
-                                    }
-
-                                }
-
-                                MouseArea {
-                                    anchors.fill: parent
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: SettingsStore.mediaPlayerStyle = "minimalist"
-                                }
-
+                            StyledButton {
+                                text: "Glass"
+                                buttonStyle: "translucent"
+                                implicitWidth: 65
+                                implicitHeight: 32
+                                selected: SettingsStore.buttonStyle === "translucent"
+                                onClicked: SettingsStore.buttonStyle = "translucent"
                             }
 
                         }
@@ -437,57 +505,6 @@ Item {
             implicitHeight: 16
             radius: 8
             color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.95)
-        }
-
-    }
-
-    // 🔘 CUSTOM STYLED SWITCH
-    component CustomSwitch: Switch {
-        id: switchRoot
-
-        implicitWidth: 46
-        implicitHeight: 24
-
-        indicator: Rectangle {
-            implicitWidth: 46
-            implicitHeight: 24
-            x: switchRoot.leftPadding
-            y: parent.height / 2 - height / 2
-            radius: 12
-            color: switchRoot.checked ? Theme.accent : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.15)
-
-            Rectangle {
-                x: switchRoot.checked ? parent.width - width - 3 : 3
-                y: (parent.height - height) / 2
-                width: 18
-                height: 18
-                radius: 9
-                color: switchRoot.checked ? Theme.bgDark : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.6)
-
-                Behavior on x {
-                    NumberAnimation {
-                        duration: 150
-                        easing.type: Easing.InOutQuad
-                    }
-
-                }
-
-                Behavior on color {
-                    ColorAnimation {
-                        duration: 150
-                    }
-
-                }
-
-            }
-
-            Behavior on color {
-                ColorAnimation {
-                    duration: 150
-                }
-
-            }
-
         }
 
     }

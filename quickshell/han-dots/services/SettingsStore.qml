@@ -1,11 +1,12 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
-
 // ⚙️ CENTRAL SETTINGS STORE SINGLETON
 pragma Singleton
 
 Item {
+    // "solid" or "glass"
+
     id: store
 
     // 🪟 1. GLOBAL POPUP SETTINGS
@@ -13,76 +14,45 @@ Item {
     property int popupRadius: 18
     property int popupBorderWidth: 1
     property bool enableBlur: true
-
     // ⚙️ 2. SETTINGS POPUP STATE
     property bool settingsPopupOpen: false
-
     // 🎨 3. THEME MODE SETTINGS
     property bool isDarkMode: true
-
     // 🎵 4. MEDIA PLAYER POPUP SETTINGS
     property bool mediaBlurBgEnabled: true
     property string mediaPlayerStyle: "classic" // "classic" (full) or "minimalist" (compact)
-
+    // 🔘 5. BUTTON & PILL STYLE SETTINGS
+    property string buttonStyle: "solid"
+    // "solid" or "translucent"
+    property string pillStyle: "solid"
     // 💾 FILE PATH UNTUK PERSISTENSI SETTINGS
     readonly property string configFile: Quickshell.env("HOME") + "/.config/quickshell/settings.json"
-
     // 🔒 FLAG UNTUK MENCEGAH OVERWRITE SETTINGS SAAT BOOT
     property bool _isLoaded: false
 
-    // 📥 LOAD SETTINGS FROM JSON AT STARTUP
-    Process {
-        id: loadProc
-        command: ["cat", store.configFile]
-        running: true
-
-        stdout: StdioCollector {
-            onStreamFinished: {
-                var content = this.text.trim()
-                if (content !== "") {
-                    try {
-                        var cfg = JSON.parse(content)
-                        if (cfg.popupOpacity !== undefined) store.popupOpacity = cfg.popupOpacity
-                        if (cfg.popupRadius !== undefined) store.popupRadius = cfg.popupRadius
-                        if (cfg.popupBorderWidth !== undefined) store.popupBorderWidth = cfg.popupBorderWidth
-                        if (cfg.enableBlur !== undefined) store.enableBlur = cfg.enableBlur
-                        if (cfg.settingsPopupOpen !== undefined) store.settingsPopupOpen = cfg.settingsPopupOpen
-                        if (cfg.isDarkMode !== undefined) store.isDarkMode = cfg.isDarkMode
-                        if (cfg.mediaBlurBgEnabled !== undefined) store.mediaBlurBgEnabled = cfg.mediaBlurBgEnabled
-                        if (cfg.mediaPlayerStyle !== undefined) store.mediaPlayerStyle = cfg.mediaPlayerStyle
-                    } catch (e) {
-                        console.log("Failed to parse settings.json: " + e)
-                    }
-                }
-                store._isLoaded = true
-            }
-        }
-    }
-
     // 📤 SAVE SETTINGS TO JSON FILE
     function saveSettings() {
-        if (!store._isLoaded) return
+        if (!store._isLoaded)
+            return ;
+
         var obj = {
-            popupOpacity: store.popupOpacity,
-            popupRadius: store.popupRadius,
-            popupBorderWidth: store.popupBorderWidth,
-            enableBlur: store.enableBlur,
-            settingsPopupOpen: store.settingsPopupOpen,
-            isDarkMode: store.isDarkMode,
-            mediaBlurBgEnabled: store.mediaBlurBgEnabled,
-            mediaPlayerStyle: store.mediaPlayerStyle
-        }
-        var jsonStr = JSON.stringify(obj, null, 2)
-        var safeStr = jsonStr.replace(/'/g, "'\\''")
-        var saveCmd = "mkdir -p ~/.config/quickshell && echo '" + safeStr + "' > " + store.configFile
-
-        saveProc.command = ["bash", "-c", saveCmd]
-        saveProc.running = false
-        saveProc.running = true
-    }
-
-    Process {
-        id: saveProc
+            "popupOpacity": store.popupOpacity,
+            "popupRadius": store.popupRadius,
+            "popupBorderWidth": store.popupBorderWidth,
+            "enableBlur": store.enableBlur,
+            "settingsPopupOpen": store.settingsPopupOpen,
+            "isDarkMode": store.isDarkMode,
+            "mediaBlurBgEnabled": store.mediaBlurBgEnabled,
+            "mediaPlayerStyle": store.mediaPlayerStyle,
+            "buttonStyle": store.buttonStyle,
+            "pillStyle": store.pillStyle
+        };
+        var jsonStr = JSON.stringify(obj, null, 2);
+        var safeStr = jsonStr.replace(/'/g, "'\\''");
+        var saveCmd = "mkdir -p ~/.config/quickshell && echo '" + safeStr + "' > " + store.configFile;
+        saveProc.command = ["bash", "-c", saveCmd];
+        saveProc.running = false;
+        saveProc.running = true;
     }
 
     onPopupOpacityChanged: saveSettings()
@@ -93,4 +63,64 @@ Item {
     onIsDarkModeChanged: saveSettings()
     onMediaBlurBgEnabledChanged: saveSettings()
     onMediaPlayerStyleChanged: saveSettings()
+    onButtonStyleChanged: saveSettings()
+    onPillStyleChanged: saveSettings()
+
+    // 📥 LOAD SETTINGS FROM JSON AT STARTUP
+    Process {
+        id: loadProc
+
+        command: ["cat", store.configFile]
+        running: true
+
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var content = this.text.trim();
+                if (content !== "") {
+                    try {
+                        var cfg = JSON.parse(content);
+                        if (cfg.popupOpacity !== undefined)
+                            store.popupOpacity = cfg.popupOpacity;
+
+                        if (cfg.popupRadius !== undefined)
+                            store.popupRadius = cfg.popupRadius;
+
+                        if (cfg.popupBorderWidth !== undefined)
+                            store.popupBorderWidth = cfg.popupBorderWidth;
+
+                        if (cfg.enableBlur !== undefined)
+                            store.enableBlur = cfg.enableBlur;
+
+                        if (cfg.settingsPopupOpen !== undefined)
+                            store.settingsPopupOpen = cfg.settingsPopupOpen;
+
+                        if (cfg.isDarkMode !== undefined)
+                            store.isDarkMode = cfg.isDarkMode;
+
+                        if (cfg.mediaBlurBgEnabled !== undefined)
+                            store.mediaBlurBgEnabled = cfg.mediaBlurBgEnabled;
+
+                        if (cfg.mediaPlayerStyle !== undefined)
+                            store.mediaPlayerStyle = cfg.mediaPlayerStyle;
+
+                        if (cfg.buttonStyle !== undefined)
+                            store.buttonStyle = cfg.buttonStyle;
+
+                        if (cfg.pillStyle !== undefined)
+                            store.pillStyle = cfg.pillStyle;
+
+                    } catch (e) {
+                        console.log("Failed to parse settings.json: " + e);
+                    }
+                }
+                store._isLoaded = true;
+            }
+        }
+
+    }
+
+    Process {
+        id: saveProc
+    }
+
 }

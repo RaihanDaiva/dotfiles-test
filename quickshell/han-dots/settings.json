@@ -6,5 +6,7 @@
   "settingsPopupOpen": false,
   "isDarkMode": true,
   "mediaBlurBgEnabled": true,
-  "mediaPlayerStyle": "minimalist"
+  "mediaPlayerStyle": "minimalist",
+  "buttonStyle": "solid",
+  "pillStyle": "glass"
 }
