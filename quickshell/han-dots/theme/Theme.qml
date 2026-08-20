@@ -1,6 +1,7 @@
 pragma Singleton
 import QtQuick
 import Quickshell
+import "../services"
 
 // 🎨 THEME SINGLETON — Semua warna UI dipusatkan di sini.
 //
@@ -25,8 +26,17 @@ Item {
     readonly property string fontMain: googleSansFont.name
     readonly property string fontMono: "JetBrainsMono Nerd Font"
 
-    // ─── MODE STATE ──────────────────────────────────────────────────────────
-    property bool isDarkMode: true
+    // ─── MODE STATE (Tersimpan secara permanen via SettingsStore) ─────────────
+    property bool isDarkMode: SettingsStore.isDarkMode
+
+    onIsDarkModeChanged: {
+        var scheme = isDarkMode ? "prefer-dark" : "prefer-light"
+        Quickshell.execDetached([
+            "gsettings", "set",
+            "org.gnome.desktop.interface",
+            "color-scheme", scheme
+        ])
+    }
 
     // ─── DARK PALETTE (Catppuccin Mocha — fallback, diupdate PywalService) ────
     property color _darkBg:        "#1e1e2e"
@@ -69,12 +79,6 @@ Item {
 
     // Toggle mode dark/light dan sinkronisasi color-scheme aplikasi GTK.
     function toggleDarkMode() {
-        isDarkMode = !isDarkMode
-        var scheme = isDarkMode ? "prefer-dark" : "prefer-light"
-        Quickshell.execDetached([
-            "gsettings", "set",
-            "org.gnome.desktop.interface",
-            "color-scheme", scheme
-        ])
+        SettingsStore.isDarkMode = !SettingsStore.isDarkMode
     }
 }

@@ -1,8 +1,10 @@
 import QtQuick
 import Quickshell
 import Quickshell.Services.Notifications
+import Quickshell.Io
 import "./components/"
 import "./components/popups/"
+import "./components/popups/settingsPopup/"
 import "./services/"
 import "./theme/"
 import "./widgets"
@@ -85,6 +87,11 @@ Scope {
                 wallpaperPopup.isOpen = true
             }
         }
+    }
+
+    // ⚙️ Elements & Popup Customizer Settings Popup
+    SettingsPopup {
+        id: settingsPopup
     }
 
     // 📡 Native Notification Server DBus Daemon (org.freedesktop.Notifications)

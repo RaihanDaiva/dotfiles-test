@@ -498,6 +498,36 @@ BasePopup {
                 }
             }
             Item { Layout.fillWidth: true }
+
+            // ⚙️ ELEMENTS CUSTOMIZER GEAR BUTTON
+            Rectangle {
+                implicitWidth: 32
+                implicitHeight: 32
+                radius: 16
+                color: gearHover.hovered ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25) : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.08)
+                border.color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.3)
+                border.width: 1
+
+                Text {
+                    anchors.centerIn: parent
+                    text: "󰒓"
+                    color: Theme.accent
+                    font { family: Theme.fontMono; pixelSize: 16 }
+                }
+
+                HoverHandler { id: gearHover }
+
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        popupRoot.isOpen = false
+                        if (typeof settingsPopup !== "undefined") {
+                            settingsPopup.isOpen = true
+                        }
+                    }
+                }
+            }
         }
 
         // ➖ DIVIDER LINE (FIXED AT TOP)

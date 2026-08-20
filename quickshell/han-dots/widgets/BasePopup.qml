@@ -82,10 +82,8 @@ PanelWindow {
     Rectangle {
         id: popupCard
         anchors.fill: parent
-        color: Qt.rgba(Theme.bgDark.r, Theme.bgDark.g, Theme.bgDark.b, 0.96)
-        radius: 18
-        border.color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.3)
-        border.width: 1
+        color: Qt.rgba(Theme.bgDark.r, Theme.bgDark.g, Theme.bgDark.b, SettingsStore.popupOpacity)
+        radius: SettingsStore.popupRadius
 
         // 🌟 1. FADE ANIMATION (ENTER & EXIT)
         opacity: popupRoot.isOpen ? 1.0 : 0.0
@@ -123,6 +121,16 @@ PanelWindow {
             id: contentContainer
             anchors.fill: parent
             anchors.margins: 16
+        }
+
+        // 🖼️ BORDER OVERLAY (z: 9999 memastikan garis border SELALU berada di paling atas melingkupi background & gambar!)
+        Rectangle {
+            anchors.fill: parent
+            radius: popupCard.radius
+            color: "transparent"
+            border.color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.5)
+            border.width: SettingsStore.popupBorderWidth
+            z: 9999
         }
     }
 }

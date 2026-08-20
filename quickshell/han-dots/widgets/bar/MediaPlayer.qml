@@ -3,7 +3,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Services.Mpris
 import "../../theme"
-import "../../components/popups"
+import "../../components/popups/mediaPopup"
 import "mediaPlayerWidget"
 
 Item {

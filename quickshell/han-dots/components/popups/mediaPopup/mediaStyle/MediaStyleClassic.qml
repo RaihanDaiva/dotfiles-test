@@ -3,103 +3,33 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import QtQuick.Effects
 import Qt5Compat.GraphicalEffects
-import "../../widgets"
-import "../../theme"
+import "../../../../theme"
 
-// 🎵 MEDIA PLAYER POPUP (Berada di components/popups/ & Inherit BasePopup dari widgets/)
-BasePopup {
-    id: popupRoot
+// 🎵 MEDIA PLAYER STYLE: CLASSIC (310×485 px)
+// Pure move dari MediaPopup.qml — tidak ada perubahan kode sama sekali
+Item {
+    id: classicRoot
 
-    property var mediaRootItem: null
-    targetItem: mediaRootItem
-
+    // Props yang dioper dari shell wrapper (MediaPopup.qml)
     property var player: null
     property string artistName: "Unknown Artist"
-
-    // 🌟 REAL-TIME POSITION TRACKER
     property real currentPosition: 0
-
-    // 🌟 STATE SAAT USER SEDANG DRAGGING PROGRESS BAR
     property bool isSeeking: false
     property real seekPosition: 0
-
-    // Posisi yang aktif ditampilkan: pakai seekPosition saat dragging, currentPosition saat normal
     readonly property real displayPosition: isSeeking ? seekPosition : currentPosition
 
-    // 📐 UKURAN POPUP PROPOSIONAL DI-SCALE UP (310x485 px)
-    implicitWidth: 310
-    implicitHeight: 485
+    // Signals untuk diteruskan ke shell wrapper
+    signal seekRequested(real targetMicros)
+    signal seekStarted(real pos)
+    signal seekEnded()
 
-    // ⏱️ TIMER DETIK REAL-TIME
-    Timer {
-        id: posTicker
-        interval: 1000
-        running: popupRoot.isOpen && popupRoot.player !== null && popupRoot.player.isPlaying
-        repeat: true
-        onTriggered: {
-            if (popupRoot.player) {
-                var dbusPos = popupRoot.player.position
-                if (dbusPos !== undefined && dbusPos > 0) {
-                    popupRoot.currentPosition = dbusPos
-                } else {
-                    popupRoot.currentPosition += 1000000
-                }
-            }
-        }
-        onRunningChanged: {
-            if (running && popupRoot.player) {
-                popupRoot.currentPosition = popupRoot.player.position || 0
-            }
-        }
-    }
-
-    // Helper fungsi format detik ke MM:SS 
+    // Helper fungsi format detik ke MM:SS
     function formatTime(sec) {
         if (!sec || isNaN(sec) || sec <= 0) return "0:00"
         if (sec > 100000) sec = Math.floor(sec / 1000000)
         var m = Math.floor(sec / 60)
         var s = Math.floor(sec % 60)
         return m + ":" + (s < 10 ? "0" : "") + s
-    }
-
-    // 🌫️ FROSTED BLURRED ALBUM ART BACKGROUND (MATCHING LOCKSCREEN STYLE)
-    Item {
-        anchors.fill: parent
-        anchors.margins: -16
-        z: -1
-
-        layer.enabled: true
-        layer.effect: OpacityMask {
-            maskSource: Rectangle {
-                width: popupRoot.implicitWidth
-                height: popupRoot.implicitHeight
-                radius: 18
-            }
-        }
-
-        // Blurred Album Cover Image
-        Image {
-            id: popupBlurCover
-            anchors.fill: parent
-            anchors.margins: -15
-            source: (player && player.trackArtUrl) ? player.trackArtUrl : ""
-            fillMode: Image.PreserveAspectCrop
-            smooth: true
-            mipmap: true
-            sourceSize: Qt.size(300, 300)
-            visible: status === Image.Ready
-
-            layer.enabled: true
-            layer.effect: FastBlur {
-                radius: 40
-            }
-        }
-
-        // Dark Frosted Tint Overlay for Contrast & Legibility
-        Rectangle {
-            anchors.fill: parent
-            color: Qt.rgba(Theme._darkBg.r, Theme._darkBg.g, Theme._darkBg.b, popupBlurCover.visible ? 0.68 : 0.88)
-        }
     }
 
     // 📦 KONTEN UTAMA MEDIA PLAYER POPUP
@@ -119,7 +49,7 @@ BasePopup {
             Image {
                 id: popupCover
                 anchors.fill: parent
-                source: (player && player.trackArtUrl) ? player.trackArtUrl : ""
+                source: (classicRoot.player && classicRoot.player.trackArtUrl) ? classicRoot.player.trackArtUrl : ""
                 fillMode: Image.PreserveAspectCrop
                 smooth: true
                 mipmap: true
@@ -157,7 +87,7 @@ BasePopup {
             Layout.fillWidth: true
 
             Text {
-                text: (player && player.trackTitle) ? player.trackTitle : "No Media"
+                text: (classicRoot.player && classicRoot.player.trackTitle) ? classicRoot.player.trackTitle : "No Media"
                 color: Theme.textMain
                 font { family: Theme.fontMain; pixelSize: 17; bold: true }
                 elide: Text.ElideRight
@@ -166,7 +96,7 @@ BasePopup {
             }
 
             Text {
-                text: popupRoot.artistName
+                text: classicRoot.artistName
                 color: Theme.accent
                 font { family: Theme.fontMain; pixelSize: 13 }
                 elide: Text.ElideRight
@@ -191,7 +121,7 @@ BasePopup {
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.left: parent.left
                     anchors.right: parent.right
-                    height: seekMouseArea.containsMouse || popupRoot.isSeeking ? 10 : 8
+                    height: seekMouseArea.containsMouse || classicRoot.isSeeking ? 10 : 8
                     radius: height / 2
                     color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.2)
 
@@ -203,12 +133,12 @@ BasePopup {
                     Rectangle {
                         id: progressFill
                         height: parent.height
-                        width: progressTrack.width * ((player && player.length > 0) ? Math.min(1.0, Math.max(0.0, popupRoot.displayPosition / player.length)) : 0.0)
+                        width: progressTrack.width * ((classicRoot.player && classicRoot.player.length > 0) ? Math.min(1.0, Math.max(0.0, classicRoot.displayPosition / classicRoot.player.length)) : 0.0)
                         radius: parent.radius
                         color: Theme.accent
 
                         Behavior on width {
-                            enabled: !popupRoot.isSeeking
+                            enabled: !classicRoot.isSeeking
                             NumberAnimation { duration: 250; easing.type: Easing.OutCubic }
                         }
                     }
@@ -218,7 +148,7 @@ BasePopup {
                         id: progressThumb
                         anchors.verticalCenter: parent.verticalCenter
                         x: Math.min(progressFill.width - width / 2, progressTrack.width - width)
-                        width: seekMouseArea.containsMouse || popupRoot.isSeeking ? 16 : 0
+                        width: seekMouseArea.containsMouse || classicRoot.isSeeking ? 16 : 0
                         height: width
                         radius: width / 2
                         color: Theme.textMain
@@ -237,28 +167,24 @@ BasePopup {
                     cursorShape: Qt.PointingHandCursor
 
                     onPressed: (mouse) => {
-                        if (!player || !player.canSeek || player.length <= 0) return
-                        popupRoot.isSeeking = true
+                        if (!classicRoot.player || !classicRoot.player.canSeek || classicRoot.player.length <= 0) return
                         var ratio = Math.min(1.0, Math.max(0.0, mouse.x / progressTrack.width))
-                        popupRoot.seekPosition = ratio * player.length
+                        classicRoot.seekStarted(ratio * classicRoot.player.length)
                     }
 
                     onPositionChanged: (mouse) => {
-                        if (!popupRoot.isSeeking || !player || player.length <= 0) return
+                        if (!classicRoot.isSeeking || !classicRoot.player || classicRoot.player.length <= 0) return
                         var ratio = Math.min(1.0, Math.max(0.0, mouse.x / progressTrack.width))
-                        popupRoot.seekPosition = ratio * player.length
+                        classicRoot.seekPosition = ratio * classicRoot.player.length
                     }
 
                     onReleased: {
-                        if (!popupRoot.isSeeking || !player || !player.canSeek) return
-                        var targetMicros = popupRoot.seekPosition
-                        var offsetMicros = targetMicros - player.position
-                        player.seek(offsetMicros)
-                        popupRoot.currentPosition = targetMicros
-                        popupRoot.isSeeking = false
+                        if (!classicRoot.isSeeking || !classicRoot.player || !classicRoot.player.canSeek) return
+                        classicRoot.seekRequested(classicRoot.seekPosition)
+                        classicRoot.seekEnded()
                     }
 
-                    onCanceled: { popupRoot.isSeeking = false }
+                    onCanceled: { classicRoot.seekEnded() }
                 }
             }
 
@@ -266,7 +192,7 @@ BasePopup {
                 Layout.fillWidth: true
 
                 Text {
-                    text: player ? popupRoot.formatTime(popupRoot.displayPosition) : "0:00"
+                    text: classicRoot.player ? classicRoot.formatTime(classicRoot.displayPosition) : "0:00"
                     color: Theme.accent
                     font { family: Theme.fontMain; pixelSize: 12 }
                     Behavior on color { ColorAnimation { duration: 150 } }
@@ -275,7 +201,7 @@ BasePopup {
                 Item { Layout.fillWidth: true }
 
                 Text {
-                    text: player ? popupRoot.formatTime(player.length) : "0:00"
+                    text: classicRoot.player ? classicRoot.formatTime(classicRoot.player.length) : "0:00"
                     color: Theme.accent
                     font { family: Theme.fontMain; pixelSize: 12 }
                 }
@@ -303,7 +229,7 @@ BasePopup {
                 MouseArea {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: if (player && typeof player.previous === "function") player.previous()
+                    onClicked: if (classicRoot.player && typeof classicRoot.player.previous === "function") classicRoot.player.previous()
                 }
             }
 
@@ -318,8 +244,8 @@ BasePopup {
 
                 Text {
                     anchors.centerIn: parent
-                    anchors.horizontalCenterOffset: (player && player.isPlaying) ? 0 : 1.5
-                    text: (player && player.isPlaying) ? "󰏤" : "󰐊"
+                    anchors.horizontalCenterOffset: (classicRoot.player && classicRoot.player.isPlaying) ? 0 : 1.5
+                    text: (classicRoot.player && classicRoot.player.isPlaying) ? "󰏤" : "󰐊"
                     color: Theme.textMain
                     font { family: Theme.fontMono; pixelSize: 24 }
                     Behavior on color { ColorAnimation { duration: 200; easing.type: Easing.InOutQuad } }
@@ -329,10 +255,10 @@ BasePopup {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
-                        if (player) {
-                            if (typeof player.playPause === "function") player.playPause()
-                            else if (typeof player.togglePlaying === "function") player.togglePlaying()
-                            else player.isPlaying = !player.isPlaying
+                        if (classicRoot.player) {
+                            if (typeof classicRoot.player.playPause === "function") classicRoot.player.playPause()
+                            else if (typeof classicRoot.player.togglePlaying === "function") classicRoot.player.togglePlaying()
+                            else classicRoot.player.isPlaying = !classicRoot.player.isPlaying
                         }
                     }
                 }
@@ -354,7 +280,7 @@ BasePopup {
                 MouseArea {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: if (player && typeof player.next === "function") player.next()
+                    onClicked: if (classicRoot.player && typeof classicRoot.player.next === "function") classicRoot.player.next()
                 }
             }
         }

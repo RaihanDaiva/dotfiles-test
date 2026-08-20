@@ -60,8 +60,19 @@ This repository contains an isolated testing environment (`test-hypr`) for exper
   - Interactive Disconnect pill buttons (`#f38ba8`) for active Wi-Fi connections (`nmcli connection down`) and Bluetooth devices (`bluetoothctl disconnect`).
   - **Saved Network Auto-Connect:** Clicking "Connect" on previously saved Wi-Fi networks connects instantly using saved NetworkManager credentials without requiring re-entering passwords.
 - **🎵 Frosted Blurred Album Art Media Popup (`MediaPopup.qml`):**
-  - Floating 310x485px detail card with 1:1 cover art, seek bar & playback controls.
-  - Features an atmospheric frosted blurred album art background (`FastBlur` radius 40, `OpacityMask` radius 18, and translucent dark overlay), dynamically matching song poster artwork.
+  - Modular media popup architecture located in `components/popups/mediaPopup/` supporting dynamic layout switching (**Classic** 310×485px & **Minimalist** 370×155px compact view).
+  - Features 1:1 cover art, seek bar, playback controls, and atmospheric frosted blurred album art background (`FastBlur` radius 40, `OpacityMask` radius 18, and translucent dark overlay).
+  - **Dynamic Theme & Opacity Fallback:** Automatically resolves background tint using `Theme.bgDark` in both Light and Dark modes. When cover art blur is disabled, outer frosted overlay hides completely to respect global popup opacity settings.
+- **⚙️ Elements & Popup Customizer Window (`settingsPopup/SettingsPopup.qml` & `SettingsStore.qml`):**
+  - **Standalone Draggable Window:** Floating overlay window with draggable header handle (`MouseArea`), smooth screen auto-centering (`Component.onCompleted`), and `WlrLayershell` overlay layer.
+  - **Sidebar Navigation Panel:** Clean left-side navigation panel (140px width) with category selection (e.g. `🪟 Popups`).
+  - **Modular Category Page Architecture (`category/PopupsCategory.qml`):** Dynamic category loading via `Loader` separating customization pages cleanly.
+  - **Custom Styled UI Controls:**
+    - `CustomSlider`: 6px thin track with `Theme.accent` progress bar and 16px circular thumb handle.
+    - `CustomSwitch`: 46×24px pill track with smooth color animations and 18px inner circle knob (`Theme.bgDark` on active pill).
+  - **Live Customization Options:** Real-time controls for Global Popup Opacity (50%–100%), Corner Radius (10px–28px), Border Width (0px–8px), Frosted Album Art Background toggle, and Media Player Layout Style selector (`Classic` vs `Minimalist`).
+  - **Persistent JSON Configuration (`services/SettingsStore.qml`):** Automatically saves and loads all user preferences to `~/.config/quickshell/settings.json`, including Light/Dark mode state and window open state across Quickshell restarts.
+  - **QuickSettings Integration (`QuickSettingsPopup.qml`):** Dedicated gear button (`󰒓`) in the ControlCenter header for instant access to the customizer window.
 - **🪟 Mutually Exclusive Popup Manager (`PopupManager.qml`):**
   - Centralized singleton (`PopupManager.qml`) integrated directly into `BasePopup.qml` (`onIsOpenChanged`).
   - Automatically closes any previously active dropdown popup whenever a new popup is opened, completely preventing popup stacking/overlapping.

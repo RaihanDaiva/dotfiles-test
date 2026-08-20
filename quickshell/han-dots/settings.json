@@ -1,0 +1,10 @@
+{
+  "popupOpacity": 0.96,
+  "popupRadius": 18,
+  "popupBorderWidth": 1,
+  "enableBlur": true,
+  "settingsPopupOpen": false,
+  "isDarkMode": true,
+  "mediaBlurBgEnabled": true,
+  "mediaPlayerStyle": "minimalist"
+}
