@@ -12,7 +12,7 @@ Item {
     property string iconText: ""
     property bool selected: false
     property string buttonStyle: SettingsStore.buttonStyle
-    property real radius: 8
+    property real radius: SettingsStore.buttonRadius
 
     signal clicked()
 

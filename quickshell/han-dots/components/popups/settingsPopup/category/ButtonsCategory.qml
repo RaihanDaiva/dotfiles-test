@@ -1,6 +1,7 @@
 import "../../../../services"
 import "../../../../theme"
 import "../../../../widgets"
+import "../../../../widgets/settings"
 import "../../../../widgets/styledButton"
 import QtQuick
 import QtQuick.Controls
@@ -58,73 +59,42 @@ Item {
                 }
 
                 // 1. Button Style Selector Card
-                Rectangle {
-                    Layout.fillWidth: true
-                    implicitHeight: 64
-                    radius: 12
-                    color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.06)
-                    border.color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.1)
+                SettingCard {
+                    title: "Active Fill Style"
+                    subtitle: (SettingsStore.buttonStyle === "solid") ? "Solid Fill (Material 3 / Android)" : "Translucent Outlined (Glass / Catppuccin)"
 
-                    RowLayout {
-                        anchors.fill: parent
-                        anchors.margins: 12
-                        spacing: 12
+                    StyledButton {
+                        text: "Solid"
+                        buttonStyle: "solid"
+                        implicitWidth: 65
+                        implicitHeight: 32
+                        selected: SettingsStore.buttonStyle === "solid"
+                        onClicked: SettingsStore.buttonStyle = "solid"
+                    }
 
-                        ColumnLayout {
-                            spacing: 2
+                    StyledButton {
+                        text: "Glass"
+                        buttonStyle: "translucent"
+                        implicitWidth: 65
+                        implicitHeight: 32
+                        selected: SettingsStore.buttonStyle === "translucent"
+                        onClicked: SettingsStore.buttonStyle = "translucent"
+                    }
 
-                            Text {
-                                text: "Active Fill Style"
-                                color: Theme.textMain
+                }
 
-                                font {
-                                    family: Theme.fontMain
-                                    pixelSize: 13
-                                    bold: true
-                                }
+                // 2. Button Corner Radius Slider Card
+                SettingCard {
+                    title: "Button Corner Radius"
+                    subtitle: "Corner curvature (" + Math.round(SettingsStore.buttonRadius) + "px)"
 
-                            }
-
-                            Text {
-                                text: (SettingsStore.buttonStyle === "solid") ? "Solid Fill (Material 3 / Android)" : "Translucent Outlined (Glass / Catppuccin)"
-                                color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.7)
-
-                                font {
-                                    family: Theme.fontMain
-                                    pixelSize: 11
-                                }
-
-                            }
-
-                        }
-
-                        Item {
-                            Layout.fillWidth: true
-                        }
-
-                        RowLayout {
-                            spacing: 6
-
-                            StyledButton {
-                                text: "Solid"
-                                buttonStyle: "solid"
-                                implicitWidth: 65
-                                implicitHeight: 32
-                                selected: SettingsStore.buttonStyle === "solid"
-                                onClicked: SettingsStore.buttonStyle = "solid"
-                            }
-
-                            StyledButton {
-                                text: "Glass"
-                                buttonStyle: "translucent"
-                                implicitWidth: 65
-                                implicitHeight: 32
-                                selected: SettingsStore.buttonStyle === "translucent"
-                                onClicked: SettingsStore.buttonStyle = "translucent"
-                            }
-
-                        }
-
+                    CustomSlider {
+                        implicitWidth: 140
+                        from: 2
+                        to: 20
+                        stepSize: 1
+                        value: SettingsStore.buttonRadius
+                        onValueChanged: SettingsStore.buttonRadius = Math.round(value)
                     }
 
                 }
@@ -179,7 +149,7 @@ Item {
                         spacing: 10
 
                         Text {
-                            text: "Sample Button States (Current Style: " + SettingsStore.buttonStyle.toUpperCase() + ")"
+                            text: "Sample Button States (Current Style: " + SettingsStore.buttonStyle.toUpperCase() + ", Radius: " + SettingsStore.buttonRadius + "px)"
                             color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.6)
 
                             font {
@@ -202,7 +172,7 @@ Item {
 
                             StyledButton {
                                 text: "Unselected"
-                                implicitWidth: 95
+                                implicitWidth: 90
                                 implicitHeight: 32
                                 selected: false
                             }
@@ -210,7 +180,7 @@ Item {
                             StyledButton {
                                 text: "With Icon"
                                 iconText: "󰄬"
-                                implicitWidth: 100
+                                implicitWidth: 105
                                 implicitHeight: 32
                                 selected: true
                             }

@@ -3,10 +3,12 @@
   "popupRadius": 18,
   "popupBorderWidth": 1,
   "enableBlur": true,
-  "settingsPopupOpen": false,
+  "settingsPopupOpen": true,
   "isDarkMode": true,
-  "mediaBlurBgEnabled": true,
+  "mediaBlurBgEnabled": false,
   "mediaPlayerStyle": "minimalist",
   "buttonStyle": "solid",
+  "buttonRadius": 8,
+  "quickSettingsStyle": "android",
   "pillStyle": "glass"
 }

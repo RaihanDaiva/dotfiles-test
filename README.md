@@ -56,26 +56,29 @@ This repository contains an isolated testing environment (`test-hypr`) for exper
   - Extends `BasePopup.qml` with glassmorphism blur and rounded corners.
   - Features real-time unread badge counter, empty state (`No Notifications`), scrollable notification list with app icons, timestamps, individual item dismiss buttons (`✖`), and a **"Clear All" button** (`󰎟 Clear All`) at the very bottom.
   - **Interactive App Redirection:** Clicking any notification card (toast or notification center item) automatically invokes default notification actions and switches workspaces to focus the target application window in Niri (`niri msg action focus-window --id <win_id>`) with dynamic alias matching for Discord, Vesktop, Spotify, Zen, Firefox, Telegram, Code, etc.
-- **⚡ Wi-Fi & Bluetooth QuickSettings Control (`QuickSettingsPopup.qml`):**
+- **⚡ Extensible QuickSettings Architecture (`widgets/quickSetting/` & `QuickSettingsPopup.qml`):**
+  - **Modular ControlPills & StyledSliders:** Dynamic URL resolving supporting multiple shape styles (**Android Material 3 16px** vs **macOS Capsule**). Switching styles updates all pills and sliders seamlessly.
   - Interactive Disconnect pill buttons (`#f38ba8`) for active Wi-Fi connections (`nmcli connection down`) and Bluetooth devices (`bluetoothctl disconnect`).
   - **Saved Network Auto-Connect:** Clicking "Connect" on previously saved Wi-Fi networks connects instantly using saved NetworkManager credentials without requiring re-entering passwords.
-- **🎵 Frosted Blurred Album Art Media Popup (`MediaPopup.qml`):**
+- **🎵 Frosted Blurred Album Art Media Popup with CustomSlider (`MediaPopup.qml`):**
   - Modular media popup architecture located in `components/popups/mediaPopup/` supporting dynamic layout switching (**Classic** 310×485px & **Minimalist** 370×155px compact view).
+  - Integrates standalone `CustomSlider` for smooth interactive audio playback progress seeking.
   - Features 1:1 cover art, seek bar, playback controls, and atmospheric frosted blurred album art background (`FastBlur` radius 40, `OpacityMask` radius 18, and translucent dark overlay).
   - **Dynamic Theme & Opacity Fallback:** Automatically resolves background tint using `Theme.bgDark` in both Light and Dark modes. When cover art blur is disabled, outer frosted overlay hides completely to respect global popup opacity settings.
 - **⚙️ Elements & Popup Customizer Window (`settingsPopup/SettingsPopup.qml` & `SettingsStore.qml`):**
   - **Standalone Draggable Window:** Floating overlay window with draggable header handle (`MouseArea`), smooth screen auto-centering (`Component.onCompleted`), and `WlrLayershell` overlay layer.
-  - **Sidebar Navigation Panel:** Left-side navigation panel with category tabs (**Popups** `󰖯` and **Buttons** `󰓠`). Refactored sidebar navigation buttons to use `StyledButton`.
+  - **Sidebar Navigation Panel:** Left-side navigation panel with category tabs (**Popups** `󰖯` and **Buttons** `󰓠`). Uses `StyledButton` for consistent UI navigation.
   - **Modular Category Page Architecture (`category/`):**
-    - `PopupsCategory.qml`: Category page for popup opacity, corner radius, border width, cover art blur toggle, and media player style.
-    - `ButtonsCategory.qml`: Dedicated category page for button theme customization (**Solid Fill** vs **Glass Outlined**) with interactive live preview showcase.
+    - `PopupsCategory.qml`: Category page for popup opacity, corner radius, border width, cover art blur toggle, media player style, and QuickSettings pill shape selector.
+    - `ButtonsCategory.qml`: Dedicated category page for button theme customization (**Solid Fill** vs **Glass Outlined**) with interactive live preview showcase and corner radius slider.
+  - **Reusable SettingCard Container (`widgets/settings/SettingCard.qml`):** Abstracted setting row container handling titles, descriptions, and flexible control slots (`CustomSlider`, `StyledSwitch`, `StyledButton` group).
   - **Custom Styled UI Widgets (`widgets/`):**
-    - `StyledSwitch`: 46×24px pill track switch toggle with smooth color and position animations (`NumberAnimation` & `ColorAnimation`). Applied across `PopupsCategory` and `QuickSettingsPopup`.
-    - `StyledButton` & `buttonStyle/`: Modular reusable button shell wrapper with dynamic style resolver (`getStyleSource()`) supporting **Solid Fill** (`ButtonStyleSolid.qml`) and **Glass Outlined** (`ButtonStyleTranslucent.qml`). Allows adding $N+$ button styles by dropping QML files into `buttonStyle/`.
-    - `ControlPill`: ControlPill active style dynamically syncs with `SettingsStore.buttonStyle` (Solid vs Glass) with optimized contrast colors for titles (`Theme.textMain`), subtitles (`Theme.accent`), left circle icons, and chevrons.
-  - **Calendar Grid Integration (`CalendarPopup.qml`):** Refactored 7×6 calendar day grid cells from manual `Rectangle` to `StyledButton`, automatically inheriting global button styles while handling `isToday` state and month opacity (`0.35`).
-  - **Persistent JSON Configuration (`services/SettingsStore.qml`):** Automatically saves and loads all user preferences (`buttonStyle`, `isDarkMode`, `popupOpacity`, `popupRadius`, `popupBorderWidth`, etc.) to `~/.config/quickshell/settings.json`.
-  - **QuickSettings Integration (`QuickSettingsPopup.qml`):** Dedicated gear button (`󰒓`) in the ControlCenter header for instant access to the customizer window.
+    - `StyledSwitch`: 46×24px pill track switch toggle with smooth color and position animations.
+    - `StyledButton` & `buttonStyle/`: Modular reusable button shell wrapper with dynamic style resolver (`ButtonStyleSolid.qml` and `ButtonStyleTranslucent.qml`).
+    - `CustomSlider`: Standalone custom styled slider widget used across Settings Popup and Media Popup.
+    - `ControlPill` & `StyledSlider`: QuickSettings widgets with dynamic $N+$ shape style loader (`widgets/quickSetting/`).
+  - **Calendar Grid Integration (`CalendarPopup.qml`):** Refactored 7×6 calendar day grid cells to use `StyledButton`, automatically inheriting global button styles.
+  - **Persistent JSON Configuration (`services/SettingsStore.qml`):** Automatically saves and loads all user preferences (`buttonStyle`, `buttonRadius`, `quickSettingsStyle`, `isDarkMode`, `popupOpacity`, `popupRadius`, `popupBorderWidth`, etc.) to `~/.config/quickshell/settings.json`.
 - **🪟 Mutually Exclusive Popup Manager (`PopupManager.qml`):**
   - Centralized singleton (`PopupManager.qml`) integrated directly into `BasePopup.qml` (`onIsOpenChanged`).
   - Automatically closes any previously active dropdown popup whenever a new popup is opened, completely preventing popup stacking/overlapping.
@@ -127,14 +130,22 @@ dotfiles-test/
     │   └── PywalService.qml        # Background service syncing Pywal colors to Theme.qml
     ├── widgets/
     │   ├── BasePopup.qml           # Reusable PanelWindow popup shell with SettingsStore opacity/radius/border bindings & z: 9999 border overlay
-    │   ├── ControlPill.qml         # Reusable control button pill dynamically syncing active style (Solid vs Glass) with SettingsStore.buttonStyle
+    │   ├── ControlPill.qml         # Forwarding wrapper delegating to widgets/quickSetting/ControlPill.qml
+    │   ├── StyledSlider.qml        # Forwarding wrapper delegating to widgets/quickSetting/StyledSlider.qml
+    │   ├── SettingCard.qml         # Forwarding wrapper delegating to widgets/settings/SettingCard.qml
+    │   ├── CustomSlider.qml        # 🎚️ Standalone reusable custom styled slider widget
     │   ├── StyledSwitch.qml        # 🔘 Reusable Material 3 / Catppuccin 46×24px switch toggle widget
     │   ├── LargeClock.qml          # Minimalist 2-line desktop clock widget using Theme.fontMain
+    │   ├── quickSetting/           # 🎛️ REUSABLE QUICKSETTINGS WIDGET FOLDER
+    │   │   ├── ControlPill.qml     # Dynamic pill shell wrapper resolving pill styles
+    │   │   ├── StyledSlider.qml    # Dynamic slider shell wrapper resolving slider styles
+    │   │   ├── pillStyle/          # QuickSettings pill shape implementations (PillStyleAndroid.qml & PillStyleMacos.qml)
+    │   │   └── sliderStyle/        # QuickSettings slider shape implementations (SliderStyleAndroid.qml & SliderStyleMacos.qml)
+    │   ├── settings/               # 🃏 REUSABLE SETTINGS WIDGET FOLDER
+    │   │   └── SettingCard.qml     # Reusable setting row container handling titles, descriptions, & control slots
     │   ├── styledButton/           # 🔘 REUSABLE STYLED BUTTON WIDGET FOLDER
     │   │   ├── StyledButton.qml    # Reusable button wrapper with dynamic style loader
-    │   │   └── buttonStyle/        # Button style implementations
-    │   │       ├── ButtonStyleSolid.qml       # Solid Fill button style (Material 3)
-    │   │       └── ButtonStyleTranslucent.qml # Glass Outlined button style (Catppuccin)
+    │   │   └── buttonStyle/        # Button style implementations (ButtonStyleSolid.qml & ButtonStyleTranslucent.qml)
     │   └── bar/
     │       ├── Workspace.qml       # Independent per-monitor workspace switcher with GTK app icons, instance dots & special workspace indicator (★)
     │       ├── Clock.qml           # Real-time clock & date widget with pill hover trigger
@@ -145,16 +156,6 @@ dotfiles-test/
     │       ├── SystemStats.qml     # RAM & CPU Temp performance monitor widget
     │       ├── ControlCenter.qml   # Quick settings control pill widget (Brightness/Vol/BT/WiFi/Bat)
     │       ├── NotificationPill.qml # Standalone notification bell button with unread count badge
-    │       └── Power.qml           # Standalone Power button widget
-    └── scripts/
-        ├── sys_info.sh             # Executable bash helper script for system metrics, GPU stats & volume
-        ├── sys_event_monitor.sh    # Real-time event streamer for PipeWire audio & kernel backlight
-        ├── brightness_info.sh      # Helper script detecting internal and DDC/CI external display brightness
-        ├── wifi_list.sh            # Helper script parsing unique signal-sorted Wi-Fi networks via nmcli
-        ├── bt_list.sh              # Helper script parsing Bluetooth device status and clean names via pipe delimiter
-        ├── wallpaper_list.sh       # Helper script parsing wallpapers exclusively from ~/.config/wallpapers/
-        └── apply_wallpaper.sh      # Executable script setting hyprpaper, pywal colors, hyprland borders & cava
-```
     │       └── Power.qml           # Standalone Power button widget
     └── scripts/
         ├── sys_info.sh             # Executable bash helper script for system metrics, GPU stats & volume

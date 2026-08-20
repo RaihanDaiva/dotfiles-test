@@ -23,7 +23,8 @@ Item {
     property string mediaPlayerStyle: "classic" // "classic" (full) or "minimalist" (compact)
     // 🔘 5. BUTTON & PILL STYLE SETTINGS
     property string buttonStyle: "solid"
-    // "solid" or "translucent"
+    property int buttonRadius: 8
+    property string quickSettingsStyle: "android" // "android" or "macos"
     property string pillStyle: "solid"
     // 💾 FILE PATH UNTUK PERSISTENSI SETTINGS
     readonly property string configFile: Quickshell.env("HOME") + "/.config/quickshell/settings.json"
@@ -45,6 +46,8 @@ Item {
             "mediaBlurBgEnabled": store.mediaBlurBgEnabled,
             "mediaPlayerStyle": store.mediaPlayerStyle,
             "buttonStyle": store.buttonStyle,
+            "buttonRadius": store.buttonRadius,
+            "quickSettingsStyle": store.quickSettingsStyle,
             "pillStyle": store.pillStyle
         };
         var jsonStr = JSON.stringify(obj, null, 2);
@@ -64,6 +67,8 @@ Item {
     onMediaBlurBgEnabledChanged: saveSettings()
     onMediaPlayerStyleChanged: saveSettings()
     onButtonStyleChanged: saveSettings()
+    onButtonRadiusChanged: saveSettings()
+    onQuickSettingsStyleChanged: saveSettings()
     onPillStyleChanged: saveSettings()
 
     // 📥 LOAD SETTINGS FROM JSON AT STARTUP
@@ -105,6 +110,12 @@ Item {
 
                         if (cfg.buttonStyle !== undefined)
                             store.buttonStyle = cfg.buttonStyle;
+
+                        if (cfg.buttonRadius !== undefined)
+                            store.buttonRadius = cfg.buttonRadius;
+
+                        if (cfg.quickSettingsStyle !== undefined)
+                            store.quickSettingsStyle = cfg.quickSettingsStyle;
 
                         if (cfg.pillStyle !== undefined)
                             store.pillStyle = cfg.pillStyle;

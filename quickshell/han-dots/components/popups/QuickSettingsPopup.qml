@@ -769,294 +769,60 @@ BasePopup {
                 }
 
                 // 🔆 BRIGHTNESS SLIDER 1 (PRIMARY / FIRST)
-                Rectangle {
-                    Layout.fillWidth: true
-                    implicitHeight: 46
-                    radius: 12
-                    color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.06)
-                    border.color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.1)
-                    border.width: 1
-
-                    Rectangle {
-                        height: parent.height
-                        width: parent.width * (popupRoot.brightVal1 / 100)
-                        radius: parent.radius
-                        color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25)
-
-                        Behavior on width {
-                            NumberAnimation {
-                                duration: 80
-                            }
-
-                        }
+                StyledSlider {
+                    iconText: "󰃠"
+                    titleText: popupRoot.displayCount > 1 ? "Screen Brightness (first)" : "Screen Brightness"
+                    value: popupRoot.brightVal1
+                    onValueMoved: (pct) => {
+                        popupRoot.brightVal1 = pct;
+                        bright1Proc.command = ["brightnessctl", "s", pct + "%"];
+                        bright1Proc.running = true;
+                        if (popupRoot.osdItem)
+                            popupRoot.osdItem.showBrightness(pct, false);
 
                     }
-
-                    RowLayout {
-                        anchors.fill: parent
-                        anchors.leftMargin: 12
-                        anchors.rightMargin: 12
-
-                        Text {
-                            text: "󰃠"
-                            color: Theme.accent
-
-                            font {
-                                family: Theme.fontMono
-                                pixelSize: 18
-                            }
-
-                        }
-
-                        Text {
-                            text: popupRoot.displayCount > 1 ? "Screen Brightness (first)" : "Screen Brightness"
-                            color: Theme.textMain
-                            Layout.fillWidth: true
-
-                            font {
-                                family: Theme.fontMain
-                                pixelSize: 13
-                                bold: true
-                            }
-
-                        }
-
-                        Text {
-                            text: popupRoot.brightVal1 + "%"
-                            color: Theme.textMain
-
-                            font {
-                                family: Theme.fontMain
-                                pixelSize: 13
-                                bold: true
-                            }
-
-                        }
-
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onPositionChanged: (mouse) => {
-                            var pct = Math.min(100, Math.max(0, Math.round((mouse.x / width) * 100)));
-                            popupRoot.brightVal1 = pct;
-                            bright1Proc.command = ["brightnessctl", "s", pct + "%"];
-                            bright1Proc.running = true;
-                            if (popupRoot.osdItem)
-                                popupRoot.osdItem.showBrightness(pct, false);
-
-                        }
-                        onPressed: (mouse) => {
-                            var pct = Math.min(100, Math.max(0, Math.round((mouse.x / width) * 100)));
-                            popupRoot.brightVal1 = pct;
-                            bright1Proc.command = ["brightnessctl", "s", pct + "%"];
-                            bright1Proc.running = true;
-                            if (popupRoot.osdItem)
-                                popupRoot.osdItem.showBrightness(pct, false);
-
-                        }
-                    }
-
                 }
 
                 // 🔆 BRIGHTNESS SLIDER 2 (SECONDARY / SECOND MONITOR - AUTOMATICALLY APPEARS WHEN EXTERNAL MONITOR CONNECTED)
-                Rectangle {
-                    Layout.fillWidth: true
-                    implicitHeight: 46
-                    radius: 12
-                    color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.06)
-                    border.color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.1)
-                    border.width: 1
+                StyledSlider {
                     visible: popupRoot.displayCount >= 2
-
-                    Rectangle {
-                        height: parent.height
-                        width: parent.width * (popupRoot.brightVal2 / 100)
-                        radius: parent.radius
-                        color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25)
-
-                        Behavior on width {
-                            NumberAnimation {
-                                duration: 80
-                            }
-
+                    iconText: "󰃠"
+                    titleText: popupRoot.brightName2 !== "" ? popupRoot.brightName2 : "Screen Brightness (second)"
+                    value: popupRoot.brightVal2
+                    onValueMoved: (pct) => {
+                        popupRoot.brightVal2 = pct;
+                        if (popupRoot.brightType2.indexOf("ddcutil") === 0) {
+                            bright2Proc.command = ["ddcutil", "setvcp", "10", pct.toString()];
+                        } else if (popupRoot.brightType2.indexOf("brightnessctl:") === 0) {
+                            var dev = popupRoot.brightType2.split(":")[1];
+                            bright2Proc.command = ["brightnessctl", "-d", dev, "s", pct + "%"];
+                        } else {
+                            bright2Proc.command = ["brightnessctl", "s", pct + "%"];
                         }
+                        bright2Proc.running = true;
+                        if (popupRoot.osdItem)
+                            popupRoot.osdItem.showBrightness(pct, true);
 
                     }
-
-                    RowLayout {
-                        anchors.fill: parent
-                        anchors.leftMargin: 12
-                        anchors.rightMargin: 12
-
-                        Text {
-                            text: "󰃠"
-                            color: Theme.accent
-
-                            font {
-                                family: Theme.fontMono
-                                pixelSize: 18
-                            }
-
-                        }
-
-                        Text {
-                            text: popupRoot.brightName2 !== "" ? popupRoot.brightName2 : "Screen Brightness (second)"
-                            color: Theme.textMain
-                            Layout.fillWidth: true
-
-                            font {
-                                family: Theme.fontMain
-                                pixelSize: 13
-                                bold: true
-                            }
-
-                        }
-
-                        Text {
-                            text: popupRoot.brightVal2 + "%"
-                            color: Theme.textMain
-
-                            font {
-                                family: Theme.fontMain
-                                pixelSize: 13
-                                bold: true
-                            }
-
-                        }
-
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onPositionChanged: (mouse) => {
-                            var pct = Math.min(100, Math.max(0, Math.round((mouse.x / width) * 100)));
-                            popupRoot.brightVal2 = pct;
-                            if (popupRoot.brightType2.indexOf("ddcutil") === 0) {
-                                bright2Proc.command = ["ddcutil", "setvcp", "10", pct.toString()];
-                            } else if (popupRoot.brightType2.indexOf("brightnessctl:") === 0) {
-                                var dev = popupRoot.brightType2.split(":")[1];
-                                bright2Proc.command = ["brightnessctl", "-d", dev, "s", pct + "%"];
-                            } else {
-                                bright2Proc.command = ["brightnessctl", "s", pct + "%"];
-                            }
-                            bright2Proc.running = true;
-                            if (popupRoot.osdItem)
-                                popupRoot.osdItem.showBrightness(pct, true);
-
-                        }
-                        onPressed: (mouse) => {
-                            var pct = Math.min(100, Math.max(0, Math.round((mouse.x / width) * 100)));
-                            popupRoot.brightVal2 = pct;
-                            if (popupRoot.brightType2.indexOf("ddcutil") === 0) {
-                                bright2Proc.command = ["ddcutil", "setvcp", "10", pct.toString()];
-                            } else if (popupRoot.brightType2.indexOf("brightnessctl:") === 0) {
-                                var dev = popupRoot.brightType2.split(":")[1];
-                                bright2Proc.command = ["brightnessctl", "-d", dev, "s", pct + "%"];
-                            } else {
-                                bright2Proc.command = ["brightnessctl", "s", pct + "%"];
-                            }
-                            bright2Proc.running = true;
-                            if (popupRoot.osdItem)
-                                popupRoot.osdItem.showBrightness(pct, true);
-
-                        }
-                    }
-
                 }
 
                 // 🔊 VOLUME SLIDER
-                Rectangle {
-                    Layout.fillWidth: true
-                    implicitHeight: 46
-                    radius: 12
-                    color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.06)
-                    border.color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.1)
-                    border.width: 1
-
-                    Rectangle {
-                        height: parent.height
-                        width: parent.width * Math.min(1, Math.max(0, popupRoot.volumeVal / 150))
-                        radius: parent.radius
-                        color: popupRoot.volumeMuted ? Qt.rgba(243 / 255, 139 / 255, 168 / 255, 0.25) : (popupRoot.volumeVal > 100 ? Qt.rgba(243 / 255, 139 / 255, 168 / 255, 0.35) : Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25))
-
-                        Behavior on width {
-                            NumberAnimation {
-                                duration: 80
-                            }
-
-                        }
+                StyledSlider {
+                    iconText: popupRoot.volumeMuted ? "󰝟" : (popupRoot.volumeVal > 100 ? "󱄡" : (popupRoot.volumeVal >= 66 ? "󰕾" : (popupRoot.volumeVal >= 33 ? "󰖀" : "󰕿")))
+                    titleText: "Volume"
+                    value: popupRoot.volumeVal
+                    maxValue: 150
+                    iconColor: popupRoot.volumeMuted ? "#f38ba8" : (popupRoot.volumeVal > 100 ? "#f38ba8" : Theme.accent)
+                    fillColor: popupRoot.volumeMuted ? Qt.rgba(243 / 255, 139 / 255, 168 / 255, 0.25) : (popupRoot.volumeVal > 100 ? Qt.rgba(243 / 255, 139 / 255, 168 / 255, 0.35) : Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25))
+                    textColor: popupRoot.volumeMuted ? "#f38ba8" : (popupRoot.volumeVal > 100 ? "#f38ba8" : Theme.textMain)
+                    onValueMoved: (pct) => {
+                        popupRoot.volumeVal = pct;
+                        volProc.command = ["wpctl", "set-volume", "-l", "1.5", "@DEFAULT_AUDIO_SINK@", pct + "%"];
+                        volProc.running = true;
+                        if (popupRoot.osdItem)
+                            popupRoot.osdItem.showVolume(pct, popupRoot.volumeMuted);
 
                     }
-
-                    RowLayout {
-                        anchors.fill: parent
-                        anchors.leftMargin: 12
-                        anchors.rightMargin: 12
-
-                        Text {
-                            text: popupRoot.volumeMuted ? "󰝟" : (popupRoot.volumeVal > 100 ? "󱄡" : (popupRoot.volumeVal >= 66 ? "󰕾" : (popupRoot.volumeVal >= 33 ? "󰖀" : "󰕿")))
-                            color: popupRoot.volumeMuted ? "#f38ba8" : (popupRoot.volumeVal > 100 ? "#f38ba8" : Theme.accent)
-
-                            font {
-                                family: Theme.fontMono
-                                pixelSize: 18
-                            }
-
-                        }
-
-                        Text {
-                            text: "Volume"
-                            color: Theme.textMain
-                            Layout.fillWidth: true
-
-                            font {
-                                family: Theme.fontMain
-                                pixelSize: 13
-                                bold: true
-                            }
-
-                        }
-
-                        Text {
-                            text: popupRoot.volumeVal + "%"
-                            color: popupRoot.volumeMuted ? "#f38ba8" : (popupRoot.volumeVal > 100 ? "#f38ba8" : Theme.textMain)
-
-                            font {
-                                family: Theme.fontMain
-                                pixelSize: 13
-                                bold: true
-                            }
-
-                        }
-
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onPositionChanged: (mouse) => {
-                            var pct = Math.min(150, Math.max(0, Math.round((mouse.x / width) * 150)));
-                            popupRoot.volumeVal = pct;
-                            volProc.command = ["wpctl", "set-volume", "-l", "1.5", "@DEFAULT_AUDIO_SINK@", pct + "%"];
-                            volProc.running = true;
-                            if (popupRoot.osdItem)
-                                popupRoot.osdItem.showVolume(pct, popupRoot.volumeMuted);
-
-                        }
-                        onPressed: (mouse) => {
-                            var pct = Math.min(150, Math.max(0, Math.round((mouse.x / width) * 150)));
-                            popupRoot.volumeVal = pct;
-                            volProc.command = ["wpctl", "set-volume", "-l", "1.5", "@DEFAULT_AUDIO_SINK@", pct + "%"];
-                            volProc.running = true;
-                            if (popupRoot.osdItem)
-                                popupRoot.osdItem.showVolume(pct, popupRoot.volumeMuted);
-
-                        }
-                    }
-
                 }
 
                 Behavior on x {

@@ -22,7 +22,7 @@ PanelWindow {
 
     // property bool isOpen: SettingsStore.settingsPopupOpen
     property bool isOpen: true
-    property string activeTab: "buttons"
+    property string activeTab: "popups"
     // 📍 DRAGGABLE FLOATING POSITION PROPERTIES
     property real posX: 1200
     property real posY: 150
@@ -182,7 +182,7 @@ PanelWindow {
                         }
                     }
                 }
-
+   
             }
 
             // 🔀 SIDEBAR + CONTENT CONTAINER
@@ -231,7 +231,7 @@ PanelWindow {
                             selected: settingsPopup.activeTab === "popups"
                             onClicked: settingsPopup.activeTab = "popups"
                         }
-
+ 
                         // 🔘 Buttons Tab Button
                         StyledButton {
                             text: "Buttons"
