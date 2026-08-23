@@ -66,11 +66,13 @@ This repository contains an isolated testing environment (`test-hypr`) for exper
   - Features 1:1 cover art, seek bar, playback controls, and atmospheric frosted blurred album art background (`FastBlur` radius 40, `OpacityMask` radius 18, and translucent dark overlay).
   - **Dynamic Theme & Opacity Fallback:** Automatically resolves background tint using `Theme.bgDark` in both Light and Dark modes. When cover art blur is disabled, outer frosted overlay hides completely to respect global popup opacity settings.
 - **⚙️ Elements & Popup Customizer Window (`settingsPopup/SettingsPopup.qml` & `SettingsStore.qml`):**
-  - **Standalone Draggable Window:** Floating overlay window with draggable header handle (`MouseArea`), smooth screen auto-centering (`Component.onCompleted`), and `WlrLayershell` overlay layer.
-  - **Sidebar Navigation Panel:** Left-side navigation panel with category tabs (**Popups** `󰖯` and **Buttons** `󰓠`). Uses `StyledButton` for consistent UI navigation.
+  - **Standalone Draggable Window:** Floating overlay window with draggable header handle (`MouseArea`), smooth screen auto-centering (`Component.onCompleted`), and `WlrLayershell` overlay layer. Triggerable via `Super + .` shortcut (`quickshell ipc call settings toggle`).
+  - **Sidebar Navigation Panel:** Left-side navigation panel with category tabs (**Popups** `󰖯`, **Buttons** `󰓠`, **Bar** `󰈹`, and **Dock** `󰀻`). Uses `StyledButton` for consistent UI navigation.
   - **Modular Category Page Architecture (`category/`):**
     - `PopupsCategory.qml`: Category page for popup opacity, corner radius, border width, cover art blur toggle, media player style, and QuickSettings pill shape selector.
     - `ButtonsCategory.qml`: Dedicated category page for button theme customization (**Solid Fill** vs **Glass Outlined**) with interactive live preview showcase and corner radius slider.
+    - `BarCategory.qml`: Status bar opacity slider and frosted glass blur toggle with dynamic Niri `90-user-extra.kdl` live config reloading.
+    - `DockCategory.qml`: Dock mode selectors (**Always Visible**, **Auto Hide**, **Overlay**) and frosted glass blur toggle.
   - **Reusable SettingCard Container (`widgets/settings/SettingCard.qml`):** Abstracted setting row container handling titles, descriptions, and flexible control slots (`CustomSlider`, `StyledSwitch`, `StyledButton` group).
   - **Custom Styled UI Widgets (`widgets/`):**
     - `StyledSwitch`: 46×24px pill track switch toggle with smooth color and position animations.
@@ -78,7 +80,16 @@ This repository contains an isolated testing environment (`test-hypr`) for exper
     - `CustomSlider`: Standalone custom styled slider widget used across Settings Popup and Media Popup.
     - `ControlPill` & `StyledSlider`: QuickSettings widgets with dynamic $N+$ shape style loader (`widgets/quickSetting/`).
   - **Calendar Grid Integration (`CalendarPopup.qml`):** Refactored 7×6 calendar day grid cells to use `StyledButton`, automatically inheriting global button styles.
-  - **Persistent JSON Configuration (`services/SettingsStore.qml`):** Automatically saves and loads all user preferences (`buttonStyle`, `buttonRadius`, `quickSettingsStyle`, `isDarkMode`, `popupOpacity`, `popupRadius`, `popupBorderWidth`, etc.) to `~/.config/quickshell/settings.json`.
+  - **Persistent JSON Configuration (`services/SettingsStore.qml`):** Automatically saves and loads all user preferences (`buttonStyle`, `buttonRadius`, `quickSettingsStyle`, `isDarkMode`, `popupOpacity`, `popupRadius`, `popupBorderWidth`, `barOpacity`, `barBlurEnabled`, `dockEnabled`, `dockMode`, `dockBlurEnabled`, etc.) to `~/.config/quickshell/settings.json`.
+- **⛵ Floating Application Dock (`components/Dock.qml`):**
+  - **Dynamic IPC Window Switcher:** Real-time Niri IPC event streaming (`niri msg -j windows` + `event-stream`) displaying pinned favorite apps alongside dynamically opened applications.
+  - **Active Window Status Indicators:** Elongated accent pill for focused apps, small translucent dot for open unfocused apps, hidden for closed apps.
+  - **Multiple Dock Modes:**
+    - `Always Visible`: Reserves workspace area (`exclusionMode: ExclusionMode.Auto`) so tiled windows sit cleanly above the dock without overlapping.
+    - `Auto Hide`: Slides down off-screen, revealing on bottom-edge mouse hover with smooth internal Y-offset animation and debounce timer to prevent flicker.
+    - `Overlay`: Floats over windows without reserving workspace area (`exclusionMode: ExclusionMode.Ignore`).
+  - **Pure Overlay Hover Tooltips:** Floating overlay window (`dockTooltipWindow`) that pops up pixel-perfect centered above hovered icons without affecting workspace space reservation.
+  - **Dynamic Surface Width:** Adjusts Wayland LayerShell surface width dynamically to match exact dock card dimensions.
 - **🪟 Mutually Exclusive Popup Manager (`PopupManager.qml`):**
   - Centralized singleton (`PopupManager.qml`) integrated directly into `BasePopup.qml` (`onIsOpenChanged`).
   - Automatically closes any previously active dropdown popup whenever a new popup is opened, completely preventing popup stacking/overlapping.
@@ -104,6 +115,7 @@ dotfiles-test/
     │   ├── Bar.qml                 # Top Status Bar layout receiving screen property
     │   ├── DesktopClock.qml        # Wayland Desktop LayerShell surface wrapper for LargeClock
     │   ├── Lockscreen.qml          # 🔐 Native Wayland Session Lock widget with PAM Auth & Underline input field
+    │   ├── Dock.qml                # ⛵ Application Dock surface with dynamic IPC window streaming & modes
     │   └── popups/                 # 🪟 CENTRALIZED POPUP REPOSITORY
     │       ├── CalendarPopup.qml   # Interactive monthly calendar using StyledButton day grid
     │       ├── sysStatsPopup/      # Performance Dashboard popup (CPU/GPU Load & Temp, Mem, Storage)
@@ -112,7 +124,7 @@ dotfiles-test/
     │       │   └── mediaStyle/     # Layout style implementations (MediaStyleClassic.qml & MediaStyleMinimalist.qml)
     │       ├── settingsPopup/      # ⚙️ Elements & Popup Customizer floating window
     │       │   ├── SettingsPopup.qml # Standalone draggable window shell with sidebar navigation panel
-    │       │   └── category/       # Modular settings category pages (PopupsCategory.qml & ButtonsCategory.qml)
+    │       │   └── category/       # Modular settings pages (PopupsCategory, ButtonsCategory, BarCategory, DockCategory)
     │       ├── QuickSettingsPopup.qml # Windows 11 style 3-tier sliding Control Center popup with Customizer gear button & StyledSwitch
     │       ├── NotificationCenterPopup.qml # Notification Center popup extending BasePopup with Clear All button
     │       ├── OsdPopup.qml        # Real-time OSD overlay card for Volume & Brightness (exclusionMode: Ignore)

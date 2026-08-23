@@ -36,6 +36,15 @@ layer-rule {
     }
 }
 
+// 🪟 Layer rules for Quickshell Dock
+layer-rule {
+    match namespace="quickshell:dock"
+    geometry-corner-radius 30
+    background-effect {
+        blur true
+    }
+}
+
 // 🪟 Layer rules for Quickshell overlays
 layer-rule {
     match namespace="quickshell:popup"

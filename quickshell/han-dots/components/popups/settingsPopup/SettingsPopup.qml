@@ -6,6 +6,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Io
 import Quickshell.Wayland
 
 // ⚙️ SETTINGS & POPUP CUSTOMIZER (STANDALONE DRAGGABLE FLOATING WINDOW)
@@ -21,7 +22,7 @@ PanelWindow {
     id: settingsPopup
 
     // property bool isOpen: SettingsStore.settingsPopupOpen
-    property bool isOpen: true
+    property bool isOpen: false
     property string activeTab: "popups"
     // 📍 DRAGGABLE FLOATING POSITION PROPERTIES
     property real posX: 1200
@@ -46,7 +47,24 @@ PanelWindow {
     margins.left: Math.round(posX)
     margins.top: Math.round(posY)
     color: "transparent"
-    visible: isOpen
+    visible: isOpen || settingsCard.opacity > 0
+
+    // 📡 QUICKSHELL IPC HANDLER FOR SHORTCUT (`quickshell ipc call settings toggle`)
+    IpcHandler {
+        function toggle() {
+            settingsPopup.isOpen = !settingsPopup.isOpen;
+        }
+
+        function open() {
+            settingsPopup.isOpen = true;
+        }
+
+        function close() {
+            settingsPopup.isOpen = false;
+        }
+
+        target: "settings"
+    }
 
     Rectangle {
         id: settingsCard
@@ -54,6 +72,8 @@ PanelWindow {
         anchors.fill: parent
         color: Qt.rgba(Theme.bgDark.r, Theme.bgDark.g, Theme.bgDark.b, SettingsStore.popupOpacity)
         radius: SettingsStore.popupRadius
+        opacity: settingsPopup.isOpen ? 1 : 0
+        scale: settingsPopup.isOpen ? 1 : 0.95
 
         // 🖼️ BORDER OVERLAY (z: 9999)
         Rectangle {
@@ -182,7 +202,7 @@ PanelWindow {
                         }
                     }
                 }
-   
+
             }
 
             // 🔀 SIDEBAR + CONTENT CONTAINER
@@ -231,7 +251,7 @@ PanelWindow {
                             selected: settingsPopup.activeTab === "popups"
                             onClicked: settingsPopup.activeTab = "popups"
                         }
- 
+
                         // 🔘 Buttons Tab Button
                         StyledButton {
                             text: "Buttons"
@@ -240,6 +260,26 @@ PanelWindow {
                             implicitHeight: 36
                             selected: settingsPopup.activeTab === "buttons"
                             onClicked: settingsPopup.activeTab = "buttons"
+                        }
+
+                        // 🏛️ Bar Tab Button
+                        StyledButton {
+                            text: "Bar"
+                            iconText: "󰈹"
+                            Layout.fillWidth: true
+                            implicitHeight: 36
+                            selected: settingsPopup.activeTab === "bar"
+                            onClicked: settingsPopup.activeTab = "bar"
+                        }
+
+                        // ⛵ Dock Tab Button
+                        StyledButton {
+                            text: "Dock"
+                            iconText: "󰀻"
+                            Layout.fillWidth: true
+                            implicitHeight: 36
+                            selected: settingsPopup.activeTab === "dock"
+                            onClicked: settingsPopup.activeTab = "dock"
                         }
 
                         Item {
@@ -256,9 +296,25 @@ PanelWindow {
 
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    source: Qt.resolvedUrl("./category/" + (settingsPopup.activeTab === "buttons" ? "ButtonsCategory.qml" : "PopupsCategory.qml"))
+                    source: Qt.resolvedUrl("./category/" + (settingsPopup.activeTab === "buttons" ? "ButtonsCategory.qml" : (settingsPopup.activeTab === "bar" ? "BarCategory.qml" : (settingsPopup.activeTab === "dock" ? "DockCategory.qml" : "PopupsCategory.qml"))))
                 }
 
+            }
+
+        }
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: 220
+                easing.type: Easing.OutCubic
+            }
+
+        }
+
+        Behavior on scale {
+            NumberAnimation {
+                duration: 220
+                easing.type: Easing.OutCubic
             }
 
         }

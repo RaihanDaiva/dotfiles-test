@@ -14,7 +14,7 @@ BasePopup {
 
     property int cpuLoadPercent: 0
     property string cpuTempText: "0°C"
-    property int cpuTempValue: 0
+    property int cpuTempValue: 0 
     property int gpuLoadPercent: 0
     property int gpuTempValue: 0
     property int ramPercent: 0

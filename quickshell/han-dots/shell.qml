@@ -1,17 +1,18 @@
-import QtQuick
-import Quickshell
-import Quickshell.Services.Notifications
-import Quickshell.Io
 import "./components/"
 import "./components/popups/"
 import "./components/popups/settingsPopup/"
 import "./services/"
 import "./theme/"
 import "./widgets"
+import QtQuick
+import Quickshell
+import Quickshell.Io
+import Quickshell.Services.Notifications
 
 Scope {
     // 🔄 Service pemantau warna Pywal di background
-    PywalService {}
+    PywalService {
+    }
 
     // 🖥️ Status Bar Utama untuk Semua Monitor (Laptop & Monitor Kedua)
     Variants {
@@ -19,17 +20,19 @@ Scope {
 
         Scope {
             required property var modelData
-            
+
             Bar {
                 screen: modelData
             }
             // 🖼️ Desktop Clock Widget (Tampil di atas Wallpaper / Layer Bottom)
+
             DesktopClock {
                 screen: modelData
             }
-        }
-    } 
 
+        }
+
+    }
 
     // 🔐 Native Wayland Lockscreen Widget (Session Lock + PAM Auth)
     Lockscreen {
@@ -49,14 +52,15 @@ Scope {
     // ⏱️ Sequenced Popup Opening Timer (Ensures current popup finishes exit animation before new popup slides up)
     Timer {
         id: popupOpenTimer
-        interval: 200
-        repeat: false
+
         property var pendingOpenAction: null
 
+        interval: 200
+        repeat: false
         onTriggered: {
             if (pendingOpenAction) {
-                pendingOpenAction()
-                pendingOpenAction = null
+                pendingOpenAction();
+                pendingOpenAction = null;
             }
         }
     }
@@ -64,13 +68,16 @@ Scope {
     // 🚀 Application Launcher Popup (Triggered via quickshell ipc call applauncher toggle)
     AppLauncherPopup {
         id: appLauncherPopup
+
         onRequestOpen: {
             if (wallpaperPopup.isOpen) {
-                wallpaperPopup.isOpen = false
-                popupOpenTimer.pendingOpenAction = function() { appLauncherPopup.isOpen = true }
-                popupOpenTimer.restart()
+                wallpaperPopup.isOpen = false;
+                popupOpenTimer.pendingOpenAction = function() {
+                    appLauncherPopup.isOpen = true;
+                };
+                popupOpenTimer.restart();
             } else {
-                appLauncherPopup.isOpen = true
+                appLauncherPopup.isOpen = true;
             }
         }
     }
@@ -78,13 +85,16 @@ Scope {
     // 🖼️ Wallpaper Selector Popup (Triggered via quickshell ipc call wallpaperselect toggle)
     WallpaperPopup {
         id: wallpaperPopup
+
         onRequestOpen: {
             if (appLauncherPopup.isOpen) {
-                appLauncherPopup.isOpen = false
-                popupOpenTimer.pendingOpenAction = function() { wallpaperPopup.isOpen = true }
-                popupOpenTimer.restart()
+                appLauncherPopup.isOpen = false;
+                popupOpenTimer.pendingOpenAction = function() {
+                    wallpaperPopup.isOpen = true;
+                };
+                popupOpenTimer.restart();
             } else {
-                wallpaperPopup.isOpen = true
+                wallpaperPopup.isOpen = true;
             }
         }
     }
@@ -94,12 +104,19 @@ Scope {
         id: settingsPopup
     }
 
+    // ⛵ Application Dock Surface (Bottom-Center Floating Bar)
+    Dock {
+        id: appDock
+    }
+
     // 📡 Native Notification Server DBus Daemon (org.freedesktop.Notifications)
     NotificationServer {
-        id: notifServer 
+        id: notifServer
+
         onNotification: (notif) => {
-            notifPopup.showNotification(notif)
-            NotificationStore.addNotification(notif)
+            notifPopup.showNotification(notif);
+            NotificationStore.addNotification(notif);
         }
     }
+
 }

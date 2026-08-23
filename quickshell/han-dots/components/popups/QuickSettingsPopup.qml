@@ -846,7 +846,7 @@ BasePopup {
 
                 // 📌 DETAIL PAGE HEADER (Back Arrow + Title + Refresh + Master Switch)
                 RowLayout {
-                    Layout.fillWidth: true
+                    Layout.fillWidth: true 
                     spacing: 8
 
                     // ⬅️ BACK BUTTON
@@ -892,6 +892,7 @@ BasePopup {
                         text: (popupRoot.expandedMode === "wifi" || popupRoot.expandedMode === "wifi_connect") ? "Wi-Fi Networks" : "Bluetooth Devices"
                         color: Theme.textMain
                         Layout.fillWidth: true
+                        elide: Text.ElideRight
 
                         font {
                             family: Theme.fontMain

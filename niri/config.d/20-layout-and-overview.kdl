@@ -9,7 +9,7 @@
 
 layout {
     // Gap between windows and from windows to screen edges (logical px).
-    gaps 25
+    gaps 18
 
     // Transparent so iNiR's own wallpaper/backdrop shows through.
     background-color "transparent"
@@ -50,7 +50,7 @@ layout {
     focus-ring {
         on
         width 2
-        active-gradient from="#3CA7BF" to="#B8C0AC" angle=45
+        active-gradient from="#B4BAC6" to="#D5DBE6" angle=45
         inactive-color "transparent"
     }
 

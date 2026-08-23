@@ -97,7 +97,7 @@ Rectangle {
             return "firefox";
 
         if (cls.indexOf("zen") !== -1)
-            return "firefox";
+            return "zen-browser";
 
         if (cls.indexOf("chrome") !== -1)
             return "google-chrome";
@@ -106,7 +106,7 @@ Rectangle {
             return "brave-browser";
 
         if (cls.indexOf("vesktop") !== -1 || cls.indexOf("discord") !== -1)
-            return "vesktop";
+            return "discord";
 
         if (cls.indexOf("code") !== -1)
             return "vscode";

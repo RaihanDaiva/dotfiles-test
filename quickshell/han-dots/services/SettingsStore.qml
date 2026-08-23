@@ -26,6 +26,13 @@ Item {
     property int buttonRadius: 8
     property string quickSettingsStyle: "android" // "android" or "macos"
     property string pillStyle: "solid"
+    // 🏛️ 6. STATUS BAR SETTINGS
+    property real barOpacity: 0.65
+    property bool barBlurEnabled: true
+    // ⛵ 7. DOCK SETTINGS
+    property bool dockEnabled: true
+    property string dockMode: "always_visible" // "always_visible", "auto_hide", or "overlay"
+    property bool dockBlurEnabled: true
     // 💾 FILE PATH UNTUK PERSISTENSI SETTINGS
     readonly property string configFile: Quickshell.env("HOME") + "/.config/quickshell/settings.json"
     // 🔒 FLAG UNTUK MENCEGAH OVERWRITE SETTINGS SAAT BOOT
@@ -48,7 +55,12 @@ Item {
             "buttonStyle": store.buttonStyle,
             "buttonRadius": store.buttonRadius,
             "quickSettingsStyle": store.quickSettingsStyle,
-            "pillStyle": store.pillStyle
+            "pillStyle": store.pillStyle,
+            "barOpacity": store.barOpacity,
+            "barBlurEnabled": store.barBlurEnabled,
+            "dockEnabled": store.dockEnabled,
+            "dockMode": store.dockMode,
+            "dockBlurEnabled": store.dockBlurEnabled
         };
         var jsonStr = JSON.stringify(obj, null, 2);
         var safeStr = jsonStr.replace(/'/g, "'\\''");
@@ -70,6 +82,35 @@ Item {
     onButtonRadiusChanged: saveSettings()
     onQuickSettingsStyleChanged: saveSettings()
     onPillStyleChanged: saveSettings()
+    onBarOpacityChanged: saveSettings()
+    onDockEnabledChanged: saveSettings()
+    onDockModeChanged: saveSettings()
+    onBarBlurEnabledChanged: {
+        saveSettings();
+        if (!store._isLoaded)
+            return ;
+
+        var targetVal = store.barBlurEnabled ? "true" : "false";
+        var blurCmd = "sed -i '/match namespace=\"quickshell:bar\"/,/}/s/blur .*/blur " + targetVal + "/' ~/.config/niri/config.d/90-user-extra.kdl 2>/dev/null; [ -f ~/dotfiles-test/niri/config.d/90-user-extra.kdl ] && sed -i '/match namespace=\"quickshell:bar\"/,/}/s/blur .*/blur " + targetVal + "/' ~/dotfiles-test/niri/config.d/90-user-extra.kdl 2>/dev/null; niri msg action load-config-file 2>/dev/null";
+        niriBlurProc.command = ["bash", "-c", blurCmd];
+        niriBlurProc.running = false;
+        niriBlurProc.running = true;
+    }
+    onDockBlurEnabledChanged: {
+        saveSettings();
+        if (!store._isLoaded)
+            return ;
+
+        var targetVal = store.dockBlurEnabled ? "true" : "false";
+        var blurCmd = "sed -i '/match namespace=\"quickshell:dock\"/,/}/s/blur .*/blur " + targetVal + "/' ~/.config/niri/config.d/90-user-extra.kdl 2>/dev/null; [ -f ~/dotfiles-test/niri/config.d/90-user-extra.kdl ] && sed -i '/match namespace=\"quickshell:dock\"/,/}/s/blur .*/blur " + targetVal + "/' ~/dotfiles-test/niri/config.d/90-user-extra.kdl 2>/dev/null; niri msg action load-config-file 2>/dev/null";
+        niriBlurProc.command = ["bash", "-c", blurCmd];
+        niriBlurProc.running = false;
+        niriBlurProc.running = true;
+    }
+
+    Process {
+        id: niriBlurProc
+    }
 
     // 📥 LOAD SETTINGS FROM JSON AT STARTUP
     Process {
@@ -119,6 +160,21 @@ Item {
 
                         if (cfg.pillStyle !== undefined)
                             store.pillStyle = cfg.pillStyle;
+
+                        if (cfg.barOpacity !== undefined)
+                            store.barOpacity = cfg.barOpacity;
+
+                        if (cfg.barBlurEnabled !== undefined)
+                            store.barBlurEnabled = cfg.barBlurEnabled;
+
+                        if (cfg.dockEnabled !== undefined)
+                            store.dockEnabled = cfg.dockEnabled;
+
+                        if (cfg.dockMode !== undefined)
+                            store.dockMode = cfg.dockMode;
+
+                        if (cfg.dockBlurEnabled !== undefined)
+                            store.dockBlurEnabled = cfg.dockBlurEnabled;
 
                     } catch (e) {
                         console.log("Failed to parse settings.json: " + e);

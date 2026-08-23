@@ -46,6 +46,10 @@ binds {
     Ctrl+Alt+T { spawn "quickshell" "ipc" "call" "wallpaperselect" "toggle"; }
     Mod+Shift+Q { spawn "quickshell" "ipc" "call" "powermenu" "toggle"; }
 
+    // Elements & Popup Settings Customizer (Super + .)
+    Mod+Period repeat=false { spawn "quickshell" "ipc" "call" "settings" "toggle"; }
+    Super+Period repeat=false { spawn "quickshell" "ipc" "call" "settings" "toggle"; }
+
     // ═══════════════════════════════════════════════════════════════════════
     // App launchers
     // ═══════════════════════════════════════════════════════════════════════

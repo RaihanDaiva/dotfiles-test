@@ -8,12 +8,17 @@ Switch {
 
     implicitWidth: 46
     implicitHeight: 24
+    padding: 0
+    leftPadding: 0
+    rightPadding: 0
+    topPadding: 0
+    bottomPadding: 0
 
     indicator: Rectangle {
         implicitWidth: 46
         implicitHeight: 24
-        x: switchRoot.leftPadding
-        y: parent.height / 2 - height / 2
+        x: 0
+        y: (parent.height - height) / 2
         radius: 12
         color: switchRoot.checked ? Theme.accent : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.15)
 
