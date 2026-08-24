@@ -29,6 +29,7 @@ Item {
     // 🏛️ 6. STATUS BAR SETTINGS
     property real barOpacity: 0.65
     property bool barBlurEnabled: true
+    property string barStyle: "unified" // "unified" (single bar) or "islands" (3 separate cards)
     // ⛵ 7. DOCK SETTINGS
     property bool dockEnabled: true
     property string dockMode: "always_visible" // "always_visible", "auto_hide", or "overlay"
@@ -58,6 +59,7 @@ Item {
             "pillStyle": store.pillStyle,
             "barOpacity": store.barOpacity,
             "barBlurEnabled": store.barBlurEnabled,
+            "barStyle": store.barStyle,
             "dockEnabled": store.dockEnabled,
             "dockMode": store.dockMode,
             "dockBlurEnabled": store.dockBlurEnabled
@@ -83,6 +85,7 @@ Item {
     onQuickSettingsStyleChanged: saveSettings()
     onPillStyleChanged: saveSettings()
     onBarOpacityChanged: saveSettings()
+    onBarStyleChanged: saveSettings()
     onDockEnabledChanged: saveSettings()
     onDockModeChanged: saveSettings()
     onBarBlurEnabledChanged: {
@@ -166,6 +169,9 @@ Item {
 
                         if (cfg.barBlurEnabled !== undefined)
                             store.barBlurEnabled = cfg.barBlurEnabled;
+
+                        if (cfg.barStyle !== undefined)
+                            store.barStyle = cfg.barStyle;
 
                         if (cfg.dockEnabled !== undefined)
                             store.dockEnabled = cfg.dockEnabled;

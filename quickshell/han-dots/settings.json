@@ -13,6 +13,7 @@
   "pillStyle": "glass",
   "barOpacity": 0.6,
   "barBlurEnabled": true,
+  "barStyle": "islands",
   "dockEnabled": true,
   "dockMode": "always_visible",
   "dockBlurEnabled": true

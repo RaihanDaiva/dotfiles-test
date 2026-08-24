@@ -86,6 +86,30 @@ Item {
 
                 }
 
+                // 3. Bar Layout Style Selection Card
+                SettingCard {
+                    title: "Bar Layout Style"
+                    subtitle: SettingsStore.barStyle === "islands" ? "3 Floating Islands (Separate Cards)" : "Unified Bar (Single Spanning Bar)"
+
+                    RowLayout {
+                        spacing: 6
+
+                        StyledButton {
+                            text: "Unified Bar"
+                            selected: SettingsStore.barStyle === "unified"
+                            onClicked: SettingsStore.barStyle = "unified"
+                        }
+
+                        StyledButton {
+                            text: "3 Floating Islands"
+                            selected: SettingsStore.barStyle === "islands"
+                            onClicked: SettingsStore.barStyle = "islands"
+                        }
+
+                    }
+
+                }
+
             }
 
         }

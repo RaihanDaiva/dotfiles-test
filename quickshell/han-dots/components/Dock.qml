@@ -25,12 +25,12 @@ Scope {
         "exec": "kitty",
         "appClass": "kitty"
     }, {
-        "name": "Browser",
-        "icon": "firefox",
+        "name": "Zen Browser",
+        "icon": "zen-browser",
         "exec": "zen-browser",
         "appClass": "zen"
     }, {
-        "name": "Code Editor",
+        "name": "Visual Studio Code",
         "icon": "vscode",
         "exec": "code",
         "appClass": "code"
@@ -46,7 +46,7 @@ Scope {
         "appClass": "spotify"
     }, {
         "name": "Discord",
-        "icon": "vesktop",
+        "icon": "discord",
         "exec": "vesktop",
         "appClass": "vesktop"
     }]

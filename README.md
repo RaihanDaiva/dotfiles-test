@@ -22,7 +22,11 @@ This repository contains an isolated testing environment (`test-hypr`) for exper
 
 ### 🏛️ Status Bar & Multi-Monitor Widgets (Quickshell)
 - **Multi-Monitor Native Architecture:** Instantiates the top status bar on all connected displays (`eDP-1` laptop display, `DP-1` external display, HDMI) via `Variants` over `Quickshell.screens`.
+- **Modular Bar Layout Styles (`barStyle/`):**
+  - `BarStyleUnified.qml`: Single unified background card spanning full width across all 3 islands.
+  - `BarStyleIslands.qml`: 3 separate floating island cards (Left, Center, Right) with independent Wayland LayerShell surfaces (`quickshell:bar-left`, `quickshell:bar-center`, `quickshell:bar-right`), per-island Niri backdrop blur, and transparent click-through spacer (`mask: Region {}`) ensuring smooth workspace window exclusion.
 - **Mathematical Screen Center Alignment:** Independent component anchoring ensures the center island (Clock) stays in the exact mathematical center of the screen regardless of left/right island sizes.
+- **Smart Popup Alignment (`BasePopup.qml`):** Dynamically calculates exact target screen X coordinates for dropdown popups across both Unified and 3 Floating Island bar styles.
 - **iNiR-Style Multi-Monitor Workspace Engine (`Workspace.qml`):**
   - **Main Monitor (Laptop `eDP-1`):** Holds Workspaces 1..5 (`baseWsId = 1`), visually displaying Roman numerals `I`, `II`, `III`, `IV`, `V`.
   - **Second Monitor (`DP-1` / HDMI):** Holds Workspaces 6..10 (`baseWsId = 6`), visually displaying Roman numerals `I`, `II`, `III`, `IV`, `V` (`1..5`).
@@ -112,7 +116,9 @@ dotfiles-test/
 └── quickshell/                     # Quickshell UI configuration
     ├── shell.qml                   # Main entry point (Scope loading PywalService, Bar variants, DesktopClock, Lockscreen, NotificationServer, etc.)
     ├── components/
-    │   ├── Bar.qml                 # Top Status Bar layout receiving screen property
+    │   ├── bar/                    # 🏛️ Status Bar component folder
+    │   │   ├── Bar.qml             # Shell wrapper Scope delegating to barStyle Loader
+    │   │   └── barStyle/           # Modular bar layout implementations (BarStyleUnified.qml & BarStyleIslands.qml)
     │   ├── DesktopClock.qml        # Wayland Desktop LayerShell surface wrapper for LargeClock
     │   ├── Lockscreen.qml          # 🔐 Native Wayland Session Lock widget with PAM Auth & Underline input field
     │   ├── Dock.qml                # ⛵ Application Dock surface with dynamic IPC window streaming & modes

@@ -1,4 +1,5 @@
 import "./components/"
+import "./components/bar/"
 import "./components/popups/"
 import "./components/popups/settingsPopup/"
 import "./services/"

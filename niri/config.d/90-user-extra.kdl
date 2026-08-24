@@ -36,10 +36,35 @@ layer-rule {
     }
 }
 
+// 🪟 Layer rules for Quickshell Bar Islands (3 Floating Islands Style)
+layer-rule {
+    match namespace="quickshell:bar-left"
+    geometry-corner-radius 20
+    background-effect {
+        blur true
+    }
+}
+
+layer-rule {
+    match namespace="quickshell:bar-center"
+    geometry-corner-radius 20
+    background-effect {
+        blur true
+    }
+}
+
+layer-rule {
+    match namespace="quickshell:bar-right"
+    geometry-corner-radius 20
+    background-effect {
+        blur true
+    }
+}
+
 // 🪟 Layer rules for Quickshell Dock
 layer-rule {
     match namespace="quickshell:dock"
-    geometry-corner-radius 30
+    geometry-corner-radius 22
     background-effect {
         blur true
     }

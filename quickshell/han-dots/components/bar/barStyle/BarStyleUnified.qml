@@ -1,17 +1,22 @@
-import "../services"
-import "../theme"
-import "../widgets/bar"
+import "../../../services"
+import "../../../theme"
+import "../../../widgets/bar"
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
 
+// 🏛️ BAR STYLE 1: UNIFIED BAR
+// Satu PanelWindow tunggal (namespace "quickshell:bar").
+// Niri mem-blur seluruh permukaan ini sebagai satu kesatuan.
 PanelWindow {
-    id: barWindow
+    id: unifiedBar
 
-    implicitHeight: 40
-    color: 'transparent'
     WlrLayershell.namespace: "quickshell:bar"
+    WlrLayershell.layer: WlrLayer.Top
+    exclusionMode: ExclusionMode.Auto
+    implicitHeight: 40
+    color: "transparent"
 
     anchors {
         top: true
@@ -34,7 +39,6 @@ PanelWindow {
         border.color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.3)
         border.width: 1
 
-        // ✨ ANIMASI FADE WARNA BACKGROUND (Saat ganti wallpaper)
         Behavior on color {
             ColorAnimation {
                 duration: 200
@@ -53,18 +57,18 @@ PanelWindow {
         spacing: 12
 
         Workspace {
-            barWindow: barWindow
+            barWindow: unifiedBar
         }
 
         MediaPlayer {
-            barWindow: barWindow
+            barWindow: unifiedBar
         }
 
     }
 
     // 📍 2. PULAU TENGAH (Clock - 100% Persis di Tengah Layar)
     Clock {
-        barWindow: barWindow
+        barWindow: unifiedBar
         anchors.centerIn: parent
     }
 
@@ -76,19 +80,19 @@ PanelWindow {
         spacing: 8
 
         SystemStats {
-            barWindow: barWindow
+            barWindow: unifiedBar
         }
 
         ControlCenter {
-            barWindow: barWindow
+            barWindow: unifiedBar
         }
 
         NotificationPill {
-            barWindow: barWindow
+            barWindow: unifiedBar
         }
 
         Power {
-            barWindow: barWindow
+            barWindow: unifiedBar
         }
 
     }
