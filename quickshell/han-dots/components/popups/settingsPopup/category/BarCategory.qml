@@ -58,41 +58,27 @@ Item {
 
                 }
 
-                // 1. Bar Opacity Slider Card
+                // 1. Bar Rectangle Background Toggle Card
                 SettingCard {
-                    title: "Bar Opacity"
-                    subtitle: Math.round(SettingsStore.barOpacity * 100) + "%"
-
-                    CustomSlider {
-                        implicitWidth: 140
-                        from: 0.1
-                        to: 1
-                        stepSize: 0.02
-                        value: SettingsStore.barOpacity
-                        onValueChanged: SettingsStore.barOpacity = value
-                    }
-
-                }
-
-                // 2. Bar Blur Effect Toggle Card
-                SettingCard {
-                    title: "Frosted Glass Blur Effect"
-                    subtitle: SettingsStore.barBlurEnabled ? "Enabled (Frosted Glass Blur)" : "Disabled (Dark Solid)"
+                    title: "Bar Rectangle Background"
+                    subtitle: SettingsStore.barBgEnabled ? "Enabled (Visible Background Card)" : "Disabled (No Background Card & Blur Disabled)"
 
                     StyledSwitch {
-                        checked: SettingsStore.barBlurEnabled
-                        onCheckedChanged: SettingsStore.barBlurEnabled = checked
+                        checked: SettingsStore.barBgEnabled
+                        onCheckedChanged: SettingsStore.barBgEnabled = checked
                     }
 
                 }
 
-                // 3. Bar Layout Style Selection Card
+                // 2. Bar Layout Style Selection Card (Disabled when barBgEnabled is false)
                 SettingCard {
                     title: "Bar Layout Style"
-                    subtitle: SettingsStore.barStyle === "islands" ? "3 Floating Islands (Separate Cards)" : "Unified Bar (Single Spanning Bar)"
+                    subtitle: !SettingsStore.barBgEnabled ? "Disabled (Defaulted to Unified Bar)" : (SettingsStore.barStyle === "islands" ? "3 Floating Islands (Separate Cards)" : "Unified Bar (Single Spanning Bar)")
 
                     RowLayout {
                         spacing: 6
+                        enabled: SettingsStore.barBgEnabled
+                        opacity: SettingsStore.barBgEnabled ? 1 : 0.45
 
                         StyledButton {
                             text: "Unified Bar"
@@ -106,6 +92,38 @@ Item {
                             onClicked: SettingsStore.barStyle = "islands"
                         }
 
+                    }
+
+                }
+
+                // 3. Bar Opacity Slider Card
+                SettingCard {
+                    title: "Bar Opacity"
+                    subtitle: Math.round(SettingsStore.barOpacity * 100) + "%"
+
+                    CustomSlider {
+                        implicitWidth: 140
+                        enabled: SettingsStore.barBgEnabled
+                        opacity: SettingsStore.barBgEnabled ? 1 : 0.45
+                        from: 0.1
+                        to: 1
+                        stepSize: 0.02
+                        value: SettingsStore.barOpacity
+                        onValueChanged: SettingsStore.barOpacity = value
+                    }
+
+                }
+
+                // 4. Bar Blur Effect Toggle Card
+                SettingCard {
+                    title: "Frosted Glass Blur Effect"
+                    subtitle: !SettingsStore.barBgEnabled ? "Disabled (Background Card Disabled)" : (SettingsStore.barBlurEnabled ? "Enabled (Frosted Glass Blur)" : "Disabled (Dark Solid)")
+
+                    StyledSwitch {
+                        enabled: SettingsStore.barBgEnabled
+                        opacity: SettingsStore.barBgEnabled ? 1 : 0.45
+                        checked: SettingsStore.barBlurEnabled
+                        onCheckedChanged: SettingsStore.barBlurEnabled = checked
                     }
 
                 }

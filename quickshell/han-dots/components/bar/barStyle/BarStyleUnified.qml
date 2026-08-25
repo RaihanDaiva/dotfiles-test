@@ -34,10 +34,10 @@ PanelWindow {
         id: barBackground
 
         anchors.fill: parent
-        color: Qt.rgba(Theme.bgDark.r, Theme.bgDark.g, Theme.bgDark.b, SettingsStore.barOpacity)
+        color: SettingsStore.barBgEnabled ? Qt.rgba(Theme.bgDark.r, Theme.bgDark.g, Theme.bgDark.b, SettingsStore.barOpacity) : "transparent"
         radius: 20
-        border.color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.3)
-        border.width: 1
+        border.color: SettingsStore.barBgEnabled ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.3) : "transparent"
+        border.width: SettingsStore.barBgEnabled ? 1 : 0
 
         Behavior on color {
             ColorAnimation {
@@ -63,7 +63,7 @@ PanelWindow {
         MediaPlayer {
             barWindow: unifiedBar
         }
-
+ 
     }
 
     // 📍 2. PULAU TENGAH (Clock - 100% Persis di Tengah Layar)

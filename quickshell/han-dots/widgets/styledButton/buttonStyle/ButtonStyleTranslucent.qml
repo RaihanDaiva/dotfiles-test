@@ -9,6 +9,7 @@ Rectangle {
     property string text: ""
     property string iconText: ""
     property bool selected: false
+    property string alignment: "center"
     property real cornerRadius: 8
 
     anchors.fill: parent
@@ -22,8 +23,11 @@ Rectangle {
     }
 
     RowLayout {
-        anchors.centerIn: parent
-        spacing: 6
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.left: styleRoot.alignment === "left" ? parent.left : undefined
+        anchors.leftMargin: styleRoot.alignment === "left" ? 12 : 0
+        anchors.horizontalCenter: styleRoot.alignment === "left" ? undefined : parent.horizontalCenter
+        spacing: 8
 
         Text {
             visible: styleRoot.iconText !== ""
@@ -49,7 +53,7 @@ Rectangle {
             text: styleRoot.text
             color: styleRoot.selected ? Theme.accent : Theme.textMain
 
-            font { 
+            font {
                 family: Theme.fontMain
                 pixelSize: 12
                 bold: styleRoot.selected

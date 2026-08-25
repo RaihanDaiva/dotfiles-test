@@ -31,6 +31,11 @@ Scope {
                 screen: modelData
             }
 
+            // ⛵ Application Dock Surface (Tampil di semua monitor)
+            Dock {
+                screen: modelData
+            }
+
         }
 
     }
@@ -103,11 +108,6 @@ Scope {
     // ⚙️ Elements & Popup Customizer Settings Popup
     SettingsPopup {
         id: settingsPopup
-    }
-
-    // ⛵ Application Dock Surface (Bottom-Center Floating Bar)
-    Dock {
-        id: appDock
     }
 
     // 📡 Native Notification Server DBus Daemon (org.freedesktop.Notifications)

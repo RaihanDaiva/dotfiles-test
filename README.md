@@ -25,6 +25,7 @@ This repository contains an isolated testing environment (`test-hypr`) for exper
 - **Modular Bar Layout Styles (`barStyle/`):**
   - `BarStyleUnified.qml`: Single unified background card spanning full width across all 3 islands.
   - `BarStyleIslands.qml`: 3 separate floating island cards (Left, Center, Right) with independent Wayland LayerShell surfaces (`quickshell:bar-left`, `quickshell:bar-center`, `quickshell:bar-right`), per-island Niri backdrop blur, and transparent click-through spacer (`mask: Region {}`) ensuring smooth workspace window exclusion.
+- **Bar Rectangle Background Toggle (`barBgEnabled`):** Toggle to enable or disable status bar background cards. When disabled, automatically switches style to Unified, hides background cards/borders while keeping widget click interactivity 100% active, and turns off Niri backdrop blur.
 - **Mathematical Screen Center Alignment:** Independent component anchoring ensures the center island (Clock) stays in the exact mathematical center of the screen regardless of left/right island sizes.
 - **Smart Popup Alignment (`BasePopup.qml`):** Dynamically calculates exact target screen X coordinates for dropdown popups across both Unified and 3 Floating Island bar styles.
 - **iNiR-Style Multi-Monitor Workspace Engine (`Workspace.qml`):**
@@ -86,6 +87,7 @@ This repository contains an isolated testing environment (`test-hypr`) for exper
   - **Calendar Grid Integration (`CalendarPopup.qml`):** Refactored 7×6 calendar day grid cells to use `StyledButton`, automatically inheriting global button styles.
   - **Persistent JSON Configuration (`services/SettingsStore.qml`):** Automatically saves and loads all user preferences (`buttonStyle`, `buttonRadius`, `quickSettingsStyle`, `isDarkMode`, `popupOpacity`, `popupRadius`, `popupBorderWidth`, `barOpacity`, `barBlurEnabled`, `dockEnabled`, `dockMode`, `dockBlurEnabled`, etc.) to `~/.config/quickshell/settings.json`.
 - **⛵ Floating Application Dock (`components/Dock.qml`):**
+  - **Multi-Monitor Native Architecture:** Instantiates the dock on all connected displays (`Variants` over `Quickshell.screens`) with per-display surface scoping.
   - **Dynamic IPC Window Switcher:** Real-time Niri IPC event streaming (`niri msg -j windows` + `event-stream`) displaying pinned favorite apps alongside dynamically opened applications.
   - **Active Window Status Indicators:** Elongated accent pill for focused apps, small translucent dot for open unfocused apps, hidden for closed apps.
   - **Multiple Dock Modes:**

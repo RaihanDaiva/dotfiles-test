@@ -1,22 +1,20 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
-// ⚙️ CENTRAL SETTINGS STORE SINGLETON
+// ⚙️ CENTRAL SETTINGS STORE (Singleton Manajer Pengaturan UI)
+// Menyimpan state pengaturan dan menyimpannya secara persisten ke ~/.config/quickshell/settings.json
 pragma Singleton
 
 Item {
-    // "solid" or "glass"
-
     id: store
 
-    // 🪟 1. GLOBAL POPUP SETTINGS
-    property real popupOpacity: 0.96
+    // 🪟 1. POPUP SETTINGS
+    property real popupOpacity: 0.94
     property int popupRadius: 18
     property int popupBorderWidth: 1
     property bool enableBlur: true
-    // ⚙️ 2. SETTINGS POPUP STATE
     property bool settingsPopupOpen: false
-    // 🎨 3. THEME MODE SETTINGS
+    // 🎨 2. THEME SETTINGS
     property bool isDarkMode: true
     // 🎵 4. MEDIA PLAYER POPUP SETTINGS
     property bool mediaBlurBgEnabled: true
@@ -29,6 +27,7 @@ Item {
     // 🏛️ 6. STATUS BAR SETTINGS
     property real barOpacity: 0.65
     property bool barBlurEnabled: true
+    property bool barBgEnabled: true
     property string barStyle: "unified" // "unified" (single bar) or "islands" (3 separate cards)
     // ⛵ 7. DOCK SETTINGS
     property bool dockEnabled: true
@@ -59,6 +58,7 @@ Item {
             "pillStyle": store.pillStyle,
             "barOpacity": store.barOpacity,
             "barBlurEnabled": store.barBlurEnabled,
+            "barBgEnabled": store.barBgEnabled,
             "barStyle": store.barStyle,
             "dockEnabled": store.dockEnabled,
             "dockMode": store.dockMode,
@@ -70,6 +70,19 @@ Item {
         saveProc.command = ["bash", "-c", saveCmd];
         saveProc.running = false;
         saveProc.running = true;
+    }
+
+    function updateNiriBarBlur() {
+        saveSettings();
+        if (!store._isLoaded)
+            return ;
+
+        var isBlurOn = store.barBgEnabled && store.barBlurEnabled;
+        var targetVal = isBlurOn ? "true" : "false";
+        var blurCmd = "sed -i '/match namespace=\"quickshell:bar/,/}/s/blur .*/blur " + targetVal + "/' ~/.config/niri/config.d/90-user-extra.kdl 2>/dev/null; [ -f ~/dotfiles-test/niri/config.d/90-user-extra.kdl ] && sed -i '/match namespace=\"quickshell:bar/,/}/s/blur .*/blur " + targetVal + "/' ~/dotfiles-test/niri/config.d/90-user-extra.kdl 2>/dev/null; niri msg action load-config-file 2>/dev/null";
+        niriBlurProc.command = ["bash", "-c", blurCmd];
+        niriBlurProc.running = false;
+        niriBlurProc.running = true;
     }
 
     onPopupOpacityChanged: saveSettings()
@@ -86,19 +99,15 @@ Item {
     onPillStyleChanged: saveSettings()
     onBarOpacityChanged: saveSettings()
     onBarStyleChanged: saveSettings()
+    onBarBgEnabledChanged: {
+        if (!barBgEnabled)
+            barStyle = "unified";
+
+        updateNiriBarBlur();
+    }
     onDockEnabledChanged: saveSettings()
     onDockModeChanged: saveSettings()
-    onBarBlurEnabledChanged: {
-        saveSettings();
-        if (!store._isLoaded)
-            return ;
-
-        var targetVal = store.barBlurEnabled ? "true" : "false";
-        var blurCmd = "sed -i '/match namespace=\"quickshell:bar\"/,/}/s/blur .*/blur " + targetVal + "/' ~/.config/niri/config.d/90-user-extra.kdl 2>/dev/null; [ -f ~/dotfiles-test/niri/config.d/90-user-extra.kdl ] && sed -i '/match namespace=\"quickshell:bar\"/,/}/s/blur .*/blur " + targetVal + "/' ~/dotfiles-test/niri/config.d/90-user-extra.kdl 2>/dev/null; niri msg action load-config-file 2>/dev/null";
-        niriBlurProc.command = ["bash", "-c", blurCmd];
-        niriBlurProc.running = false;
-        niriBlurProc.running = true;
-    }
+    onBarBlurEnabledChanged: updateNiriBarBlur()
     onDockBlurEnabledChanged: {
         saveSettings();
         if (!store._isLoaded)
@@ -125,7 +134,7 @@ Item {
         stdout: StdioCollector {
             onStreamFinished: {
                 var content = this.text.trim();
-                if (content !== "") {
+                if (content.length > 0) {
                     try {
                         var cfg = JSON.parse(content);
                         if (cfg.popupOpacity !== undefined)
@@ -139,9 +148,6 @@ Item {
 
                         if (cfg.enableBlur !== undefined)
                             store.enableBlur = cfg.enableBlur;
-
-                        if (cfg.settingsPopupOpen !== undefined)
-                            store.settingsPopupOpen = cfg.settingsPopupOpen;
 
                         if (cfg.isDarkMode !== undefined)
                             store.isDarkMode = cfg.isDarkMode;
@@ -169,6 +175,9 @@ Item {
 
                         if (cfg.barBlurEnabled !== undefined)
                             store.barBlurEnabled = cfg.barBlurEnabled;
+
+                        if (cfg.barBgEnabled !== undefined)
+                            store.barBgEnabled = cfg.barBgEnabled;
 
                         if (cfg.barStyle !== undefined)
                             store.barStyle = cfg.barStyle;

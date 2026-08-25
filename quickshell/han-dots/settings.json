@@ -4,7 +4,7 @@
   "popupBorderWidth": 1,
   "enableBlur": true,
   "settingsPopupOpen": false,
-  "isDarkMode": true,
+  "isDarkMode": false,
   "mediaBlurBgEnabled": true,
   "mediaPlayerStyle": "minimalist",
   "buttonStyle": "solid",
@@ -13,8 +13,9 @@
   "pillStyle": "glass",
   "barOpacity": 0.6,
   "barBlurEnabled": true,
+  "barBgEnabled": true,
   "barStyle": "islands",
   "dockEnabled": true,
   "dockMode": "always_visible",
-  "dockBlurEnabled": true
+  "dockBlurEnabled": false
 }

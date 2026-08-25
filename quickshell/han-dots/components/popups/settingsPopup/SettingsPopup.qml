@@ -246,6 +246,7 @@ PanelWindow {
                         StyledButton {
                             text: "Popups"
                             iconText: "󰖯"
+                            alignment: "left"
                             Layout.fillWidth: true
                             implicitHeight: 36
                             selected: settingsPopup.activeTab === "popups"
@@ -256,6 +257,7 @@ PanelWindow {
                         StyledButton {
                             text: "Buttons"
                             iconText: "󰓠"
+                            alignment: "left"
                             Layout.fillWidth: true
                             implicitHeight: 36
                             selected: settingsPopup.activeTab === "buttons"
@@ -266,6 +268,7 @@ PanelWindow {
                         StyledButton {
                             text: "Bar"
                             iconText: "󰈹"
+                            alignment: "left"
                             Layout.fillWidth: true
                             implicitHeight: 36
                             selected: settingsPopup.activeTab === "bar"
@@ -276,6 +279,7 @@ PanelWindow {
                         StyledButton {
                             text: "Dock"
                             iconText: "󰀻"
+                            alignment: "left"
                             Layout.fillWidth: true
                             implicitHeight: 36
                             selected: settingsPopup.activeTab === "dock"

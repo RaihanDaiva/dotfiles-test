@@ -11,6 +11,7 @@ Item {
     property string text: ""
     property string iconText: ""
     property bool selected: false
+    property string alignment: "center" // "center" or "left"
     property string buttonStyle: SettingsStore.buttonStyle
     property real radius: SettingsStore.buttonRadius
 
@@ -24,6 +25,7 @@ Item {
             "text": buttonRoot.text,
             "iconText": buttonRoot.iconText,
             "selected": buttonRoot.selected,
+            "alignment": buttonRoot.alignment,
             "cornerRadius": buttonRoot.radius
         });
     }
@@ -33,6 +35,7 @@ Item {
             styleLoader.item.text = buttonRoot.text;
             styleLoader.item.iconText = buttonRoot.iconText;
             styleLoader.item.selected = buttonRoot.selected;
+            styleLoader.item.alignment = buttonRoot.alignment;
             styleLoader.item.cornerRadius = buttonRoot.radius;
         }
     }
@@ -44,6 +47,7 @@ Item {
     onTextChanged: updateProps()
     onIconTextChanged: updateProps()
     onSelectedChanged: updateProps()
+    onAlignmentChanged: updateProps()
     onRadiusChanged: updateProps()
 
     Loader {

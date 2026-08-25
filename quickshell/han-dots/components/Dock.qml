@@ -12,6 +12,7 @@ import Quickshell.Wayland
 Scope {
     id: dockScope
 
+    required property var screen
     // 🖥️ DETEKSI COMPOSITOR
     readonly property bool isNiri: {
         var sock = Quickshell.env("NIRI_SOCKET") || "";
@@ -222,6 +223,7 @@ Scope {
     PanelWindow {
         id: edgeTriggerWindow
 
+        screen: dockScope.screen
         WlrLayershell.namespace: "quickshell:popup"
         WlrLayershell.layer: WlrLayer.Overlay
         exclusionMode: ExclusionMode.Ignore
@@ -247,6 +249,7 @@ Scope {
         property real hoveredIconCenterX: 0
         property string tooltipText: ""
 
+        screen: dockScope.screen
         WlrLayershell.namespace: "quickshell:popup"
         WlrLayershell.layer: WlrLayer.Overlay
         exclusionMode: ExclusionMode.Ignore
@@ -298,6 +301,7 @@ Scope {
     PanelWindow {
         id: dockWindow
 
+        screen: dockScope.screen
         WlrLayershell.namespace: "quickshell:dock"
         WlrLayershell.layer: WlrLayer.Top
         exclusionMode: SettingsStore.dockMode === "always_visible" ? ExclusionMode.Auto : ExclusionMode.Ignore
