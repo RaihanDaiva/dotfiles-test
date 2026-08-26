@@ -38,8 +38,8 @@ Rectangle {
     readonly property var activeWorkspace: {
         if (root.isNiri)
             return {
-                "id": root.niriActiveWsId
-            };
+            "id": root.niriActiveWsId
+        };
 
         if (hypMonitor && hypMonitor.activeWorkspace)
             return hypMonitor.activeWorkspace;
@@ -145,19 +145,17 @@ Rectangle {
         return cls;
     }
 
-    // 📦 HELPER KUMPULAN APLIKASI AKTIF PADA WORKSPACE CERTAIN (Grouping + Count Instance)
+    // 📦 HELPER KUMPULAN APLIKASI AKTIF PADA WORKSPACE CERTAIN (Sorting Kiri -> Kanan + Grouping + Count Instance)
     function getWorkspaceApps(targetWsId) {
         if (targetWsId === undefined || targetWsId === null)
             return [];
 
-        var appMap = {
-        };
-        var order = [];
+        // 1. Filter window pada workspace target & monitor target
+        var wsClients = [];
         var myOutput = root.screenName;
         for (var i = 0; i < root.clientList.length; i++) {
             var client = root.clientList[i];
             if (client && client.workspace && client.workspace.id === targetWsId) {
-                // Filter by monitor output if multi-monitor
                 if (myOutput && client.output && client.output !== myOutput)
                     continue;
 
@@ -169,15 +167,31 @@ Rectangle {
                 if (!iconName)
                     continue;
 
-                if (!appMap[iconName]) {
-                    appMap[iconName] = {
-                        "icon": iconName,
-                        "count": 1
-                    };
-                    order.push(iconName);
-                } else {
-                    appMap[iconName].count++;
-                }
+                wsClients.push({
+                    "rawClass": rawClass,
+                    "iconName": iconName,
+                    "xPos": client.xPos !== undefined ? client.xPos : 0
+                });
+            }
+        }
+        // 2. Sort window secara horizontal dari paling kiri ke paling kanan
+        wsClients.sort(function(a, b) {
+            return a.xPos - b.xPos;
+        });
+        // 3. Grouping ikon aplikasi dengan menjaga urutan tata letak kiri -> kanan
+        var appMap = {
+        };
+        var order = [];
+        for (var j = 0; j < wsClients.length; j++) {
+            var icon = wsClients[j].iconName;
+            if (!appMap[icon]) {
+                appMap[icon] = {
+                    "icon": icon,
+                    "count": 1
+                };
+                order.push(icon);
+            } else {
+                appMap[icon].count++;
             }
         }
         var result = [];
@@ -230,6 +244,12 @@ Rectangle {
                 try {
                     var data = JSON.parse(this.text);
                     if (Array.isArray(data)) {
+                        for (var cIdx = 0; cIdx < data.length; cIdx++) {
+                            var client = data[cIdx];
+                            if (client && client.at && Array.isArray(client.at))
+                                client.xPos = client.at[0];
+
+                        }
                         root.clientList = data;
                         pillUpdateTimer.restart();
                     }
@@ -262,10 +282,10 @@ Rectangle {
                             var mappedId = isSec ? (wid > 5 ? wid : wid + 5) : (wid > 5 ? wid - 5 : wid);
                             if (w.id !== undefined)
                                 map[w.id] = {
-                                    "mappedId": mappedId,
-                                    "output": w.output || "",
-                                    "niriId": w.id
-                                };
+                                "mappedId": mappedId,
+                                "output": w.output || "",
+                                "niriId": w.id
+                            };
 
                             if ((w.is_active || w.is_focused) && (!myOutput || w.output === myOutput))
                                 root.niriActiveWsId = mappedId;
@@ -299,12 +319,14 @@ Rectangle {
                             var mapInfo = win.workspace_id !== undefined ? root.niriWsMap[win.workspace_id] : null;
                             var mappedWsId = mapInfo ? mapInfo.mappedId : 1;
                             var winOutput = mapInfo ? mapInfo.output : (win.output || "");
+                            var colIdx = (win.layout && win.layout.pos_in_scrolling_layout && Array.isArray(win.layout.pos_in_scrolling_layout)) ? win.layout.pos_in_scrolling_layout[0] : idx;
                             formatted.push({
                                 "workspace": {
                                     "id": mappedWsId
                                 },
                                 "output": winOutput,
-                                "class": win.app_id || win.title || ""
+                                "class": win.app_id || win.title || "",
+                                "xPos": colIdx
                             });
                         }
                         root.clientList = formatted;
@@ -467,14 +489,14 @@ Rectangle {
                 implicitWidth: Math.max(32, wsItemRow.implicitWidth + 12)
                 implicitHeight: 24
                 onIsActiveChanged: {
-                    if (isActive) {
+                    if (isActive)
                         pillUpdateTimer.restart();
-                    }
+
                 }
                 onXChanged: {
-                    if (isActive) {
+                    if (isActive)
                         pillUpdateTimer.restart();
-                    }
+
                 }
                 onWsAppsChanged: pillUpdateTimer.restart()
 
@@ -606,14 +628,14 @@ Rectangle {
             implicitHeight: 24
             visible: root.hasSpecialWorkspace
             onIsActiveChanged: {
-                if (isActive) {
+                if (isActive)
                     pillUpdateTimer.restart();
-                }
+
             }
             onXChanged: {
-                if (isActive) {
+                if (isActive)
                     pillUpdateTimer.restart();
-                }
+
             }
             onVisibleChanged: pillUpdateTimer.restart()
 

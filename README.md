@@ -31,7 +31,7 @@ This repository contains an isolated testing environment (`test-hypr`) for exper
 - **iNiR-Style Multi-Monitor Workspace Engine (`Workspace.qml`):**
   - **Main Monitor (Laptop `eDP-1`):** Holds Workspaces 1..5 (`baseWsId = 1`), visually displaying Roman numerals `I`, `II`, `III`, `IV`, `V`.
   - **Second Monitor (`DP-1` / HDMI):** Holds Workspaces 6..10 (`baseWsId = 6`), visually displaying Roman numerals `I`, `II`, `III`, `IV`, `V` (`1..5`).
-  - **Per-Monitor Active Rectangle & App Icons:** Independent accent pill sliding smoothly per monitor. App icons are filtered per display output (`client.output === screenName`).
+  - **Per-Monitor Active Rectangle & App Icons:** Independent accent pill sliding smoothly per monitor. App icons are filtered per display output (`client.output === screenName`) and dynamically sorted left-to-right (`xPos` / `pos_in_scrolling_layout`) to match the physical layout of open application windows on screen.
   - **Dynamic Next-Workspace Display (`Occupied + 1 Next Workspace`):** Dynamically calculates visible workspace buttons based on occupied workspaces + 1 next empty workspace (capped at 5), eliminating empty workspace button clutter.
 - **Wayland LayerShell Surface Masking (`Region { item: card }`):**
   - Applied `mask: Region { item: container }` across `Bar.qml`, `AppLauncherPopup.qml`, `WallpaperPopup.qml`, and `BasePopup.qml`.
