@@ -89,7 +89,7 @@ This repository contains an isolated testing environment (`test-hypr`) for exper
 - **⛵ Floating Application Dock (`components/Dock.qml`):**
   - **Multi-Monitor Native Architecture:** Instantiates the dock on all connected displays (`Variants` over `Quickshell.screens`) with per-display surface scoping.
   - **Dynamic IPC Window Switcher:** Real-time Niri IPC event streaming (`niri msg -j windows` + `event-stream`) displaying pinned favorite apps alongside dynamically opened applications.
-  - **Active Window Status Indicators:** Elongated accent pill for focused apps, small translucent dot for open unfocused apps, hidden for closed apps.
+  - **Multi-Instance Window Indicators & Sequential Focus Cycling:** Displays dynamic multi-dot indicators (`RowLayout` + `Repeater`) for apps with multiple open windows, showing an elongated accent pill for the focused window instance and small dots for unfocused instances. Clicking the app icon sequentially cycles focus through all open windows one-by-one (`Window 1 -> Window 2 -> Window 3 -> Window 1`).
   - **Multiple Dock Modes:**
     - `Always Visible`: Reserves workspace area (`exclusionMode: ExclusionMode.Auto`) so tiled windows sit cleanly above the dock without overlapping.
     - `Auto Hide`: Slides down off-screen, revealing on bottom-edge mouse hover with smooth internal Y-offset animation and debounce timer to prevent flicker.

@@ -1,6 +1,7 @@
 import "../services"
 import "../theme"
 import "../widgets"
+import "./popups/"
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -423,27 +424,42 @@ Scope {
                                 sourceSize: Qt.size(64, 64)
                             }
 
-                            Rectangle {
+                            // 🔴 TITIK / PIL INDIKATOR INSTANCE WINDOW TERBUKA
+                            RowLayout {
                                 anchors.bottom: parent.bottom
                                 anchors.bottomMargin: 1
                                 anchors.horizontalCenter: parent.horizontalCenter
-                                width: dockItem.appData.isFocused ? 16 : 6
-                                height: 4
-                                radius: 2
-                                color: dockItem.appData.isFocused ? Theme.accent : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.45)
+                                spacing: 3
                                 visible: dockItem.appData.isOpen
 
-                                Behavior on width {
-                                    NumberAnimation {
-                                        duration: 180
-                                        easing.type: Easing.OutCubic
-                                    }
+                                Repeater {
+                                    model: (dockItem.appData.wins && dockItem.appData.wins.length > 0) ? dockItem.appData.wins : (dockItem.appData.isOpen ? [dockItem.appData.primaryWin] : [])
 
-                                }
+                                    Rectangle {
+                                        id: dotIndicator
 
-                                Behavior on color {
-                                    ColorAnimation {
-                                        duration: 150
+                                        property bool isWinFocused: modelData ? (modelData.is_focused || modelData.is_active) : false
+
+                                        width: isWinFocused ? 16 : 4
+                                        height: 4
+                                        radius: 2
+                                        color: isWinFocused ? Theme.accent : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.45)
+
+                                        Behavior on width {
+                                            NumberAnimation {
+                                                duration: 180
+                                                easing.type: Easing.OutCubic
+                                            }
+
+                                        }
+
+                                        Behavior on color {
+                                            ColorAnimation {
+                                                duration: 150
+                                            }
+
+                                        }
+
                                     }
 
                                 }
@@ -470,10 +486,28 @@ Scope {
                                 anchors.fill: parent
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: {
-                                    if (dockItem.appData.isOpen && dockItem.appData.primaryWin && dockItem.appData.primaryWin.id !== undefined)
+                                    var wins = dockItem.appData.wins || [];
+                                    if (wins.length > 0) {
+                                        // Cari indeks window yang saat ini sedang aktif/fokus
+                                        var focusedIdx = -1;
+                                        for (var i = 0; i < wins.length; i++) {
+                                            if (wins[i].is_focused || wins[i].is_active) {
+                                                focusedIdx = i;
+                                                break;
+                                            }
+                                        }
+                                        // Rotasi ke window berikutnya satu-per-satu (Window 1 -> 2 -> 3 -> 1)
+                                        var nextIdx = (focusedIdx + 1) % wins.length;
+                                        var targetWin = wins[nextIdx];
+                                        if (targetWin && targetWin.id !== undefined)
+                                            Quickshell.execDetached(["niri", "msg", "action", "focus-window", "--id", targetWin.id.toString()]);
+
+                                    } else if (dockItem.appData.primaryWin && dockItem.appData.primaryWin.id !== undefined) {
                                         Quickshell.execDetached(["niri", "msg", "action", "focus-window", "--id", dockItem.appData.primaryWin.id.toString()]);
-                                    else
+                                    } else {
+                                        // Aplikasi belum terbuka -> jalankan exec
                                         Quickshell.execDetached(["bash", "-c", dockItem.appData.exec]);
+                                    }
                                 }
                             }
 

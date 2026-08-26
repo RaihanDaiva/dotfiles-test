@@ -16,6 +16,6 @@
   "barBgEnabled": false,
   "barStyle": "unified",
   "dockEnabled": true,
-  "dockMode": "auto_hide",
+  "dockMode": "always_visible",
   "dockBlurEnabled": false
 }

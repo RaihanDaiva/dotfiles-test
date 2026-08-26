@@ -85,7 +85,7 @@ Rectangle {
     function getAppIconName(appClass) {
         if (!appClass)
             return "";
-
+ 
         var cls = appClass.toLowerCase().trim();
         if (cls.indexOf("kitty") !== -1)
             return "kitty";
