@@ -1,32 +1,57 @@
+import "../../theme"
+import "../../widgets"
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
-import "../../theme"
-import "../../widgets"
 
 // 🔌 POWER MENU POPUP DROPDOWN (VERTICAL PILL LIST WITH HYPRLAND BLUR & PYWAL STYLING)
 BasePopup {
     id: powerPopup
 
-    implicitWidth: 240
-    implicitHeight: mainLayout.implicitHeight + 28
-
     // 🎯 USER DATA & METRICS
     property string userNameText: "User"
     property string uptimeText: "Uptime: -"
 
+    implicitWidth: 240
+    implicitHeight: mainLayout.implicitHeight + 28
+
     // ─── SYSTEM ACTION PROCESSES ─────────────────────────────────────────────
-    Process { id: shutdownProc; command: ["systemctl", "poweroff"] }
-    Process { id: rebootProc; command: ["systemctl", "reboot"] }
-    Process { id: suspendProc; command: ["systemctl", "suspend"] }
-    Process { id: lockProc; command: ["quickshell", "ipc", "call", "lockscreen", "lock"] }
-    Process { id: logoutProc; command: ["hyprctl", "dispatch", "exit"] }
+    Process {
+        id: shutdownProc
+
+        command: ["systemctl", "poweroff"]
+    }
+
+    Process {
+        id: rebootProc
+
+        command: ["systemctl", "reboot"]
+    }
+
+    Process {
+        id: suspendProc
+
+        command: ["systemctl", "suspend"]
+    }
+
+    Process {
+        id: lockProc
+
+        command: ["quickshell", "ipc", "call", "lockscreen", "lock"]
+    }
+
+    Process {
+        id: logoutProc
+
+        command: ["hyprctl", "dispatch", "exit"]
+    }
 
     // 📦 VERTICAL LIST CONTAINER
     ColumnLayout {
         id: mainLayout
+
         anchors.fill: parent
         spacing: 6
 
@@ -38,14 +63,25 @@ BasePopup {
             Text {
                 text: "󰐥"
                 color: Theme.accent
-                font { family: Theme.fontMono; pixelSize: 24 }
+
+                font {
+                    family: Theme.fontMono
+                    pixelSize: 24
+                }
+
             }
 
             Text {
                 text: "Power Options"
                 color: Theme.textMain
-                font { family: Theme.fontMain; pixelSize: 16; bold: true }
                 Layout.fillWidth: true
+
+                font {
+                    family: Theme.fontMain
+                    pixelSize: 16
+                    bold: true
+                }
+
             }
 
         }
@@ -62,14 +98,13 @@ BasePopup {
         // 1. 󰐥 SHUTDOWN PILL
         Rectangle {
             id: shutdownItem
+
             Layout.fillWidth: true
             implicitHeight: 38
             radius: 10
-            color: shutdownHover.hovered ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25) : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.05)
+            color: shutdownHover.hovered ? (SettingsStore.buttonStyle === "solid" ? Theme.accent : Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25)) : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.05)
             border.color: shutdownHover.hovered ? Theme.accent : "transparent"
             border.width: 1
-
-            Behavior on color { ColorAnimation { duration: 150 } }
 
             RowLayout {
                 anchors.fill: parent
@@ -79,47 +114,73 @@ BasePopup {
 
                 Text {
                     text: "󰐥"
-                    color: shutdownHover.hovered ? Theme.accent : Theme.accent
-                    font { family: Theme.fontMono; pixelSize: 18 }
+                    color: shutdownHover.hovered ? (SettingsStore.buttonStyle === "solid" ? Theme.bgDark : Theme.accent) : Theme.accent
+
+                    font {
+                        family: Theme.fontMono
+                        pixelSize: 18
+                    }
+
                 }
 
                 Text {
                     text: "Shutdown"
-                    color: shutdownHover.hovered ? Theme.accent : Theme.textMain
-                    font { family: Theme.fontMain; pixelSize: 15; bold: true }
+                    color: shutdownHover.hovered ? (SettingsStore.buttonStyle === "solid" ? Theme.bgDark : Theme.textMain) : Theme.textMain
                     Layout.fillWidth: true
+
+                    font {
+                        family: Theme.fontMain
+                        pixelSize: 15
+                        bold: true
+                    }
+
                 }
 
                 Text {
                     text: "󰅂"
-                    color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.4)
-                    font { family: Theme.fontMono; pixelSize: 14 }
+                    color: shutdownHover.hovered ? (SettingsStore.buttonStyle === "solid" ? Theme.bgDark : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.4)) : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.4)
+
+                    font {
+                        family: Theme.fontMono
+                        pixelSize: 14
+                    }
+
                 }
+
             }
 
-            HoverHandler { id: shutdownHover }
+            HoverHandler {
+                id: shutdownHover
+            }
 
             MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
-                    powerPopup.isOpen = false
-                    shutdownProc.running = true
+                    powerPopup.isOpen = false;
+                    shutdownProc.running = true;
                 }
             }
+
+            Behavior on color {
+                ColorAnimation {
+                    duration: 150
+                }
+
+            }
+
         }
 
         // 2. 󰑐 REBOOT PILL
         Rectangle {
             id: rebootItem
+
             Layout.fillWidth: true
             implicitHeight: 38
             radius: 10
-            color: rebootHover.hovered ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25) : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.05)
+            color: rebootHover.hovered ? (SettingsStore.buttonStyle === "solid" ? Theme.accent : Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25)) : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.05)
             border.color: rebootHover.hovered ? Theme.accent : "transparent"
             border.width: 1
-
-            Behavior on color { ColorAnimation { duration: 150 } }
 
             RowLayout {
                 anchors.fill: parent
@@ -129,47 +190,73 @@ BasePopup {
 
                 Text {
                     text: "󰑐"
-                    color: rebootHover.hovered ? Theme.accent : Theme.accent
-                    font { family: Theme.fontMono; pixelSize: 18 }
+                    color: rebootHover.hovered ? (SettingsStore.buttonStyle === "solid" ? Theme.bgDark : Theme.accent) : Theme.accent
+
+                    font {
+                        family: Theme.fontMono
+                        pixelSize: 18
+                    }
+
                 }
 
                 Text {
                     text: "Reboot"
-                    color: rebootHover.hovered ? Theme.accent : Theme.textMain
-                    font { family: Theme.fontMain; pixelSize: 15; bold: true }
+                    color: rebootHover.hovered ? (SettingsStore.buttonStyle === "solid" ? Theme.bgDark : Theme.textMain) : Theme.textMain
                     Layout.fillWidth: true
+
+                    font {
+                        family: Theme.fontMain
+                        pixelSize: 15
+                        bold: true
+                    }
+
                 }
 
                 Text {
                     text: "󰅂"
-                    color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.4)
-                    font { family: Theme.fontMono; pixelSize: 14 }
+                    color: rebootHover.hovered ? (SettingsStore.buttonStyle === "solid" ? Theme.bgDark : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.4)) : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.4)
+
+                    font {
+                        family: Theme.fontMono
+                        pixelSize: 14
+                    }
+
                 }
+
             }
 
-            HoverHandler { id: rebootHover }
+            HoverHandler {
+                id: rebootHover
+            }
 
             MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
-                    powerPopup.isOpen = false
-                    rebootProc.running = true
+                    powerPopup.isOpen = false;
+                    rebootProc.running = true;
                 }
             }
+
+            Behavior on color {
+                ColorAnimation {
+                    duration: 150
+                }
+
+            }
+
         }
 
         // 3. 󰤄 SUSPEND / SLEEP PILL
         Rectangle {
             id: suspendItem
+
             Layout.fillWidth: true
             implicitHeight: 38
             radius: 10
-            color: suspendHover.hovered ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25) : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.05)
+            color: suspendHover.hovered ? (SettingsStore.buttonStyle === "solid" ? Theme.accent : Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25)) : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.05)
             border.color: suspendHover.hovered ? Theme.accent : "transparent"
             border.width: 1
-
-            Behavior on color { ColorAnimation { duration: 150 } }
 
             RowLayout {
                 anchors.fill: parent
@@ -179,47 +266,73 @@ BasePopup {
 
                 Text {
                     text: "󰤄"
-                    color: suspendHover.hovered ? Theme.accent : Theme.accent
-                    font { family: Theme.fontMono; pixelSize: 18 }
+                    color: suspendHover.hovered ? (SettingsStore.buttonStyle === "solid" ? Theme.bgDark : Theme.accent) : Theme.accent
+
+                    font {
+                        family: Theme.fontMono
+                        pixelSize: 18
+                    }
+
                 }
 
                 Text {
                     text: "Suspend"
-                    color: suspendHover.hovered ? Theme.accent : Theme.textMain
-                    font { family: Theme.fontMain; pixelSize: 15; bold: true }
+                    color: suspendHover.hovered ? (SettingsStore.buttonStyle === "solid" ? Theme.bgDark : Theme.textMain) : Theme.textMain
                     Layout.fillWidth: true
+
+                    font {
+                        family: Theme.fontMain
+                        pixelSize: 15
+                        bold: true
+                    }
+
                 }
 
                 Text {
                     text: "󰅂"
-                    color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.4)
-                    font { family: Theme.fontMono; pixelSize: 14 }
+                    color: suspendHover.hovered ? (SettingsStore.buttonStyle === "solid" ? Theme.bgDark : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.4)) : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.4)
+
+                    font {
+                        family: Theme.fontMono
+                        pixelSize: 14
+                    }
+
                 }
+
             }
 
-            HoverHandler { id: suspendHover }
+            HoverHandler {
+                id: suspendHover
+            }
 
             MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
-                    powerPopup.isOpen = false
-                    suspendProc.running = true
+                    powerPopup.isOpen = false;
+                    suspendProc.running = true;
                 }
             }
+
+            Behavior on color {
+                ColorAnimation {
+                    duration: 150
+                }
+
+            }
+
         }
 
         // 4. 󰌾 LOCK SCREEN PILL
         Rectangle {
             id: lockItem
+
             Layout.fillWidth: true
             implicitHeight: 38
             radius: 10
-            color: lockHover.hovered ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25) : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.05)
+            color: lockHover.hovered ? (SettingsStore.buttonStyle === "solid" ? Theme.accent : Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25)) : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.05)
             border.color: lockHover.hovered ? Theme.accent : "transparent"
             border.width: 1
-
-            Behavior on color { ColorAnimation { duration: 150 } }
 
             RowLayout {
                 anchors.fill: parent
@@ -229,47 +342,73 @@ BasePopup {
 
                 Text {
                     text: "󰌾"
-                    color: lockHover.hovered ? Theme.accent : Theme.accent
-                    font { family: Theme.fontMono; pixelSize: 18 }
+                    color: lockHover.hovered ? (SettingsStore.buttonStyle === "solid" ? Theme.bgDark : Theme.accent) : Theme.accent
+
+                    font {
+                        family: Theme.fontMono
+                        pixelSize: 18
+                    }
+
                 }
 
                 Text {
                     text: "Lock Screen"
-                    color: lockHover.hovered ? Theme.accent : Theme.textMain
-                    font { family: Theme.fontMain; pixelSize: 15; bold: true }
+                    color: lockHover.hovered ? (SettingsStore.buttonStyle === "solid" ? Theme.bgDark : Theme.textMain) : Theme.textMain
                     Layout.fillWidth: true
+
+                    font {
+                        family: Theme.fontMain
+                        pixelSize: 15
+                        bold: true
+                    }
+
                 }
 
                 Text {
                     text: "󰅂"
-                    color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.4)
-                    font { family: Theme.fontMono; pixelSize: 14 }
+                    color: lockHover.hovered ? (SettingsStore.buttonStyle === "solid" ? Theme.bgDark : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.4)) : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.4)
+
+                    font {
+                        family: Theme.fontMono
+                        pixelSize: 14
+                    }
+
                 }
+
             }
 
-            HoverHandler { id: lockHover }
+            HoverHandler {
+                id: lockHover
+            }
 
             MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
-                    powerPopup.isOpen = false
-                    lockProc.running = true
+                    powerPopup.isOpen = false;
+                    lockProc.running = true;
                 }
             }
+
+            Behavior on color {
+                ColorAnimation {
+                    duration: 150
+                }
+
+            }
+
         }
 
         // 5. 󰍃 LOG OUT PILL
         Rectangle {
             id: logoutItem
+
             Layout.fillWidth: true
             implicitHeight: 38
             radius: 10
-            color: logoutHover.hovered ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25) : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.05)
+            color: logoutHover.hovered ? (SettingsStore.buttonStyle === "solid" ? Theme.accent : Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25)) : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.05)
             border.color: logoutHover.hovered ? Theme.accent : "transparent"
             border.width: 1
-
-            Behavior on color { ColorAnimation { duration: 150 } }
 
             RowLayout {
                 anchors.fill: parent
@@ -279,34 +418,63 @@ BasePopup {
 
                 Text {
                     text: "󰍃"
-                    color: logoutHover.hovered ? Theme.accent : Theme.accent
-                    font { family: Theme.fontMono; pixelSize: 18 }
+                    color: logoutHover.hovered ? (SettingsStore.buttonStyle === "solid" ? Theme.bgDark : Theme.accent) : Theme.accent
+
+                    font {
+                        family: Theme.fontMono
+                        pixelSize: 18
+                    }
+
                 }
 
                 Text {
                     text: "Log Out"
-                    color: logoutHover.hovered ? Theme.accent : Theme.textMain
-                    font { family: Theme.fontMain; pixelSize: 15; bold: true }
+                    color: logoutHover.hovered ? (SettingsStore.buttonStyle === "solid" ? Theme.bgDark : Theme.textMain) : Theme.textMain
                     Layout.fillWidth: true
+
+                    font {
+                        family: Theme.fontMain
+                        pixelSize: 15
+                        bold: true
+                    }
+
                 }
 
                 Text {
                     text: "󰅂"
-                    color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.4)
-                    font { family: Theme.fontMono; pixelSize: 14 }
+                    color: logoutHover.hovered ? (SettingsStore.buttonStyle === "solid" ? Theme.bgDark : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.4)) : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.4)
+
+                    font {
+                        family: Theme.fontMono
+                        pixelSize: 14
+                    }
+
                 }
+
             }
 
-            HoverHandler { id: logoutHover }
+            HoverHandler {
+                id: logoutHover
+            }
 
             MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
-                    powerPopup.isOpen = false
-                    logoutProc.running = true
+                    powerPopup.isOpen = false;
+                    logoutProc.running = true;
                 }
             }
+
+            Behavior on color {
+                ColorAnimation {
+                    duration: 150
+                }
+
+            }
+
         }
+
     }
+
 }
