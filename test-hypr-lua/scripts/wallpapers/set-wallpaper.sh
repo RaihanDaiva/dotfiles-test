@@ -73,12 +73,12 @@ if command -v wal >/dev/null 2>&1; then
     # Load variabel warna pywal
     source "$HOME/.cache/wal/colors.sh"
 
-    # Suntikkan warna ke Hyprland
+    # Suntikkan warna ke Hyprland (Native Hyprlua eval)
     C11=$(echo "$color11" | tr -d '#')
     C14=$(echo "$color14" | tr -d '#')
     C1=$(echo "$color1" | tr -d '#')
 
-    hyprctl eval "hl.config({ general = { col = { active_border = { colors = { 'rgb(${C11})', 'rgb(${C14})' }, angle = 45 }, inactive_border = 'rgb(${C1})' } } })" 2>/dev/null || hyprctl keyword general:col.active_border "rgba(${C11}ee) rgba(${C14}ee) 45deg" 2>/dev/null || true
+    hyprctl eval "hl.config({ general = { col = { active_border = { colors = { 'rgb(${C11})', 'rgb(${C14})' }, angle = 45 }, inactive_border = 'rgb(${C1})' } } })" 2>/dev/null || true
     
     echo "Warna border Hyprland berhasil diupdate!"
 fi

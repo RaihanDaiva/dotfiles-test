@@ -27,7 +27,9 @@ Rectangle {
         var name = screenName.toLowerCase();
         return name.indexOf("edp") === -1 && name !== "1" && name.indexOf("primary") === -1;
     }
-    readonly property int baseWsId: isSecondaryMonitor ? 6 : 1
+    // 🎯 Niri = 1..5 for main, 6..10 for secondary | Hyprland = 1..5 for ALL monitors
+    readonly property int baseWsId: (root.isNiri && isSecondaryMonitor) ? 6 : 1
+    readonly property int _hyprTracker: (Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.id : 1) + (Hyprland.focusedMonitor ? Hyprland.focusedMonitor.id : 0) + (Hyprland.workspaces ? Hyprland.workspaces.values.length : 0)
     // 🖥️ HYPRLAND MONITOR SPECIFIC (eDP-1 / DP-1)
     readonly property var hypMonitor: screen ? Hyprland.monitorFor(screen) : Hyprland.focusedMonitor
     // 📡 NIRI STATE (Workspaces & Active ID Map)
@@ -41,6 +43,7 @@ Rectangle {
             "id": root.niriActiveWsId
         };
 
+        var _tr = root._hyprTracker;
         if (hypMonitor && hypMonitor.activeWorkspace)
             return hypMonitor.activeWorkspace;
 
@@ -85,7 +88,7 @@ Rectangle {
     function getAppIconName(appClass) {
         if (!appClass)
             return "";
- 
+
         var cls = appClass.toLowerCase().trim();
         if (cls.indexOf("kitty") !== -1)
             return "kitty";
@@ -156,7 +159,7 @@ Rectangle {
         for (var i = 0; i < root.clientList.length; i++) {
             var client = root.clientList[i];
             if (client && client.workspace && client.workspace.id === targetWsId) {
-                if (myOutput && client.output && client.output !== myOutput)
+                if (root.isNiri && myOutput && client.output && client.output !== myOutput)
                     continue;
 
                 var rawClass = client.class || client.initialClass || "";
@@ -246,9 +249,23 @@ Rectangle {
                     if (Array.isArray(data)) {
                         for (var cIdx = 0; cIdx < data.length; cIdx++) {
                             var client = data[cIdx];
-                            if (client && client.at && Array.isArray(client.at))
-                                client.xPos = client.at[0];
+                            if (client) {
+                                if (client.at && Array.isArray(client.at))
+                                    client.xPos = client.at[0];
 
+                                if (client.monitor !== undefined) {
+                                    if (typeof client.monitor === "number") {
+                                        var monObj = Hyprland.monitors.values.find(function(m) {
+                                            return m.id === client.monitor;
+                                        });
+                                        if (monObj)
+                                            client.output = monObj.name;
+
+                                    } else {
+                                        client.output = client.monitor.toString();
+                                    }
+                                }
+                            }
                         }
                         root.clientList = data;
                         pillUpdateTimer.restart();
@@ -441,35 +458,41 @@ Rectangle {
 
             // 🎯 DAFTAR WORKSPACE DINAMIS (Occupied Workspaces + 1 Next Empty Workspace, Capped at 5)
             property var modelList: {
-                var base = root.baseWsId;
+                var _t = root._hyprTracker;
                 var myOutput = root.screenName;
-                var maxLocalIdx = 1;
-                // 1. Check active workspace
-                var actWsId = root.activeWorkspace ? root.activeWorkspace.id : base;
-                var localActIdx = actWsId >= base ? (actWsId - base + 1) : 1;
-                if (localActIdx > maxLocalIdx && localActIdx <= 5)
-                    maxLocalIdx = localActIdx;
+                if (root.isNiri) {
+                    var base = root.baseWsId;
+                    var maxLocalIdx = 1;
+                    // 1. Check active workspace
+                    var actWsId = root.activeWorkspace ? root.activeWorkspace.id : base;
+                    var localActIdx = actWsId >= base ? (actWsId - base + 1) : 1;
+                    if (localActIdx > maxLocalIdx && localActIdx <= 5)
+                        maxLocalIdx = localActIdx;
 
-                // 2. Check occupied workspaces from clientList
-                for (var i = 0; i < root.clientList.length; i++) {
-                    var c = root.clientList[i];
-                    if (c && c.workspace) {
-                        var wsId = c.workspace.id;
-                        if (!myOutput || !c.output || c.output === myOutput) {
-                            var localIdx = wsId >= base ? (wsId - base + 1) : (wsId <= 5 ? wsId : 1);
-                            if (localIdx > maxLocalIdx && localIdx <= 5)
-                                maxLocalIdx = localIdx;
+                    // 2. Check occupied workspaces from clientList
+                    for (var i = 0; i < root.clientList.length; i++) {
+                        var c = root.clientList[i];
+                        if (c && c.workspace) {
+                            var wsId = c.workspace.id;
+                            if (!myOutput || !c.output || c.output === myOutput) {
+                                var localIdx = wsId >= base ? (wsId - base + 1) : (wsId <= 5 ? wsId : 1);
+                                if (localIdx > maxLocalIdx && localIdx <= 5)
+                                    maxLocalIdx = localIdx;
 
+                            }
                         }
                     }
+                    // Display occupied workspaces + 1 next empty workspace (max 5)
+                    var visibleCount = Math.min(5, maxLocalIdx + 1);
+                    var list = [];
+                    for (var k = 0; k < visibleCount; k++) {
+                        list.push(base + k);
+                    }
+                    return list;
+                } else {
+                    // 🖥️ HYPRLAND: ALWAYS DISPLAY ALL 5 WORKSPACES (1..5) ON ALL MONITORS BY DEFAULT
+                    return [1, 2, 3, 4, 5];
                 }
-                // Display occupied workspaces + 1 next empty workspace (max 5)
-                var visibleCount = Math.min(5, maxLocalIdx + 1);
-                var list = [];
-                for (var k = 0; k < visibleCount; k++) {
-                    list.push(base + k);
-                }
-                return list;
             }
 
             model: modelList
@@ -517,7 +540,7 @@ Rectangle {
                         property int displayIdx: (wsId - 1) % 5
 
                         text: root.romanNums[displayIdx] !== undefined ? root.romanNums[displayIdx] : (displayIdx + 1)
-                        color: ws ? Theme.textMain : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.35)
+                        color: (wsItem.isActive || wsItem.ws || (wsItem.wsApps && wsItem.wsApps.length > 0)) ? Theme.textMain : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.35)
 
                         font {
                             family: Theme.fontMain

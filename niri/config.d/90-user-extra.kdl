@@ -32,7 +32,7 @@ layer-rule {
     match namespace="quickshell:bar"
     geometry-corner-radius 20
     background-effect {
-        blur false
+        blur true
     }
 }
 
@@ -41,7 +41,7 @@ layer-rule {
     match namespace="quickshell:bar-left"
     geometry-corner-radius 20
     background-effect {
-        blur false
+        blur true
     }
 }
 
@@ -49,7 +49,7 @@ layer-rule {
     match namespace="quickshell:bar-center"
     geometry-corner-radius 20
     background-effect {
-        blur false
+        blur true
     }
 }
 
@@ -57,7 +57,7 @@ layer-rule {
     match namespace="quickshell:bar-right"
     geometry-corner-radius 20
     background-effect {
-        blur false
+        blur true
     }
 }
 

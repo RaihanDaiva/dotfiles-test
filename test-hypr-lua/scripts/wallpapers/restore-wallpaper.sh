@@ -26,16 +26,20 @@ elif command -v hyprctl >/dev/null 2>&1 && [ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]
     hyprctl hyprpaper wallpaper ",$CACHE_PATH" 2>/dev/null || true
 fi
 
-# 2. Restore Teknik 2 Blurred Overview Backdrop Wallpaper (swaybg)
-if command -v magick >/dev/null 2>&1 && command -v swaybg >/dev/null 2>&1; then
-    if [ ! -f "$BLUR_CACHE_PATH" ]; then
-        magick "$CACHE_PATH" -resize 50% -blur 0x25 "$BLUR_CACHE_PATH" 2>/dev/null || cp "$CACHE_PATH" "$BLUR_CACHE_PATH"
+# 2. Restore Teknik 2 Blurred Overview Backdrop Wallpaper (swaybg) ONLY for Niri
+if [ -n "$NIRI_SOCKET" ] || [[ "${XDG_CURRENT_DESKTOP,,}" == *"niri"* ]]; then
+    if command -v magick >/dev/null 2>&1 && command -v swaybg >/dev/null 2>&1; then
+        if [ ! -f "$BLUR_CACHE_PATH" ]; then
+            magick "$CACHE_PATH" -resize 50% -blur 0x25 "$BLUR_CACHE_PATH" 2>/dev/null || cp "$CACHE_PATH" "$BLUR_CACHE_PATH"
+        fi
+        pkill -x swaybg 2>/dev/null || true
+        swaybg -i "$BLUR_CACHE_PATH" -m fill >/dev/null 2>&1 &
+    elif command -v swaybg >/dev/null 2>&1; then
+        pkill -x swaybg 2>/dev/null || true
+        swaybg -i "$CACHE_PATH" -m fill >/dev/null 2>&1 &
     fi
+else
     pkill -x swaybg 2>/dev/null || true
-    swaybg -i "$BLUR_CACHE_PATH" -m fill >/dev/null 2>&1 &
-elif command -v swaybg >/dev/null 2>&1; then
-    pkill -x swaybg 2>/dev/null || true
-    swaybg -i "$CACHE_PATH" -m fill >/dev/null 2>&1 &
 fi
 
 # 3. Restore Pywal Colors & Border Colors for Niri & Hyprland

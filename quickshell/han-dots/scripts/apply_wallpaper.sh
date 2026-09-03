@@ -24,19 +24,28 @@ if command -v awww >/dev/null 2>&1; then
     fi
     awww img "$CACHE_PATH" --transition-type outer --transition-fps 60 --transition-duration 1.2 >/dev/null 2>&1
 elif command -v hyprctl >/dev/null 2>&1 && [ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]; then
+    if ! pgrep -x "hyprpaper" >/dev/null; then
+        hyprpaper &
+        sleep 0.5
+    fi
     hyprctl hyprpaper unload all 2>/dev/null || true
     hyprctl hyprpaper preload "$CACHE_PATH" 2>/dev/null || true
     hyprctl hyprpaper wallpaper ",$CACHE_PATH" 2>/dev/null || true
 fi
 
-# 3. Teknik 2 Niri: Generate & Render Blurred Wallpaper on Overview Backdrop (swaybg)
-if command -v magick >/dev/null 2>&1 && command -v swaybg >/dev/null 2>&1; then
-    magick "$CACHE_PATH" -resize 50% -blur 0x25 "$BLUR_CACHE_PATH" 2>/dev/null || cp "$CACHE_PATH" "$BLUR_CACHE_PATH"
+# 3. Teknik 2 Niri: Generate & Render Blurred Wallpaper on Overview Backdrop ONLY for Niri (swaybg)
+if [ -n "$NIRI_SOCKET" ] || [[ "${XDG_CURRENT_DESKTOP,,}" == *"niri"* ]]; then
+    if command -v magick >/dev/null 2>&1 && command -v swaybg >/dev/null 2>&1; then
+        magick "$CACHE_PATH" -resize 50% -blur 0x25 "$BLUR_CACHE_PATH" 2>/dev/null || cp "$CACHE_PATH" "$BLUR_CACHE_PATH"
+        pkill -x swaybg 2>/dev/null || true
+        swaybg -i "$BLUR_CACHE_PATH" -m fill >/dev/null 2>&1 &
+    elif command -v swaybg >/dev/null 2>&1; then
+        pkill -x swaybg 2>/dev/null || true
+        swaybg -i "$CACHE_PATH" -m fill >/dev/null 2>&1 &
+    fi
+else
+    # On Hyprland: ensure swaybg is killed so it never obscures hyprpaper/awww crisp wallpaper!
     pkill -x swaybg 2>/dev/null || true
-    swaybg -i "$BLUR_CACHE_PATH" -m fill >/dev/null 2>&1 &
-elif command -v swaybg >/dev/null 2>&1; then
-    pkill -x swaybg 2>/dev/null || true
-    swaybg -i "$CACHE_PATH" -m fill >/dev/null 2>&1 &
 fi
 
 # 4. Update Pywal Theme Colors & Broadcast to Terminals
@@ -65,8 +74,10 @@ if command -v wal >/dev/null 2>&1; then
         fi
 
         if command -v hyprctl >/dev/null 2>&1 && [ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]; then
-            hyprctl keyword general:col.active_border "$color11 $color14 45deg" >/dev/null 2>&1 || true
-            hyprctl keyword general:col.inactive_border "$color1" >/dev/null 2>&1 || true
+            C11=$(echo "$color11" | tr -d '#')
+            C14=$(echo "$color14" | tr -d '#')
+            C1=$(echo "$color1" | tr -d '#')
+            hyprctl eval "hl.config({ general = { col = { active_border = { colors = { 'rgb(${C11})', 'rgb(${C14})' }, angle = 45 }, inactive_border = 'rgb(${C1})' } } })" 2>/dev/null || hyprctl keyword general:col.active_border "rgba(${C11}ee) rgba(${C14}ee) 45deg" 2>/dev/null || true
         fi
     fi
 fi
