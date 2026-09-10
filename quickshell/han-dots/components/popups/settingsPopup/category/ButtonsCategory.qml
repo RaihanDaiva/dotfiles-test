@@ -20,7 +20,7 @@ Item {
         clip: true
 
         ColumnLayout {
-            width: scrollArea.availableWidth
+            width: scrollArea.availableWidth - 12
             spacing: 18
 
             // -------------------------------------------------------------
@@ -39,7 +39,7 @@ Item {
 
                         font {
                             family: Theme.fontMono
-                            pixelSize: 16
+                            pixelSize: 18
                         }
 
                     }
@@ -50,7 +50,7 @@ Item {
 
                         font {
                             family: Theme.fontMain
-                            pixelSize: 14
+                            pixelSize: 16
                             bold: true
                         }
 
@@ -66,8 +66,8 @@ Item {
                     StyledButton {
                         text: "Solid"
                         buttonStyle: "solid"
-                        implicitWidth: 65
-                        implicitHeight: 32
+                        implicitWidth: 75
+                        implicitHeight: 36
                         selected: SettingsStore.buttonStyle === "solid"
                         onClicked: SettingsStore.buttonStyle = "solid"
                     }
@@ -75,8 +75,8 @@ Item {
                     StyledButton {
                         text: "Glass"
                         buttonStyle: "translucent"
-                        implicitWidth: 65
-                        implicitHeight: 32
+                        implicitWidth: 75
+                        implicitHeight: 36
                         selected: SettingsStore.buttonStyle === "translucent"
                         onClicked: SettingsStore.buttonStyle = "translucent"
                     }
@@ -89,7 +89,7 @@ Item {
                     subtitle: "Corner curvature (" + Math.round(SettingsStore.buttonRadius) + "px)"
 
                     CustomSlider {
-                        implicitWidth: 140
+                        implicitWidth: 160
                         from: 2
                         to: 20
                         stepSize: 1
@@ -117,7 +117,7 @@ Item {
 
                         font {
                             family: Theme.fontMono
-                            pixelSize: 16
+                            pixelSize: 18
                         }
 
                     }
@@ -128,7 +128,7 @@ Item {
 
                         font {
                             family: Theme.fontMain
-                            pixelSize: 14
+                            pixelSize: 16
                             bold: true
                         }
 
@@ -138,8 +138,8 @@ Item {
 
                 Rectangle {
                     Layout.fillWidth: true
-                    implicitHeight: 110
-                    radius: 12
+                    implicitHeight: 125
+                    radius: 14
                     color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.06)
                     border.color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.1)
 
@@ -154,7 +154,7 @@ Item {
 
                             font {
                                 family: Theme.fontMain
-                                pixelSize: 11
+                                pixelSize: 12
                                 bold: true
                             }
 
@@ -165,23 +165,23 @@ Item {
 
                             StyledButton {
                                 text: "Selected"
-                                implicitWidth: 90
-                                implicitHeight: 32
+                                implicitWidth: 100
+                                implicitHeight: 36
                                 selected: true
                             }
 
                             StyledButton {
                                 text: "Unselected"
-                                implicitWidth: 90
-                                implicitHeight: 32
+                                implicitWidth: 100
+                                implicitHeight: 36
                                 selected: false
                             }
 
                             StyledButton {
                                 text: "With Icon"
                                 iconText: "󰄬"
-                                implicitWidth: 105
-                                implicitHeight: 32
+                                implicitWidth: 115
+                                implicitHeight: 36
                                 selected: true
                             }
 
@@ -193,6 +193,14 @@ Item {
 
             }
 
+        }
+
+        ScrollBar.vertical: StyledScrollBar {
+            parent: scrollArea
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            anchors.right: parent.right
+            anchors.rightMargin: 2
         }
 
     }

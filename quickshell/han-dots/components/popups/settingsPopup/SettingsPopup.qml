@@ -36,8 +36,8 @@ PanelWindow {
     }
     width: implicitWidth
     height: implicitHeight
-    implicitWidth: 580
-    implicitHeight: 480
+    implicitWidth: 700
+    implicitHeight: 560
     // 🏷️ Wayland LayerShell Configuration (Overlay Layer)
     WlrLayershell.namespace: "quickshell:settings"
     WlrLayershell.layer: WlrLayer.Overlay
@@ -87,25 +87,29 @@ PanelWindow {
 
         ColumnLayout {
             anchors.fill: parent
-            anchors.margins: 16
-            spacing: 14
+            anchors.leftMargin: 18
+            anchors.topMargin: 18
+            anchors.bottomMargin: 18
+            anchors.rightMargin: 6
+            spacing: 16
 
             // 🏷️ HEADER TITLE & DRAGGABLE HANDLE
             Rectangle {
                 id: headerHandle
 
                 Layout.fillWidth: true
-                implicitHeight: 38
+                Layout.rightMargin: 12
+                implicitHeight: 44
                 color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.08)
-                radius: 10
+                radius: 12
                 border.color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.2)
                 border.width: 1
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.leftMargin: 10
-                    anchors.rightMargin: 10
-                    spacing: 8
+                    anchors.leftMargin: 12
+                    anchors.rightMargin: 12
+                    spacing: 10
 
                     Text {
                         text: "󰒓"
@@ -113,7 +117,7 @@ PanelWindow {
 
                         font {
                             family: Theme.fontMono
-                            pixelSize: 18
+                            pixelSize: 20
                         }
 
                     }
@@ -124,7 +128,7 @@ PanelWindow {
 
                         font {
                             family: Theme.fontMain
-                            pixelSize: 15
+                            pixelSize: 16
                             bold: true
                         }
 
@@ -136,7 +140,7 @@ PanelWindow {
 
                         font {
                             family: Theme.fontMain
-                            pixelSize: 11
+                            pixelSize: 12
                         }
 
                     }
@@ -147,16 +151,16 @@ PanelWindow {
 
                     // Close button
                     Rectangle {
-                        implicitWidth: 24
-                        implicitHeight: 24
-                        radius: 12
+                        implicitWidth: 28
+                        implicitHeight: 28
+                        radius: 14
                         color: closeHover.hovered ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25) : "transparent"
 
                         Text {
                             anchors.centerIn: parent
                             text: "✖"
                             color: Theme.textMain
-                            font.pixelSize: 12
+                            font.pixelSize: 13
                         }
 
                         HoverHandler {
@@ -215,28 +219,28 @@ PanelWindow {
                 Rectangle {
                     id: sidebar
 
-                    implicitWidth: 140
+                    implicitWidth: 165
                     Layout.fillHeight: true
                     color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.03)
-                    radius: 12
+                    radius: 14
                     border.color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.08)
                     border.width: 1
 
                     ColumnLayout {
                         anchors.fill: parent
-                        anchors.margins: 8
-                        spacing: 6
+                        anchors.margins: 10
+                        spacing: 8
 
                         Text {
                             text: "SETTINGS"
                             color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.4)
-                            Layout.leftMargin: 6
-                            Layout.topMargin: 4
-                            Layout.bottomMargin: 2
+                            Layout.leftMargin: 8
+                            Layout.topMargin: 6
+                            Layout.bottomMargin: 4
 
                             font {
                                 family: Theme.fontMain
-                                pixelSize: 10
+                                pixelSize: 11
                                 bold: true
                             }
 
@@ -248,7 +252,8 @@ PanelWindow {
                             iconText: "󰖯"
                             alignment: "left"
                             Layout.fillWidth: true
-                            implicitHeight: 36
+                            implicitHeight: 42
+                            transparentUnselected: true
                             selected: settingsPopup.activeTab === "popups"
                             onClicked: settingsPopup.activeTab = "popups"
                         }
@@ -259,7 +264,8 @@ PanelWindow {
                             iconText: "󰓠"
                             alignment: "left"
                             Layout.fillWidth: true
-                            implicitHeight: 36
+                            implicitHeight: 42
+                            transparentUnselected: true
                             selected: settingsPopup.activeTab === "buttons"
                             onClicked: settingsPopup.activeTab = "buttons"
                         }
@@ -270,7 +276,8 @@ PanelWindow {
                             iconText: "󰈹"
                             alignment: "left"
                             Layout.fillWidth: true
-                            implicitHeight: 36
+                            implicitHeight: 42
+                            transparentUnselected: true
                             selected: settingsPopup.activeTab === "bar"
                             onClicked: settingsPopup.activeTab = "bar"
                         }
@@ -281,7 +288,8 @@ PanelWindow {
                             iconText: "󰀻"
                             alignment: "left"
                             Layout.fillWidth: true
-                            implicitHeight: 36
+                            implicitHeight: 42
+                            transparentUnselected: true
                             selected: settingsPopup.activeTab === "dock"
                             onClicked: settingsPopup.activeTab = "dock"
                         }

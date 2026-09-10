@@ -20,7 +20,7 @@ Item {
         clip: true
 
         ColumnLayout {
-            width: scrollArea.availableWidth
+            width: scrollArea.availableWidth - 12
             spacing: 18
 
             // -------------------------------------------------------------
@@ -39,7 +39,7 @@ Item {
 
                         font {
                             family: Theme.fontMono
-                            pixelSize: 15
+                            pixelSize: 18
                         }
 
                     }
@@ -50,7 +50,7 @@ Item {
 
                         font {
                             family: Theme.fontMain
-                            pixelSize: 14
+                            pixelSize: 16
                             bold: true
                         }
 
@@ -76,22 +76,25 @@ Item {
                     subtitle: SettingsStore.dockMode === "always_visible" ? "Always Visible (Reserves Screen Area)" : (SettingsStore.dockMode === "auto_hide" ? "Auto Hide (Hover to Reveal Overlay)" : "Floating Overlay (Always Above Windows)")
 
                     RowLayout {
-                        spacing: 6
+                        spacing: 8
 
                         StyledButton {
                             text: "Always Visible"
+                            implicitHeight: 36
                             selected: SettingsStore.dockMode === "always_visible"
                             onClicked: SettingsStore.dockMode = "always_visible"
                         }
 
                         StyledButton {
                             text: "Auto Hide"
+                            implicitHeight: 36
                             selected: SettingsStore.dockMode === "auto_hide"
                             onClicked: SettingsStore.dockMode = "auto_hide"
                         }
 
                         StyledButton {
                             text: "Overlay"
+                            implicitHeight: 36
                             selected: SettingsStore.dockMode === "overlay"
                             onClicked: SettingsStore.dockMode = "overlay"
                         }
@@ -114,6 +117,14 @@ Item {
 
             }
 
+        }
+
+        ScrollBar.vertical: StyledScrollBar {
+            parent: scrollArea
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            anchors.right: parent.right
+            anchors.rightMargin: 2
         }
 
     }

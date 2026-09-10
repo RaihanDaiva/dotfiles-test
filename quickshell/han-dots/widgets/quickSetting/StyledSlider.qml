@@ -54,8 +54,9 @@ Item {
     }
 
     implicitWidth: 200
-    implicitHeight: 46
+    implicitHeight: (styleLoader.item && styleLoader.item.implicitHeight > 0) ? styleLoader.item.implicitHeight : (quickSettingsStyle === "macos" ? 66 : 46)
     Layout.fillWidth: true
+    Layout.preferredHeight: implicitHeight
     Component.onCompleted: updateStyle()
     onQuickSettingsStyleChanged: updateStyle()
     onIconTextChanged: updateProps()

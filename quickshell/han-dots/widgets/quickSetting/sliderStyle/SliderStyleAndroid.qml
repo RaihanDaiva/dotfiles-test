@@ -21,6 +21,7 @@ Rectangle {
     signal valuePressed(real newValue)
 
     anchors.fill: parent
+    implicitHeight: 46
     radius: cornerRadius
     color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.06)
     border.color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.1)

@@ -811,7 +811,7 @@ BasePopup {
                     iconText: popupRoot.volumeMuted ? "󰝟" : (popupRoot.volumeVal > 100 ? "󱄡" : (popupRoot.volumeVal >= 66 ? "󰕾" : (popupRoot.volumeVal >= 33 ? "󰖀" : "󰕿")))
                     titleText: "Volume"
                     value: popupRoot.volumeVal
-                    maxValue: 150
+                    maxValue: 100
                     iconColor: popupRoot.volumeMuted ? "#f38ba8" : (popupRoot.volumeVal > 100 ? "#f38ba8" : Theme.accent)
                     fillColor: popupRoot.volumeMuted ? Qt.rgba(243 / 255, 139 / 255, 168 / 255, 0.25) : (popupRoot.volumeVal > 100 ? Qt.rgba(243 / 255, 139 / 255, 168 / 255, 0.35) : Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25))
                     textColor: popupRoot.volumeMuted ? "#f38ba8" : (popupRoot.volumeVal > 100 ? "#f38ba8" : Theme.textMain)
@@ -846,7 +846,7 @@ BasePopup {
 
                 // 📌 DETAIL PAGE HEADER (Back Arrow + Title + Refresh + Master Switch)
                 RowLayout {
-                    Layout.fillWidth: true 
+                    Layout.fillWidth: true
                     spacing: 8
 
                     // ⬅️ BACK BUTTON

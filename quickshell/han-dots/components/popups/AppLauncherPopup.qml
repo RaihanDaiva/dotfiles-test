@@ -42,49 +42,52 @@ PanelWindow {
 
     // 🖼️ Helper function to resolve Freedesktop system icons
     function getIconSource(iconName) {
-        if (!iconName || iconName === "") return ""
-        if (iconName.indexOf("/") === 0 || iconName.indexOf("file://") === 0) return iconName
-        return "image://icon/" + iconName
+        if (!iconName || iconName === "")
+            return "";
+        if (iconName.indexOf("/") === 0 || iconName.indexOf("file://") === 0)
+            return iconName;
+        return "image://icon/" + iconName;
     }
 
     function updateFilteredApps() {
-        var query = searchQuery.trim().toLowerCase()
-        var list = []
-        var entries = []
+        var query = searchQuery.trim().toLowerCase();
+        var list = [];
+        var entries = [];
 
         if (typeof DesktopEntries !== "undefined" && DesktopEntries.applications) {
-            var appsModel = DesktopEntries.applications
+            var appsModel = DesktopEntries.applications;
             if (appsModel.values && appsModel.values.length) {
-                entries = appsModel.values
+                entries = appsModel.values;
             } else if (typeof appsModel.count !== "undefined" && appsModel.count > 0) {
                 for (var i = 0; i < appsModel.count; i++) {
-                    var item = appsModel.get ? appsModel.get(i) : appsModel[i]
-                    if (item) entries.push(item)
+                    var item = appsModel.get ? appsModel.get(i) : appsModel[i];
+                    if (item)
+                        entries.push(item);
                 }
             }
         }
 
         for (var j = 0; j < entries.length; j++) {
-            var entry = entries[j]
-            if (!entry || !entry.name) continue
-
-            var name = entry.name || ""
-            var comment = entry.comment || entry.genericName || ""
-            var exec = entry.execString || ""
+            var entry = entries[j];
+            if (!entry || !entry.name)
+                continue;
+            var name = entry.name || "";
+            var comment = entry.comment || entry.genericName || "";
+            var exec = entry.execString || "";
 
             if (query === "" || name.toLowerCase().indexOf(query) !== -1 || comment.toLowerCase().indexOf(query) !== -1 || exec.toLowerCase().indexOf(query) !== -1) {
-                list.push(entry)
+                list.push(entry);
             }
         }
 
         // Sort alphabetically by name
-        list.sort(function(a, b) {
-            return a.name.localeCompare(b.name)
-        })
+        list.sort(function (a, b) {
+            return a.name.localeCompare(b.name);
+        });
 
-        filteredApps = list
+        filteredApps = list;
         if (selectedIndex >= filteredApps.length) {
-            selectedIndex = Math.max(0, filteredApps.length - 1)
+            selectedIndex = Math.max(0, filteredApps.length - 1);
         }
     }
 
@@ -97,33 +100,34 @@ PanelWindow {
         running: filteredApps.length === 0
         repeat: true
         onTriggered: {
-            updateFilteredApps()
-            if (filteredApps.length > 0) stop()
+            updateFilteredApps();
+            if (filteredApps.length > 0)
+                stop();
         }
     }
 
     onSearchQueryChanged: updateFilteredApps()
     onIsOpenChanged: {
         if (isOpen) {
-            searchQuery = ""
-            searchInput.text = ""
-            selectedIndex = 0
-            updateFilteredApps()
-            searchInput.forceActiveFocus()
+            searchQuery = "";
+            searchInput.text = "";
+            selectedIndex = 0;
+            updateFilteredApps();
+            searchInput.forceActiveFocus();
         }
     }
 
     function launchSelected() {
         if (filteredApps.length > 0 && selectedIndex >= 0 && selectedIndex < filteredApps.length) {
-            var entry = filteredApps[selectedIndex]
+            var entry = filteredApps[selectedIndex];
             if (entry && typeof entry.execute === "function") {
-                launcherPopup.isOpen = false
-                entry.execute()
+                launcherPopup.isOpen = false;
+                entry.execute();
             }
         }
     }
 
-    signal requestOpen()
+    signal requestOpen
 
     // 📡 QUICKSHELL IPC HANDLER FOR SHORTCUT (`quickshell ipc call applauncher toggle`)
     IpcHandler {
@@ -131,23 +135,23 @@ PanelWindow {
 
         function toggle() {
             if (launcherPopup.isOpen) {
-                launcherPopup.isOpen = false
+                launcherPopup.isOpen = false;
             } else {
-                launcherPopup.requestOpen()
+                launcherPopup.requestOpen();
             }
         }
 
         function open() {
-            launcherPopup.requestOpen()
+            launcherPopup.requestOpen();
         }
 
         function close() {
-            launcherPopup.isOpen = false
+            launcherPopup.isOpen = false;
         }
     }
 
     // 🪟 CARD CONTAINER RECTANGLE WITH HYPRLAND BLUR & SLIDE-UP ANIMATION
-    Rectangle { 
+    Rectangle {
         id: launcherCard
         anchors.fill: parent
         radius: 20
@@ -158,10 +162,20 @@ PanelWindow {
         opacity: launcherPopup.isOpen ? 1.0 : 0.0
         transform: Translate {
             y: launcherPopup.isOpen ? 0 : 50
-            Behavior on y { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
+            Behavior on y {
+                NumberAnimation {
+                    duration: 220
+                    easing.type: Easing.OutCubic
+                }
+            }
         }
 
-        Behavior on opacity { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+        Behavior on opacity {
+            NumberAnimation {
+                duration: 180
+                easing.type: Easing.OutCubic
+            }
+        }
 
         // 📦 MAIN LAUNCHER LAYOUT (App List at Top, Search Input Bar at Bottom)
         ColumnLayout {
@@ -192,12 +206,17 @@ PanelWindow {
                     border.color: isSelected ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.4) : "transparent"
                     border.width: 1
 
-                    Behavior on color { ColorAnimation { duration: 150 } }
+                    Behavior on color {
+                        ColorAnimation {
+                            duration: 150
+                        }
+                    }
 
                     HoverHandler {
                         id: itemHover
                         onHoveredChanged: {
-                            if (hovered) launcherPopup.selectedIndex = index
+                            if (hovered)
+                                launcherPopup.selectedIndex = index;
                         }
                     }
 
@@ -205,8 +224,8 @@ PanelWindow {
                         anchors.fill: parent
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
-                            launcherPopup.selectedIndex = index
-                            launcherPopup.launchSelected()
+                            launcherPopup.selectedIndex = index;
+                            launcherPopup.launchSelected();
                         }
                     }
 
@@ -233,7 +252,10 @@ PanelWindow {
                                 anchors.centerIn: parent
                                 text: "󰀉"
                                 color: Theme.accent
-                                font { family: Theme.fontMono; pixelSize: 20 }
+                                font {
+                                    family: Theme.fontMono
+                                    pixelSize: 20
+                                }
                                 visible: appIcon.status !== Image.Ready
                             }
                         }
@@ -247,7 +269,11 @@ PanelWindow {
                             Text {
                                 text: modelData.name || "Application"
                                 color: appDelegate.isSelected ? Theme.accent : Theme.textMain
-                                font { family: Theme.fontMain; pixelSize: 14; bold: true }
+                                font {
+                                    family: Theme.fontMain
+                                    pixelSize: 14
+                                    bold: true
+                                }
                                 Layout.fillWidth: true
                                 elide: Text.ElideRight
                                 maximumLineCount: 1
@@ -256,7 +282,10 @@ PanelWindow {
                             Text {
                                 text: modelData.comment || modelData.genericName || modelData.execString || ""
                                 color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.65)
-                                font { family: Theme.fontMain; pixelSize: 11 }
+                                font {
+                                    family: Theme.fontMain
+                                    pixelSize: 11
+                                }
                                 Layout.fillWidth: true
                                 elide: Text.ElideRight
                                 maximumLineCount: 1
@@ -268,7 +297,8 @@ PanelWindow {
 
                 // Scroll position tracking
                 onCurrentIndexChanged: {
-                    if (currentIndex >= 0) positionViewAtIndex(currentIndex, ListView.Beginning)
+                    if (currentIndex >= 0)
+                        positionViewAtIndex(currentIndex, ListView.Beginning);
                 }
             }
 
@@ -282,7 +312,11 @@ PanelWindow {
                 border.color: searchInput.activeFocus ? Theme.accent : Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25)
                 border.width: 1
 
-                Behavior on border.color { ColorAnimation { duration: 150 } }
+                Behavior on border.color {
+                    ColorAnimation {
+                        duration: 150
+                    }
+                }
 
                 RowLayout {
                     anchors.fill: parent
@@ -293,40 +327,49 @@ PanelWindow {
                     Text {
                         text: "󰍉"
                         color: searchInput.activeFocus ? Theme.accent : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.5)
-                        font { family: Theme.fontMono; pixelSize: 16 }
+                        font {
+                            family: Theme.fontMono
+                            pixelSize: 16
+                        }
                     }
 
                     TextInput {
                         id: searchInput
                         Layout.fillWidth: true
                         color: Theme.textMain
-                        font { family: Theme.fontMain; pixelSize: 14 }
+                        font {
+                            family: Theme.fontMain
+                            pixelSize: 14
+                        }
                         clip: true
                         focus: true
 
                         Text {
                             text: 'Search Apps'
                             color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.4)
-                            font { family: Theme.fontMain; pixelSize: 14 }
+                            font {
+                                family: Theme.fontMain
+                                pixelSize: 14
+                            }
                             visible: searchInput.text === "" && !searchInput.inputMethodComposing
                         }
 
                         onTextChanged: {
-                            launcherPopup.searchQuery = text
-                            launcherPopup.selectedIndex = 0
+                            launcherPopup.searchQuery = text;
+                            launcherPopup.selectedIndex = 0;
                         }
 
                         Keys.onUpPressed: {
                             if (launcherPopup.selectedIndex > 0) {
-                                launcherPopup.selectedIndex--
-                                appListView.currentIndex = launcherPopup.selectedIndex
+                                launcherPopup.selectedIndex--;
+                                appListView.currentIndex = launcherPopup.selectedIndex;
                             }
                         }
 
                         Keys.onDownPressed: {
                             if (launcherPopup.selectedIndex < launcherPopup.filteredApps.length - 1) {
-                                launcherPopup.selectedIndex++
-                                appListView.currentIndex = launcherPopup.selectedIndex
+                                launcherPopup.selectedIndex++;
+                                appListView.currentIndex = launcherPopup.selectedIndex;
                             }
                         }
 
@@ -346,17 +389,22 @@ PanelWindow {
                             anchors.centerIn: parent
                             text: "󰅖"
                             color: Theme.accent
-                            font { family: Theme.fontMono; pixelSize: 12 }
+                            font {
+                                family: Theme.fontMono
+                                pixelSize: 12
+                            }
                         }
 
-                        HoverHandler { id: clearHover }
+                        HoverHandler {
+                            id: clearHover
+                        }
 
                         MouseArea {
                             anchors.fill: parent
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
-                                searchInput.text = ""
-                                searchInput.forceActiveFocus()
+                                searchInput.text = "";
+                                searchInput.forceActiveFocus();
                             }
                         }
                     }

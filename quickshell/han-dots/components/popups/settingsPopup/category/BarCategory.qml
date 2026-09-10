@@ -20,7 +20,7 @@ Item {
         clip: true
 
         ColumnLayout {
-            width: scrollArea.availableWidth
+            width: scrollArea.availableWidth - 12
             spacing: 18
 
             // -------------------------------------------------------------
@@ -39,7 +39,7 @@ Item {
 
                         font {
                             family: Theme.fontMono
-                            pixelSize: 15
+                            pixelSize: 18
                         }
 
                     }
@@ -50,7 +50,7 @@ Item {
 
                         font {
                             family: Theme.fontMain
-                            pixelSize: 14
+                            pixelSize: 16
                             bold: true
                         }
 
@@ -76,18 +76,20 @@ Item {
                     subtitle: !SettingsStore.barBgEnabled ? "Disabled (Defaulted to Unified Bar)" : (SettingsStore.barStyle === "islands" ? "3 Floating Islands (Separate Cards)" : "Unified Bar (Single Spanning Bar)")
 
                     RowLayout {
-                        spacing: 6
+                        spacing: 8
                         enabled: SettingsStore.barBgEnabled
                         opacity: SettingsStore.barBgEnabled ? 1 : 0.45
 
                         StyledButton {
                             text: "Unified Bar"
+                            implicitHeight: 36
                             selected: SettingsStore.barStyle === "unified"
                             onClicked: SettingsStore.barStyle = "unified"
                         }
 
                         StyledButton {
                             text: "3 Floating Islands"
+                            implicitHeight: 36
                             selected: SettingsStore.barStyle === "islands"
                             onClicked: SettingsStore.barStyle = "islands"
                         }
@@ -102,7 +104,7 @@ Item {
                     subtitle: Math.round(SettingsStore.barOpacity * 100) + "%"
 
                     CustomSlider {
-                        implicitWidth: 140
+                        implicitWidth: 160
                         enabled: SettingsStore.barBgEnabled
                         opacity: SettingsStore.barBgEnabled ? 1 : 0.45
                         from: 0.1
@@ -130,6 +132,14 @@ Item {
 
             }
 
+        }
+
+        ScrollBar.vertical: StyledScrollBar {
+            parent: scrollArea
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            anchors.right: parent.right
+            anchors.rightMargin: 2
         }
 
     }

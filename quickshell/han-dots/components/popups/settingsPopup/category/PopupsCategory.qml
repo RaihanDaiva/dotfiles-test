@@ -20,7 +20,7 @@ Item {
         clip: true
 
         ColumnLayout {
-            width: scrollArea.availableWidth
+            width: scrollArea.availableWidth - 12
             spacing: 18
 
             // -------------------------------------------------------------
@@ -39,7 +39,7 @@ Item {
 
                         font {
                             family: Theme.fontMono
-                            pixelSize: 15
+                            pixelSize: 18
                         }
 
                     }
@@ -50,7 +50,7 @@ Item {
 
                         font {
                             family: Theme.fontMain
-                            pixelSize: 14
+                            pixelSize: 16
                             bold: true
                         }
 
@@ -64,7 +64,7 @@ Item {
                     subtitle: Math.round(SettingsStore.popupOpacity * 100) + "%"
 
                     CustomSlider {
-                        implicitWidth: 140
+                        implicitWidth: 160
                         from: 0.5
                         to: 1
                         stepSize: 0.02
@@ -80,7 +80,7 @@ Item {
                     subtitle: SettingsStore.popupRadius + " px"
 
                     CustomSlider {
-                        implicitWidth: 140
+                        implicitWidth: 160
                         from: 10
                         to: 28
                         stepSize: 1
@@ -96,7 +96,7 @@ Item {
                     subtitle: SettingsStore.popupBorderWidth + " px"
 
                     CustomSlider {
-                        implicitWidth: 140
+                        implicitWidth: 160
                         from: 0
                         to: 8
                         stepSize: 1
@@ -124,7 +124,7 @@ Item {
 
                         font {
                             family: Theme.fontMono
-                            pixelSize: 15
+                            pixelSize: 18
                         }
 
                     }
@@ -135,7 +135,7 @@ Item {
 
                         font {
                             family: Theme.fontMain
-                            pixelSize: 14
+                            pixelSize: 16
                             bold: true
                         }
 
@@ -162,16 +162,16 @@ Item {
 
                     StyledButton {
                         text: "Classic"
-                        implicitWidth: 70
-                        implicitHeight: 32
+                        implicitWidth: 80
+                        implicitHeight: 36
                         selected: SettingsStore.mediaPlayerStyle !== "minimalist"
                         onClicked: SettingsStore.mediaPlayerStyle = "classic"
                     }
 
                     StyledButton {
                         text: "Minimalist"
-                        implicitWidth: 80
-                        implicitHeight: 32
+                        implicitWidth: 90
+                        implicitHeight: 36
                         selected: SettingsStore.mediaPlayerStyle === "minimalist"
                         onClicked: SettingsStore.mediaPlayerStyle = "minimalist"
                     }
@@ -196,7 +196,7 @@ Item {
 
                         font {
                             family: Theme.fontMono
-                            pixelSize: 15
+                            pixelSize: 18
                         }
 
                     }
@@ -207,7 +207,7 @@ Item {
 
                         font {
                             family: Theme.fontMain
-                            pixelSize: 14
+                            pixelSize: 16
                             bold: true
                         }
 
@@ -222,16 +222,16 @@ Item {
 
                     StyledButton {
                         text: "Android"
-                        implicitWidth: 70
-                        implicitHeight: 32
+                        implicitWidth: 80
+                        implicitHeight: 36
                         selected: SettingsStore.quickSettingsStyle === "android"
                         onClicked: SettingsStore.quickSettingsStyle = "android"
                     }
 
                     StyledButton {
                         text: "MacOS"
-                        implicitWidth: 70
-                        implicitHeight: 32
+                        implicitWidth: 80
+                        implicitHeight: 36
                         selected: SettingsStore.quickSettingsStyle === "macos"
                         onClicked: SettingsStore.quickSettingsStyle = "macos"
                     }
@@ -240,6 +240,14 @@ Item {
 
             }
 
+        }
+
+        ScrollBar.vertical: StyledScrollBar {
+            parent: scrollArea
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            anchors.right: parent.right
+            anchors.rightMargin: 2
         }
 
     }

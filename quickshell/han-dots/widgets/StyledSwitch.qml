@@ -6,8 +6,8 @@ import QtQuick.Controls
 Switch {
     id: switchRoot
 
-    implicitWidth: 46
-    implicitHeight: 24
+    implicitWidth: 50
+    implicitHeight: 28
     padding: 0
     leftPadding: 0
     rightPadding: 0
@@ -15,19 +15,19 @@ Switch {
     bottomPadding: 0
 
     indicator: Rectangle {
-        implicitWidth: 46
-        implicitHeight: 24
+        implicitWidth: 50
+        implicitHeight: 28
         x: 0
         y: (parent.height - height) / 2
-        radius: 12
+        radius: 14
         color: switchRoot.checked ? Theme.accent : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.15)
 
         Rectangle {
             x: switchRoot.checked ? parent.width - width - 3 : 3
             y: (parent.height - height) / 2
-            width: 18
-            height: 18
-            radius: 9
+            width: 22
+            height: 22
+            radius: 11
             color: switchRoot.checked ? Theme.textMain : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.6)
 
             Behavior on x {

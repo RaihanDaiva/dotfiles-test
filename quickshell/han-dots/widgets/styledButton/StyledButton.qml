@@ -14,6 +14,7 @@ Item {
     property string alignment: "center" // "center" or "left"
     property string buttonStyle: SettingsStore.buttonStyle
     property real radius: SettingsStore.buttonRadius
+    property bool transparentUnselected: false
 
     signal clicked()
 
@@ -26,7 +27,8 @@ Item {
             "iconText": buttonRoot.iconText,
             "selected": buttonRoot.selected,
             "alignment": buttonRoot.alignment,
-            "cornerRadius": buttonRoot.radius
+            "cornerRadius": buttonRoot.radius,
+            "transparentUnselected": buttonRoot.transparentUnselected
         });
     }
 
@@ -37,6 +39,9 @@ Item {
             styleLoader.item.selected = buttonRoot.selected;
             styleLoader.item.alignment = buttonRoot.alignment;
             styleLoader.item.cornerRadius = buttonRoot.radius;
+            if (styleLoader.item.transparentUnselected !== undefined)
+                styleLoader.item.transparentUnselected = buttonRoot.transparentUnselected;
+
         }
     }
 
@@ -49,6 +54,7 @@ Item {
     onSelectedChanged: updateProps()
     onAlignmentChanged: updateProps()
     onRadiusChanged: updateProps()
+    onTransparentUnselectedChanged: updateProps()
 
     Loader {
         id: styleLoader

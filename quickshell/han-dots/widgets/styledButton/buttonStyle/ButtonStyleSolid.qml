@@ -11,10 +11,11 @@ Rectangle {
     property bool selected: false
     property string alignment: "center"
     property real cornerRadius: 8
+    property bool transparentUnselected: false
 
     anchors.fill: parent
     radius: cornerRadius
-    color: selected ? Theme.accent : (btnHover.hovered ? Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.12) : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.06))
+    color: selected ? Theme.accent : (btnHover.hovered ? Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.12) : (transparentUnselected ? "transparent" : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.06)))
     border.color: "transparent"
     border.width: 0
 
@@ -25,9 +26,9 @@ Rectangle {
     RowLayout {
         anchors.verticalCenter: parent.verticalCenter
         anchors.left: styleRoot.alignment === "left" ? parent.left : undefined
-        anchors.leftMargin: styleRoot.alignment === "left" ? 12 : 0
+        anchors.leftMargin: styleRoot.alignment === "left" ? 14 : 0
         anchors.horizontalCenter: styleRoot.alignment === "left" ? undefined : parent.horizontalCenter
-        spacing: 8
+        spacing: 10
 
         Text {
             visible: styleRoot.iconText !== ""
@@ -36,7 +37,7 @@ Rectangle {
 
             font {
                 family: Theme.fontMono
-                pixelSize: 14
+                pixelSize: 16
             }
 
             Behavior on color {
@@ -55,7 +56,7 @@ Rectangle {
 
             font {
                 family: Theme.fontMain
-                pixelSize: 12
+                pixelSize: 13
                 bold: styleRoot.selected
             }
 

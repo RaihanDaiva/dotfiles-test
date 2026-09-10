@@ -12,20 +12,20 @@ Rectangle {
     default property alias defaultContent: rightContainer.data
 
     Layout.fillWidth: true
-    implicitHeight: 64
-    radius: 12
+    implicitHeight: 72
+    radius: 14
     color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.06)
     border.color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.1)
     border.width: 1
 
     RowLayout {
         anchors.fill: parent
-        anchors.margins: 12
-        spacing: 12
+        anchors.margins: 14
+        spacing: 14
 
         // 📝 LEFT COLUMN: TITLE & SUBTITLE
         ColumnLayout {
-            spacing: 2
+            spacing: 4
 
             Text {
                 visible: cardRoot.title !== ""
@@ -34,7 +34,7 @@ Rectangle {
 
                 font {
                     family: Theme.fontMain
-                    pixelSize: 13
+                    pixelSize: 15
                     bold: true
                 }
 
@@ -47,7 +47,7 @@ Rectangle {
 
                 font {
                     family: Theme.fontMain
-                    pixelSize: 11
+                    pixelSize: 12
                 }
 
             }
