@@ -69,15 +69,17 @@ layer-rule {
         blur false
     }
 }
-
-// 🪟 Layer rules for Quickshell overlays
+ 
+// 🪟 Layer rules for Quickshell overlays (Drop Shadow & Geometry Radius)
 layer-rule {
     match namespace="quickshell:popup"
+    geometry-corner-radius 18
     shadow {
         off
         softness 30
-        spread 5
-        offset x=0 y=4
+        spread 4
+        offset x=0 y=6
+        color "#00000080"
     }
 }
 

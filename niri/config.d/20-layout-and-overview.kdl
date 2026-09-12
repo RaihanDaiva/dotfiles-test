@@ -50,7 +50,7 @@ layout {
     focus-ring {
         on
         width 2
-        active-gradient from="#8BAA51" to="#AEA59E" angle=45
+        active-gradient from="#5B3CA1" to="#965ADD" angle=45
         inactive-color "transparent"
     }
 
@@ -64,12 +64,12 @@ layout {
     // If windows have CSD corners, you may need draw-behind-window or
     // geometry-corner-radius in a window-rule to avoid artifacts.
     shadow {
-        // off
-        softness 30
-        spread 5
-        offset x=0 y=5
-        color "#0007"
-        // draw-behind-window true
+        on
+        softness 20
+        spread 2
+        offset x=0 y=0
+        color "#00000099"
+        // inactive-color "#00000060"
     }
 
     // ── Struts ──────────────────────────────────────────────────────────────

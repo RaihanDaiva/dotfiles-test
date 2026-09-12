@@ -64,10 +64,14 @@ Rectangle {
 
     implicitWidth: 200
     implicitHeight: 66
-    radius: 16
-    color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.08)
-    border.color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.12)
+    radius: 25
+    color: sliderHover.hovered ? Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.14) : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.09)
+    border.color: sliderHover.hovered ? Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.24) : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.14)
     border.width: 1
+
+    HoverHandler {
+        id: sliderHover
+    }
 
     Process {
         id: audioSettingsProc
@@ -107,12 +111,19 @@ Rectangle {
             Text {
                 visible: trackMouseArea.containsMouse || trackMouseArea.pressed
                 text: Math.round(styleRoot.value) + styleRoot.valueSuffix
-                color: Qt.rgba(styleRoot.textColor.r, styleRoot.textColor.g, styleRoot.textColor.b, 0.6)
+                color: styleRoot.iconColor
 
                 font {
                     family: Theme.fontMain
                     pixelSize: 11
                     bold: true
+                }
+
+                Behavior on color {
+                    ColorAnimation {
+                        duration: 200
+                    }
+
                 }
 
             }
@@ -139,11 +150,18 @@ Rectangle {
 
                     anchors.centerIn: parent
                     text: styleRoot.leftIconGlyph
-                    color: leftIconHover.hovered ? styleRoot.textColor : Qt.rgba(styleRoot.textColor.r, styleRoot.textColor.g, styleRoot.textColor.b, 0.75)
+                    color: leftIconHover.hovered ? styleRoot.iconColor : Qt.rgba(styleRoot.iconColor.r, styleRoot.iconColor.g, styleRoot.iconColor.b, 0.85)
 
                     font {
                         family: Theme.fontMono
                         pixelSize: 15
+                    }
+
+                    Behavior on color {
+                        ColorAnimation {
+                            duration: 200
+                        }
+
                     }
 
                 }
@@ -253,11 +271,18 @@ Rectangle {
 
                     anchors.centerIn: parent
                     text: styleRoot.rightIconGlyph
-                    color: rightIconHover.hovered ? styleRoot.textColor : Qt.rgba(styleRoot.textColor.r, styleRoot.textColor.g, styleRoot.textColor.b, 0.75)
+                    color: rightIconHover.hovered ? styleRoot.iconColor : Qt.rgba(styleRoot.iconColor.r, styleRoot.iconColor.g, styleRoot.iconColor.b, 0.85)
 
                     font {
                         family: Theme.fontMono
                         pixelSize: 16
+                    }
+
+                    Behavior on color {
+                        ColorAnimation {
+                            duration: 200
+                        }
+
                     }
 
                 }

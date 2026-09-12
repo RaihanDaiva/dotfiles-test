@@ -58,7 +58,42 @@ Item {
 
                 }
 
-                // 1. Popup Opacity Slider
+                // 1. Popup Style Selector (Original vs macOS)
+                SettingCard {
+                    title: "Popup Style"
+                    subtitle: (SettingsStore.popupStyle === "macos") ? "macOS (Frameless Transparent)" : "Original (Crisp Rounded Border)"
+
+                    StyledButton {
+                        text: "Original"
+                        implicitWidth: 80
+                        implicitHeight: 36
+                        selected: SettingsStore.popupStyle !== "macos"
+                        onClicked: SettingsStore.popupStyle = "original"
+                    }
+
+                    StyledButton {
+                        text: "macOS"
+                        implicitWidth: 80
+                        implicitHeight: 36
+                        selected: SettingsStore.popupStyle === "macos"
+                        onClicked: SettingsStore.popupStyle = "macos"
+                    }
+
+                }
+
+                // 2. Enable Backdrop Blur Toggle
+                SettingCard {
+                    title: "Backdrop Blur"
+                    subtitle: SettingsStore.enableBlur ? "Enabled (Frosted Wallpaper Blur)" : "Disabled (Dark Tint Only)"
+
+                    StyledSwitch {
+                        checked: SettingsStore.enableBlur
+                        onCheckedChanged: SettingsStore.enableBlur = checked
+                    }
+
+                }
+
+                // 3. Popup Opacity Slider
                 SettingCard {
                     title: "Popup Opacity"
                     subtitle: Math.round(SettingsStore.popupOpacity * 100) + "%"

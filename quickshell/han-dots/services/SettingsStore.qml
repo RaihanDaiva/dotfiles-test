@@ -9,10 +9,11 @@ Item {
     id: store
 
     // 🪟 1. POPUP SETTINGS
-    property real popupOpacity: 0.94
+    property real popupOpacity: 0.72
     property int popupRadius: 18
     property int popupBorderWidth: 1
     property bool enableBlur: true
+    property string popupStyle: "macos" // "original" or "macos"
     property bool settingsPopupOpen: false
     // 🎨 2. THEME SETTINGS
     property bool isDarkMode: true
@@ -48,6 +49,7 @@ Item {
             "popupRadius": store.popupRadius,
             "popupBorderWidth": store.popupBorderWidth,
             "enableBlur": store.enableBlur,
+            "popupStyle": store.popupStyle,
             "settingsPopupOpen": store.settingsPopupOpen,
             "isDarkMode": store.isDarkMode,
             "mediaBlurBgEnabled": store.mediaBlurBgEnabled,
@@ -89,6 +91,7 @@ Item {
     onPopupRadiusChanged: saveSettings()
     onPopupBorderWidthChanged: saveSettings()
     onEnableBlurChanged: saveSettings()
+    onPopupStyleChanged: saveSettings()
     onSettingsPopupOpenChanged: saveSettings()
     onIsDarkModeChanged: saveSettings()
     onMediaBlurBgEnabledChanged: saveSettings()
@@ -148,6 +151,9 @@ Item {
 
                         if (cfg.enableBlur !== undefined)
                             store.enableBlur = cfg.enableBlur;
+
+                        if (cfg.popupStyle !== undefined)
+                            store.popupStyle = cfg.popupStyle;
 
                         if (cfg.isDarkMode !== undefined)
                             store.isDarkMode = cfg.isDarkMode;

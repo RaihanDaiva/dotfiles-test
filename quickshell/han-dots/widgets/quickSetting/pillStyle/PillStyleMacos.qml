@@ -20,9 +20,13 @@ Rectangle {
 
     anchors.fill: parent
     radius: height / 2
-    color: isActive ? (isSolid ? Theme.accent : Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.12)) : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.06)
-    border.color: isActive ? (isSolid ? Theme.accent : Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.3)) : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.1)
+    color: isActive ? (isSolid ? Theme.accent : Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.12)) : (pillHover.hovered ? Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.14) : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.06))
+    border.color: isActive ? (isSolid ? Theme.accent : Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.3)) : (pillHover.hovered ? Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.24) : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.1))
     border.width: 1
+
+    HoverHandler {
+        id: pillHover
+    }
 
     MouseArea {
         anchors.fill: parent
@@ -135,9 +139,9 @@ Rectangle {
                     running: titleBox.isOverflowing
                     easing.type: Easing.Linear
                     onRunningChanged: {
-                        if (!running) {
+                        if (!running)
                             xOffset = 0;
-                        }
+
                     }
                 }
 
@@ -198,9 +202,9 @@ Rectangle {
                     running: subtitleBox.isOverflowing
                     easing.type: Easing.Linear
                     onRunningChanged: {
-                        if (!running) {
+                        if (!running)
                             xOffset = 0;
-                        }
+
                     }
                 }
 

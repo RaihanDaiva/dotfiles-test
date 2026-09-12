@@ -1,5 +1,7 @@
+import "../../services"
 import "../../theme"
 import "../../widgets"
+import "../../widgets/quickSetting"
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Effects
@@ -495,6 +497,12 @@ BasePopup {
         id: btToggleProc
     }
 
+    Process {
+        id: screenshotProc
+
+        command: [Quickshell.configDir + "/scripts/take_screenshot.sh"]
+    }
+
     // ─── MAIN CONTAINER LAYOUT ────────────────────────────────────────────────
     ColumnLayout {
         id: mainColumn
@@ -693,31 +701,66 @@ BasePopup {
                 x: popupRoot.expandedMode === "" ? 0 : (popupRoot.expandedMode === "wifi_connect" ? -bodyContainer.width * 2 : -bodyContainer.width)
                 spacing: 10
 
-                // 🎛️ CONNECTIVITY PILLS
+                // 🎛️ CONNECTIVITY & MEDIA SECTION
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: 10
 
-                    // 📡 WI-FI PILL
-                    ControlPill {
+                    // Left Column (In macOS mode: Wi-Fi & Bluetooth stacked)
+                    ColumnLayout {
                         Layout.fillWidth: true
-                        iconText: popupRoot.wifiIcon
-                        titleText: "Wi-Fi"
-                        subtitleText: popupRoot.wifiEnabled ? popupRoot.wifiSSID : "Off"
-                        isActive: popupRoot.wifiEnabled
-                        isExpanded: popupRoot.expandedMode === "wifi" || popupRoot.expandedMode === "wifi_connect"
-                        onToggleClicked: {
-                            popupRoot.wifiEnabled = !popupRoot.wifiEnabled;
-                            wifiToggleProc.command = ["nmcli", "radio", "wifi", popupRoot.wifiEnabled ? "on" : "off"];
-                            wifiToggleProc.running = true;
+                        spacing: 10
+
+                        // 📡 WI-FI PILL
+                        ControlPill {
+                            Layout.fillWidth: true
+                            iconText: popupRoot.wifiIcon
+                            titleText: "Wi-Fi"
+                            subtitleText: popupRoot.wifiEnabled ? popupRoot.wifiSSID : "Off"
+                            isActive: popupRoot.wifiEnabled
+                            isExpanded: popupRoot.expandedMode === "wifi" || popupRoot.expandedMode === "wifi_connect"
+                            onToggleClicked: {
+                                popupRoot.wifiEnabled = !popupRoot.wifiEnabled;
+                                wifiToggleProc.command = ["nmcli", "radio", "wifi", popupRoot.wifiEnabled ? "on" : "off"];
+                                wifiToggleProc.running = true;
+                            }
+                            onExpandClicked: {
+                                popupRoot.expandedMode = "wifi";
+                            }
                         }
-                        onExpandClicked: {
-                            popupRoot.expandedMode = "wifi";
+
+                        // 󰂯 BLUETOOTH PILL (Stacked in macOS mode)
+                        ControlPill {
+                            visible: SettingsStore.quickSettingsStyle === "macos"
+                            Layout.fillWidth: true
+                            iconText: popupRoot.btIcon
+                            titleText: "Bluetooth"
+                            subtitleText: popupRoot.btStatus !== "off" ? popupRoot.btConnectedName : "Off"
+                            isActive: popupRoot.btStatus !== "off"
+                            isExpanded: popupRoot.expandedMode === "bt"
+                            onToggleClicked: {
+                                var turningOff = (popupRoot.btStatus !== "off");
+                                popupRoot.btStatus = turningOff ? "off" : "on";
+                                btToggleProc.command = ["bluetoothctl", "power", turningOff ? "off" : "on"];
+                                btToggleProc.running = true;
+                            }
+                            onExpandClicked: {
+                                popupRoot.expandedMode = "bt";
+                            }
                         }
+
                     }
 
-                    // 󰂯 BLUETOOTH PILL
+                    // 🎵 MEDIA TILE (macOS Control Center Now Playing card)
+                    MediaTile {
+                        visible: SettingsStore.quickSettingsStyle === "macos"
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                    }
+
+                    // 󰂯 BLUETOOTH PILL (Side-by-side with Wi-Fi in Android mode)
                     ControlPill {
+                        visible: SettingsStore.quickSettingsStyle !== "macos"
                         Layout.fillWidth: true
                         iconText: popupRoot.btIcon
                         titleText: "Bluetooth"
@@ -737,7 +780,7 @@ BasePopup {
 
                 }
 
-                // 🎛️ SECOND ROW: POWER MODE & DARK/LIGHT MODE PILLS
+                // 🎛️ SECOND ROW: POWER MODE & SCREENSHOT PILLS
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: 10
@@ -754,6 +797,45 @@ BasePopup {
                         onExpandClicked: popupRoot.cyclePowerProfile()
                     }
 
+                    // 📸 SCREENSHOT PILL
+                    ControlPill {
+                        Layout.fillWidth: true
+                        iconText: "󰹑"
+                        titleText: "Screenshot"
+                        subtitleText: "Capture"
+                        isActive: false
+                        showChevron: false
+                        onToggleClicked: {
+                            popupRoot.isOpen = false;
+                            screenshotProc.running = true;
+                        }
+                        onExpandClicked: {
+                            popupRoot.isOpen = false;
+                            screenshotProc.running = true;
+                        }
+                    }
+
+                }
+
+                // 🎛️ THIRD ROW: DUMMY / PLACEHOLDER & THEME PILLS
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 10
+
+                    // 🧩 DUMMY / PLACEHOLDER PILL (Untuk fitur mendatang)
+                    ControlPill {
+                        Layout.fillWidth: true
+                        iconText: "󰘵"
+                        titleText: "Feature"
+                        subtitleText: "Placeholder"
+                        isActive: false
+                        showChevron: false
+                        onToggleClicked: {
+                        }
+                        onExpandClicked: {
+                        }
+                    }
+
                     // 🌓 DARK / LIGHT MODE PILL
                     ControlPill {
                         Layout.fillWidth: true
@@ -767,7 +849,7 @@ BasePopup {
                     }
 
                 }
-
+  
                 // 🔆 BRIGHTNESS SLIDER 1 (PRIMARY / FIRST)
                 StyledSlider {
                     iconText: "󰃠"

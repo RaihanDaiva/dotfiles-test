@@ -3,7 +3,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
 import "../../theme"
-
+  
 // 🎚️ ON-SCREEN DISPLAY (OSD) POPUP OVERLAY CARD FOR VOLUME & BRIGHTNESS
 PanelWindow {
     id: osdRoot
