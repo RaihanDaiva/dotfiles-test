@@ -2,6 +2,7 @@ import "../../services"
 import "../../theme"
 import "../../widgets"
 import "../../widgets/quickSetting"
+import "../../widgets/quickSetting/header"
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Effects
@@ -91,6 +92,8 @@ BasePopup {
     // 🔆 BRIGHTNESS STARTUP READER — mencegah flash 100% sebelum brightness_info.sh selesai
     property int _qsBrightCur: -1
     property int _qsBrightMax: -1
+    readonly property real maxPopupHeight: 560
+    property real maxRecordedHeight: maxPopupHeight
 
     function cyclePowerProfile() {
         var next = "balanced";
@@ -122,9 +125,15 @@ BasePopup {
     targetItem: controlRootItem
     // 🔑 BIND WAYLAND KEYBOARD FOCUS FOR PASSWORD TEXT INPUT
     requiresKeyboardFocus: expandedMode === "wifi_connect"
+    onTargetCardHeightChanged: {
+        if (targetCardHeight > maxRecordedHeight)
+            maxRecordedHeight = targetCardHeight;
+
+    }
     // 📐 UKURAN POPUP
     implicitWidth: 360
-    implicitHeight: mainColumn.implicitHeight + 32
+    implicitHeight: maxRecordedHeight
+    targetCardHeight: mainColumn.implicitHeight + 32
     Component.onCompleted: {
         sysProc.running = true;
         wifiProc.running = true;
@@ -144,6 +153,15 @@ BasePopup {
             btProc.running = true;
             powerProfileGetProc.running = false;
             powerProfileGetProc.running = true;
+        }
+    }
+    onVisibleChanged: {
+        if (!visible) {
+            expandedMode = "";
+            connectingSSID = "";
+            connectStatusMsg = "";
+            isConnecting = false;
+            showPassword = false;
         }
     }
     // Trigger list load on expand
@@ -515,174 +533,17 @@ BasePopup {
             right: parent.right
         }
 
-        // 👤 1. USER PROFILE HEADER (FIXED AT TOP)
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: 10
-
-            // 👤 CIRCULAR USER AVATAR IMAGE WITH HD MIPMAPPING & PERFECT INSET MASK
-            Item {
-                implicitWidth: 44
-                implicitHeight: 44
-
-                Image {
-                    id: userAvatarImg
-
-                    readonly property var avatarPaths: [Quickshell.configDir + "/assets/image/avatar.png", Quickshell.configDir + "/assets/image/avatar.jpg", Quickshell.configDir + "/assets/image/avatar.jpeg", Quickshell.configDir + "/assets/image/profile.png", Quickshell.configDir + "/assets/image/user.png", "file://" + Quickshell.env("HOME") + "/.face", "file://" + Quickshell.env("HOME") + "/.face.icon"]
-                    property int pathIndex: 0
-
-                    anchors.fill: parent
-                    anchors.margins: 2
-                    fillMode: Image.PreserveAspectCrop
-                    smooth: true
-                    mipmap: true
-                    sourceSize: Qt.size(160, 160)
-                    visible: status === Image.Ready
-                    layer.enabled: true
-                    source: avatarPaths[0]
-                    onStatusChanged: {
-                        if (status === Image.Error) {
-                            if (pathIndex < avatarPaths.length - 1) {
-                                pathIndex++;
-                                source = avatarPaths[pathIndex];
-                            }
-                        }
-                    }
-
-                    layer.effect: MultiEffect {
-                        maskEnabled: true
-                        maskSource: avatarMask
-                    }
-
-                }
-
-                Rectangle {
-                    id: avatarMask
-
-                    anchors.fill: userAvatarImg
-                    radius: width / 2
-                    visible: false
-                    layer.enabled: true
-                }
-
-                // ⭕ BORDER RING LINGKARAN (DILUAR GAMBAR)
-                Rectangle {
-                    anchors.fill: parent
-                    radius: width / 2
-                    color: "transparent"
-                    border.color: Theme.accent
-                    border.width: 1.5
-                }
-
-                Text {
-                    anchors.centerIn: parent
-                    anchors.horizontalCenterOffset: 1
-                    text: "󰀉"
-                    color: Theme.accent
-                    visible: userAvatarImg.status !== Image.Ready
-
-                    font {
-                        family: Theme.fontMono
-                        pixelSize: 22
-                    }
-
-                }
+        // 👤 1. USER PROFILE HEADER (FIXED AT TOP - DYNAMIC ORIGINAL VS MACOS STYLE)
+        QuickSettingsHeader {
+            userNameText: popupRoot.userNameText
+            batIcon: popupRoot.batIcon
+            batCap: popupRoot.batCap
+            onGearClicked: {
+                popupRoot.isOpen = false;
+                if (typeof settingsPopup !== "undefined")
+                    settingsPopup.isOpen = true;
 
             }
-
-            ColumnLayout {
-                spacing: 1
-
-                Text {
-                    text: popupRoot.userNameText
-                    color: Theme.textMain
-
-                    font {
-                        family: Theme.fontMain
-                        pixelSize: 16
-                        bold: true
-                    }
-
-                }
-
-                RowLayout {
-                    spacing: 4
-
-                    Text {
-                        text: popupRoot.batIcon
-                        color: Theme.accent
-
-                        font {
-                            family: Theme.fontMono
-                            pixelSize: 13
-                        }
-
-                    }
-
-                    Text {
-                        text: popupRoot.batCap + "%"
-                        color: Theme.textMain
-
-                        font {
-                            family: Theme.fontMain
-                            pixelSize: 12
-                        }
-
-                    }
-
-                }
-
-            }
-
-            Item {
-                Layout.fillWidth: true
-            }
-
-            // ⚙️ ELEMENTS CUSTOMIZER GEAR BUTTON
-            Rectangle {
-                implicitWidth: 32
-                implicitHeight: 32
-                radius: 16
-                color: gearHover.hovered ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25) : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.08)
-                border.color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.3)
-                border.width: 1
-
-                Text {
-                    anchors.centerIn: parent
-                    text: "󰒓"
-                    color: Theme.accent
-
-                    font {
-                        family: Theme.fontMono
-                        pixelSize: 16
-                    }
-
-                }
-
-                HoverHandler {
-                    id: gearHover
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: {
-                        popupRoot.isOpen = false;
-                        if (typeof settingsPopup !== "undefined")
-                            settingsPopup.isOpen = true;
-
-                    }
-                }
-
-            }
-
-        }
-
-        // ➖ DIVIDER LINE (FIXED AT TOP)
-        Rectangle {
-            Layout.fillWidth: true
-            implicitHeight: 1
-            color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.15)
         }
 
         // 🎞️ 2. SLIDING BODY CONTAINER (WINDOWS 11 STYLE DRILL-DOWN NAVIGATION)
@@ -849,7 +710,7 @@ BasePopup {
                     }
 
                 }
-  
+
                 // 🔆 BRIGHTNESS SLIDER 1 (PRIMARY / FIRST)
                 StyledSlider {
                     iconText: "󰃠"
@@ -1656,14 +1517,6 @@ BasePopup {
 
             }
 
-        }
-
-    }
-
-    Behavior on implicitHeight {
-        NumberAnimation {
-            duration: 250
-            easing.type: Easing.OutCubic
         }
 
     }

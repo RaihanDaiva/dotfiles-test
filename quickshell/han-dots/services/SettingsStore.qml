@@ -23,7 +23,7 @@ Item {
     // 🔘 5. BUTTON & PILL STYLE SETTINGS
     property string buttonStyle: "solid"
     property int buttonRadius: 8
-    property string quickSettingsStyle: "android" // "android" or "macos"
+    readonly property string quickSettingsStyle: (popupStyle === "macos") ? "macos" : "android"
     property string pillStyle: "solid"
     // 🏛️ 6. STATUS BAR SETTINGS
     property real barOpacity: 0.65
@@ -98,7 +98,6 @@ Item {
     onMediaPlayerStyleChanged: saveSettings()
     onButtonStyleChanged: saveSettings()
     onButtonRadiusChanged: saveSettings()
-    onQuickSettingsStyleChanged: saveSettings()
     onPillStyleChanged: saveSettings()
     onBarOpacityChanged: saveSettings()
     onBarStyleChanged: saveSettings()
@@ -169,9 +168,6 @@ Item {
 
                         if (cfg.buttonRadius !== undefined)
                             store.buttonRadius = cfg.buttonRadius;
-
-                        if (cfg.quickSettingsStyle !== undefined)
-                            store.quickSettingsStyle = cfg.quickSettingsStyle;
 
                         if (cfg.pillStyle !== undefined)
                             store.pillStyle = cfg.pillStyle;

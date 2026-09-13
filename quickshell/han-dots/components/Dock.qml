@@ -6,8 +6,10 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Hyprland
 import Quickshell.Io
 import Quickshell.Wayland
+import Quickshell.Widgets
 
 // ⛵ APPLICATION DOCK SURFACE
 Scope {
@@ -27,30 +29,45 @@ Scope {
         "exec": "kitty",
         "appClass": "kitty"
     }, {
-        "name": "Zen Browser",
-        "icon": "zen-browser",
-        "exec": "zen-browser",
-        "appClass": "zen"
-    }, {
         "name": "Visual Studio Code",
         "icon": "vscode",
         "exec": "code",
         "appClass": "code"
-    }, {
-        "name": "Files",
-        "icon": "system-file-manager",
-        "exec": "thunar",
-        "appClass": "thunar"
-    }, {
+    },  {
+        "name": "Antigravity IDE",
+        "icon": "antigravity",
+        "exec": "antigravity-ide",
+        "appClass": "antigravity-ide"
+    },  {
+        "name": "Obdisidian",
+        "icon": "obsidian",
+        "exec": "obsidian",
+        "appClass": "obsidian"
+    },  {
+        "name": "Zen Browser",
+        "icon": "zen-browser",
+        "exec": "zen-browser",
+        "appClass": "zen"
+    },  {
         "name": "Spotify",
         "icon": "spotify",
         "exec": "spotify",
         "appClass": "spotify"
-    }, {
+    },  {
+        "name": "Files",
+        "icon": "system-file-manager",
+        "exec": "thunar",
+        "appClass": "thunar"
+    },  {
         "name": "Discord",
         "icon": "discord",
         "exec": "vesktop",
         "appClass": "vesktop"
+    },  {
+        "name": "OBS Studio",
+        "icon": "obs",
+        "exec": "obs",
+        "appClass": "obs"
     }]
     property var openWindows: []
     property var dockItems: []
@@ -69,6 +86,22 @@ Scope {
             isRevealedState = true;
         } else {
             autoHideTimer.restart();
+        }
+    }
+
+    function focusWindow(win) {
+        if (!win)
+            return ;
+
+        if (dockScope.isNiri) {
+            if (win.id !== undefined)
+                Quickshell.execDetached(["niri", "msg", "action", "focus-window", "--id", win.id.toString()]);
+
+        } else {
+            var addr = win.address || win.id;
+            if (addr)
+                Quickshell.execDetached(["bash", "-c", "hyprctl dispatch 'hl.dsp.focus({ window = \"address:" + addr + "\" })' || hyprctl dispatch focuswindow address:" + addr]);
+
         }
     }
 
@@ -93,7 +126,7 @@ Scope {
             return "firefox";
 
         if (cls.indexOf("zen") !== -1)
-            return "firefox";
+            return "zen-browser";
 
         if (cls.indexOf("brave") !== -1)
             return "brave-browser";
@@ -128,6 +161,16 @@ Scope {
         if (cls.indexOf("inkscape") !== -1)
             return "inkscape";
 
+        if (typeof DesktopEntries !== "undefined" && DesktopEntries.applications) {
+            for (var i = 0; i < DesktopEntries.applications.values.length; i++) {
+                var app = DesktopEntries.applications.values[i];
+                if (app && app.id && app.id.toLowerCase().indexOf(cls) !== -1) {
+                    if (app.icon)
+                        return app.icon;
+
+                }
+            }
+        }
         return cls;
     }
 
@@ -143,7 +186,23 @@ Scope {
                 var w = dockScope.openWindows[j];
                 var cls = (w.app_id || w.title || "").toLowerCase();
                 var targetCls = (pin.appClass || "").toLowerCase();
-                if (cls.indexOf(targetCls) !== -1) {
+                var isMatch = cls.indexOf(targetCls) !== -1;
+                if (!isMatch && pin.name && pin.name.toLowerCase() === "discord") {
+                    if (cls.indexOf("discord") !== -1 || cls.indexOf("vesktop") !== -1)
+                        isMatch = true;
+
+                }
+                if (!isMatch && pin.name && pin.name.toLowerCase() === "terminal") {
+                    if (cls.indexOf("kitty") !== -1 || cls.indexOf("alacritty") !== -1 || cls.indexOf("foot") !== -1)
+                        isMatch = true;
+
+                }
+                if (!isMatch && pin.name && pin.name.toLowerCase().indexOf("code") !== -1) {
+                    if (cls.indexOf("code") !== -1 || cls.indexOf("vscodium") !== -1)
+                        isMatch = true;
+
+                }
+                if (isMatch) {
                     matchingWins.push(w);
                     if (w.is_focused || w.is_active)
                         isFocused = true;
@@ -198,6 +257,10 @@ Scope {
             }
         }
         dockScope.dockItems = items;
+    }
+
+    Component.onCompleted: {
+        dockScope.updateDockItems();
     }
 
     Timer {
@@ -317,6 +380,61 @@ Scope {
         color: "transparent"
         visible: SettingsStore.dockEnabled
 
+        // 📡 HYPRLAND WINDOWS IPC STREAMER
+        Process {
+            id: hyprWinProc
+
+            command: ["hyprctl", "clients", "-j"]
+            running: !dockScope.isNiri && SettingsStore.dockEnabled
+
+            stdout: StdioCollector {
+                onStreamFinished: {
+                    try {
+                        var data = JSON.parse(this.text);
+                        if (Array.isArray(data)) {
+                            var formatted = [];
+                            for (var i = 0; i < data.length; i++) {
+                                var c = data[i];
+                                if (!c)
+                                    continue;
+
+                                if (c.mapped === false || c.hidden === true)
+                                    continue;
+
+                                formatted.push({
+                                    "id": c.address,
+                                    "address": c.address,
+                                    "app_id": c.class || c.initialClass || "",
+                                    "title": c.title || "",
+                                    "is_focused": c.focusHistoryID === 0,
+                                    "is_active": c.focusHistoryID === 0,
+                                    "workspace": c.workspace,
+                                    "pid": c.pid
+                                });
+                            }
+                            dockScope.openWindows = formatted;
+                            dockScope.updateDockItems();
+                        }
+                    } catch (e) {
+                    }
+                }
+            }
+
+        }
+
+        // ⚡ REAL-TIME HYPRLAND EVENT LISTENER
+        Connections {
+            function onRawEvent(event) {
+                if (SettingsStore.dockEnabled) {
+                    hyprWinProc.running = false;
+                    hyprWinProc.running = true;
+                }
+            }
+
+            target: Hyprland
+            enabled: !dockScope.isNiri
+        }
+
         // 📡 NIRI WINDOWS IPC STREAMER
         Process {
             id: niriWinProc
@@ -362,9 +480,15 @@ Scope {
             repeat: true
             triggeredOnStart: true
             onTriggered: {
-                if (dockScope.isNiri && !niriWinProc.running)
-                    niriWinProc.running = true;
+                if (dockScope.isNiri) {
+                    if (!niriWinProc.running)
+                        niriWinProc.running = true;
 
+                } else {
+                    if (!hyprWinProc.running)
+                        hyprWinProc.running = true;
+
+                }
             }
         }
 
@@ -380,8 +504,8 @@ Scope {
             width: dockRow.implicitWidth + 24
             height: 64
             radius: 22
-            color: Qt.rgba(Theme.bgDark.r, Theme.bgDark.g, Theme.bgDark.b, SettingsStore.barOpacity)
-            border.color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.3)
+            color: Qt.rgba(Theme.bgDark.r, Theme.bgDark.g, Theme.bgDark.b, SettingsStore.dockBlurEnabled ? 0.35 : SettingsStore.barOpacity)
+            border.color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, SettingsStore.dockBlurEnabled ? 0.25 : 0.3)
             border.width: 1
 
             HoverHandler {
@@ -394,7 +518,7 @@ Scope {
                 id: dockRow
 
                 anchors.centerIn: parent
-                spacing: 12
+                spacing: 5
 
                 Repeater {
                     model: dockScope.dockItems
@@ -404,8 +528,8 @@ Scope {
 
                         property var appData: modelData
 
-                        implicitWidth: 48
-                        implicitHeight: 48
+                        implicitWidth: 58
+                        implicitHeight: 58
 
                         Item {
                             id: iconContainer
@@ -416,8 +540,8 @@ Scope {
                             Image {
                                 anchors.centerIn: parent
                                 source: dockItem.appData.icon ? (dockItem.appData.icon.indexOf("/") !== -1 ? "file://" + dockItem.appData.icon : "image://icon/" + dockItem.appData.icon) : "image://icon/application-x-executable"
-                                width: 38
-                                height: 38
+                                width: 48
+                                height: 48
                                 fillMode: Image.PreserveAspectFit
                                 smooth: true
                                 mipmap: true
@@ -498,12 +622,9 @@ Scope {
                                         }
                                         // Rotasi ke window berikutnya satu-per-satu (Window 1 -> 2 -> 3 -> 1)
                                         var nextIdx = (focusedIdx + 1) % wins.length;
-                                        var targetWin = wins[nextIdx];
-                                        if (targetWin && targetWin.id !== undefined)
-                                            Quickshell.execDetached(["niri", "msg", "action", "focus-window", "--id", targetWin.id.toString()]);
-
-                                    } else if (dockItem.appData.primaryWin && dockItem.appData.primaryWin.id !== undefined) {
-                                        Quickshell.execDetached(["niri", "msg", "action", "focus-window", "--id", dockItem.appData.primaryWin.id.toString()]);
+                                        dockScope.focusWindow(wins[nextIdx]);
+                                    } else if (dockItem.appData.primaryWin) {
+                                        dockScope.focusWindow(dockItem.appData.primaryWin);
                                     } else {
                                         // Aplikasi belum terbuka -> jalankan exec
                                         Quickshell.execDetached(["bash", "-c", dockItem.appData.exec]);

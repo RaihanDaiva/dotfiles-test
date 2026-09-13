@@ -32,12 +32,12 @@ hl.layer_rule({
     name       = "quickshell-dock-blur",
     match      = { namespace = "^quickshell:dock$" },
     blur       = true,
-    ignore_alpha = 1.0,
+    ignore_alpha = 0.02,
 })
 
 hl.layer_rule({
     name       = "quickshell-popup-blur",
     match      = { namespace = "^quickshell:popup$" },
     blur       = true,
-    ignore_alpha = 1.0,
+    ignore_alpha = 0.02,
 })

@@ -1,17 +1,26 @@
+import "../../components/popups"
+import "../../components/popups/calendarPopup"
+import "../../theme"
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import "../../theme"
-import "../../components/popups"
 
 Item {
     id: clockRoot
 
     property var barWindow: null
 
+    function updateClock() {
+        timeText.text = Qt.formatDateTime(new Date(), "hh : mm");
+    }
+
+    implicitWidth: clockPill.implicitWidth
+    implicitHeight: 32
+
     // ⏱️ TIMER DELAY HOVER POPUP
     Timer {
         id: closeTimer
+
         interval: 300
         onTriggered: calendarPopup.isOpen = false
     }
@@ -19,19 +28,17 @@ Item {
     // 🪟 SUB-KOMPONEN 1: CALENDAR POPUP HOVER CARD (Dari components/popups/)
     CalendarPopup {
         id: calendarPopup
+
         barWindow: clockRoot.barWindow
         clockRootItem: clockRoot
-
         onKeepOpen: closeTimer.stop()
         onStartCloseTimer: closeTimer.restart()
     }
 
-    implicitWidth: clockPill.implicitWidth
-    implicitHeight: 32
-
     // 🧠🌡️ PILL RECTANGLE HOVER EFEK (PERSIS DENGAN SYSTEMSTATS)
     Rectangle {
         id: clockPill
+
         anchors.centerIn: parent
         implicitWidth: middleContent.implicitWidth + 16
         implicitHeight: 26
@@ -40,32 +47,33 @@ Item {
         border.color: (clockMouseArea.containsMouse || calendarPopup.isOpen) ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.3) : "transparent"
         border.width: 1
 
-        Behavior on color { ColorAnimation { duration: 150 } }
-        Behavior on border.color { ColorAnimation { duration: 150 } }
-
         // 🖱️ MOUSEAREA HOVER POPUP TRIGGER
         MouseArea {
             id: clockMouseArea
+
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
             onEntered: {
-                closeTimer.stop()
-                calendarPopup.isOpen = true
+                closeTimer.stop();
+                calendarPopup.isOpen = true;
             }
             onExited: {
-                closeTimer.restart()
+                closeTimer.restart();
             }
         }
 
         RowLayout {
             id: middleContent
+
             anchors.centerIn: parent
             spacing: 6
 
             Text {
                 id: timeText
+
                 color: Theme.textMain
+
                 font {
                     family: Theme.fontMain
                     pixelSize: 18
@@ -77,13 +85,27 @@ Item {
                         duration: 200
                         easing.type: Easing.InOutQuad
                     }
-                }
-            }
-        }
-    }
 
-    function updateClock() {
-        timeText.text = Qt.formatDateTime(new Date(), "hh : mm")
+                }
+
+            }
+
+        }
+
+        Behavior on color {
+            ColorAnimation {
+                duration: 150
+            }
+
+        }
+
+        Behavior on border.color {
+            ColorAnimation {
+                duration: 150
+            }
+
+        }
+
     }
 
     Timer {
@@ -93,4 +115,5 @@ Item {
         triggeredOnStart: true
         onTriggered: updateClock()
     }
+
 }

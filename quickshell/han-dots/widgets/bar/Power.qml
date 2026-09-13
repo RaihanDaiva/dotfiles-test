@@ -1,7 +1,8 @@
+import "../../components/popups"
+import "../../components/popups/powerPopup"
+import "../../theme"
 import QtQuick
 import Quickshell
-import "../../components/popups"
-import "../../theme"
 
 // 🔌 STANDALONE POWER BUTTON BAR WIDGET
 Item {
@@ -15,16 +16,17 @@ Item {
     // 🔌 POWER MENU POPUP DROPDOWN
     PowerPopup {
         id: powerPopup
+
         barWindow: powerWidgetRoot.barWindow
         targetItem: powerPill
         userNameText: "Han"
-
         onKeepOpen: closePowerTimer.stop()
         onStartCloseTimer: closePowerTimer.restart()
     }
 
     Timer {
         id: closePowerTimer
+
         interval: 300
         onTriggered: powerPopup.isOpen = false
     }
@@ -32,6 +34,7 @@ Item {
     // 📦 STANDALONE POWER PILL CONTAINER
     Rectangle {
         id: powerPill
+
         implicitWidth: 26
         implicitHeight: 26
         radius: 13
@@ -39,33 +42,57 @@ Item {
         border.color: (powerMouseArea.containsMouse || powerPopup.isOpen) ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.3) : "transparent"
         border.width: 1
 
-        Behavior on color { ColorAnimation { duration: 150 } }
-        Behavior on border.color { ColorAnimation { duration: 150 } }
-
         Text {
             anchors.centerIn: parent
             anchors.horizontalCenterOffset: 0
             text: "󰐥"
             color: (powerMouseArea.containsMouse || powerPopup.isOpen) ? Theme.accent : Theme.accent
-            font { family: Theme.fontMono; pixelSize: 18 }
 
-            Behavior on color { ColorAnimation { duration: 150 } }
+            font {
+                family: Theme.fontMono
+                pixelSize: 18
+            }
+
+            Behavior on color {
+                ColorAnimation {
+                    duration: 150
+                }
+
+            }
+
         }
 
         MouseArea {
             id: powerMouseArea
+
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
             onEntered: {
-                closePowerTimer.stop()
+                closePowerTimer.stop();
             }
             onExited: {
-                closePowerTimer.restart()
+                closePowerTimer.restart();
             }
             onClicked: {
-                powerPopup.isOpen = !powerPopup.isOpen
+                powerPopup.isOpen = !powerPopup.isOpen;
             }
         }
+
+        Behavior on color {
+            ColorAnimation {
+                duration: 150
+            }
+
+        }
+
+        Behavior on border.color {
+            ColorAnimation {
+                duration: 150
+            }
+
+        }
+
     }
+
 }

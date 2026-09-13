@@ -1,0 +1,3 @@
+module wallpaperStyle
+WallpaperStyleOriginal 1.0 WallpaperStyleOriginal.qml
+WallpaperStyleMacos 1.0 WallpaperStyleMacos.qml

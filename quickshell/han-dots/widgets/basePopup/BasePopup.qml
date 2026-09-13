@@ -8,7 +8,7 @@ import Quickshell.Wayland
 // 🪟 REUSABLE BASE POPUP SHELL (Modular Multi-Style PanelWindow)
 PanelWindow {
     id: popupRoot
-        
+
     // 🎯 PROPERTY REUSABLE
     property var barWindow: null
     property var targetItem: null
@@ -19,6 +19,7 @@ PanelWindow {
     property alias cardMargins: contentContainer.anchors.margins
     property alias cardRadius: popupCard.radius
     property bool requiresKeyboardFocus: false
+    property real targetCardHeight: -1
 
     // Signals untuk hover timer parent widget
     signal keepOpen()
@@ -38,8 +39,8 @@ PanelWindow {
             "screenWidth": (popupRoot.screen && popupRoot.screen.width > 0) ? popupRoot.screen.width : 1920,
             "screenHeight": (popupRoot.screen && popupRoot.screen.height > 0) ? popupRoot.screen.height : 1080
         });
-    }  
-                  
+    }
+   
     function updateProps() {
         if (styleLoader.item) {
             styleLoader.item.cardRadius = popupRoot.cardRadius;
@@ -52,7 +53,7 @@ PanelWindow {
             styleLoader.item.screenHeight = (popupRoot.screen && popupRoot.screen.height > 0) ? popupRoot.screen.height : 1080;
         }
     }
- 
+
     // 📐 Kalkulasi Posisi Dinamis (Smart Auto-Centering & Clamp ke Ujung Bar / Screen)
     function updatePosition() {
         if (!targetItem)
@@ -109,13 +110,16 @@ PanelWindow {
     visible: isOpen || hideAnim.running
     Component.onCompleted: updateStyle()
     onPopupStyleChanged: updateStyle()
-    mask: popupRoot.popupStyle === "original" ? cardRegion : null
+    mask: (popupRoot.popupStyle === "original" || popupRoot.targetCardHeight > 0) ? cardRegion : null
 
     // 🪟 KARTU VISUAL POPUP
     Rectangle {
         id: popupCard
 
-        anchors.fill: parent
+        anchors.top: parent.top
+        anchors.horizontalCenter: parent.horizontalCenter
+        width: parent.width
+        height: popupRoot.targetCardHeight > 0 ? popupRoot.targetCardHeight : parent.height
         color: "transparent"
         radius: SettingsStore.popupRadius
         // 🌟 1. FADE ANIMATION (ENTER & EXIT)

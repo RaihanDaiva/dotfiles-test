@@ -215,66 +215,6 @@ Item {
 
             }
 
-            // -------------------------------------------------------------
-            // 🎛️ SECTION 3: QUICK SETTING POPUP SETTINGS
-            // -------------------------------------------------------------
-            ColumnLayout {
-                Layout.fillWidth: true
-                spacing: 10
-
-                RowLayout {
-                    spacing: 8
-
-                    Text {
-                        text: "󰒓"
-                        color: Theme.accent
-
-                        font {
-                            family: Theme.fontMono
-                            pixelSize: 18
-                        }
-
-                    }
-
-                    Text {
-                        text: "Quick Setting Popup"
-                        color: Theme.accent
-
-                        font {
-                            family: Theme.fontMain
-                            pixelSize: 16
-                            bold: true
-                        }
-
-                    }
-
-                }
-
-                // 1. QuickSettings Pill Shape Selector
-                SettingCard {
-                    title: "QuickSettings Pill Shape"
-                    subtitle: (SettingsStore.quickSettingsStyle === "macos") ? "MacOS Style (Capsule Rounded)" : "Android Style (Material 3 16px)"
-
-                    StyledButton {
-                        text: "Android"
-                        implicitWidth: 80
-                        implicitHeight: 36
-                        selected: SettingsStore.quickSettingsStyle === "android"
-                        onClicked: SettingsStore.quickSettingsStyle = "android"
-                    }
-
-                    StyledButton {
-                        text: "MacOS"
-                        implicitWidth: 80
-                        implicitHeight: 36
-                        selected: SettingsStore.quickSettingsStyle === "macos"
-                        onClicked: SettingsStore.quickSettingsStyle = "macos"
-                    }
-
-                }
-
-            }
-
         }
 
         ScrollBar.vertical: StyledScrollBar {

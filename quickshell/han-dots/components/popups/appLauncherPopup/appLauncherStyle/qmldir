@@ -1,0 +1,3 @@
+module appLauncherStyle
+AppLauncherStyleOriginal 1.0 AppLauncherStyleOriginal.qml
+AppLauncherStyleMacos 1.0 AppLauncherStyleMacos.qml

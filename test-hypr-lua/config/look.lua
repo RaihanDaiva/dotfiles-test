@@ -3,33 +3,28 @@
 -- =============================================================================
 
 -- Dynamically load Pywal color scheme from current wallpaper cache if available
-local active_border = { colors = { "rgb(33ccff)", "rgb(00ff99)" }, angle = 45 }
-local inactive_border = "rgb(595959)"
+local active_border = "rgb(8baa51)"
+local inactive_border = "rgba(595959aa)"
 
 local wal_sh_path = (os.getenv("HOME") or "/home/han") .. "/.cache/wal/colors.sh"
 local wal_file = io.open(wal_sh_path, "r")
 if wal_file then
-    local color11, color14, color1
+    local color11
     for line in wal_file:lines() do
         local key, val = line:match("^([%w_]+)='%#?([%x]+)'")
         if key == "color11" then color11 = val end
-        if key == "color14" then color14 = val end
-        if key == "color1"  then color1  = val end
     end
     wal_file:close()
 
-    if color11 and color14 then
-        active_border = { colors = { "rgb(" .. color11 .. ")", "rgb(" .. color14 .. ")" }, angle = 45 }
-    end
-    if color1 then
-        inactive_border = "rgb(" .. color1 .. ")"
+    if color11 then
+        active_border = "rgb(" .. color11 .. ")"
     end
 end
 
 hl.config({
     general = {
         gaps_in  = 5,
-        gaps_out = 10,
+        gaps_out = {top = 0, right = 10, bottom = 10, left = 10},
         border_size = 2,
         resize_on_border = false,
         allow_tearing = false,
@@ -72,13 +67,38 @@ hl.config({
     },
 })
 
--- Animation curves
-hl.curve("myBezier", { type = "bezier", points = { { 0.05, 0.9 }, { 0.1, 1.05 } } })
+-- =============================================================================
+-- 🎬 ANIMATION CURVES & BEZIERS (hl.curve)
+-- =============================================================================
+hl.curve("wind",         { type = "bezier", points = { { 0.05, 1.0 }, { 0.1, 1.0 } } })
+hl.curve("winIn",        { type = "bezier", points = { { 0.1, 1.1 },  { 0.1, 1.0 } } })
+hl.curve("winOut",       { type = "bezier", points = { { 0.3, 0.0 },  { 0.1, 1.0 } } })
+hl.curve("liner",        { type = "bezier", points = { { 1.0, 1.0 },  { 1.0, 1.0 } } })
+hl.curve("almostLinear", { type = "bezier", points = { { 0.5, 0.5 },  { 0.75, 1.0 } } })
 
--- Animations
-hl.animation({ leaf = "windows",     enabled = true, speed = 7,  bezier = "myBezier" })
-hl.animation({ leaf = "windowsOut",  enabled = true, speed = 7,  bezier = "default", style = "popin 80%" })
-hl.animation({ leaf = "border",      enabled = true, speed = 10, bezier = "default" })
-hl.animation({ leaf = "borderangle", enabled = true, speed = 8,  bezier = "default" })
-hl.animation({ leaf = "fade",        enabled = true, speed = 7,  bezier = "default" })
-hl.animation({ leaf = "workspaces",  enabled = true, speed = 6,  bezier = "default" })
+-- =============================================================================
+-- 🎞️ ANIMATIONS (hl.animation)
+-- =============================================================================
+-- Windows
+hl.animation({ leaf = "windows",     enabled = true, speed = 6,    bezier = "wind",         style = "slide" })
+hl.animation({ leaf = "windowsIn",   enabled = true, speed = 6,    bezier = "winIn",        style = "slide" })
+hl.animation({ leaf = "windowsOut",  enabled = true, speed = 5,    bezier = "winOut",       style = "slide" })
+hl.animation({ leaf = "windowsMove", enabled = true, speed = 5,    bezier = "wind",         style = "slide" })
+
+-- Borders
+hl.animation({ leaf = "border",      enabled = true, speed = 1,    bezier = "liner" })
+hl.animation({ leaf = "borderangle", enabled = false })
+
+-- Layers (Popups, Overlays)
+hl.animation({ leaf = "layers",      enabled = true, speed = 6,    bezier = "wind",         style = "popin 90%" })
+hl.animation({ leaf = "layersIn",    enabled = true, speed = 6,    bezier = "winIn",        style = "popin 90%" })
+hl.animation({ leaf = "layersOut",   enabled = true, speed = 2,    bezier = "winOut",       style = "popin 90%" })
+
+-- Workspaces
+hl.animation({ leaf = "workspaces",       enabled = true, speed = 5, bezier = "wind" })
+hl.animation({ leaf = "specialWorkspace",  enabled = true, speed = 5, bezier = "wind",     style = "slidevert 15%" })
+
+-- Fade
+hl.animation({ leaf = "fadeIn",      enabled = true, speed = 1.73, bezier = "almostLinear" })
+hl.animation({ leaf = "fadeOut",     enabled = true, speed = 1.46, bezier = "almostLinear" })
+hl.animation({ leaf = "fade",        enabled = true, speed = 3.03, bezier = "almostLinear" })
