@@ -205,7 +205,7 @@ Scope {
                 anchors.centerIn: parent
                 spacing: 8
 
-                MouseBattery {
+                DeviceBattery {
                 }
 
                 SystemStats {

@@ -79,7 +79,7 @@ PanelWindow {
         anchors.rightMargin: 10
         spacing: 8
 
-        MouseBattery {
+        DeviceBattery {
         }
 
         SystemStats {
