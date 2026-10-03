@@ -14,14 +14,11 @@ Item {
     property string searchQuery: ""
     property var iconSourceCallback: null
     property bool isOpen: false
+    property var keyHandler: null
 
     signal appClicked(int index)
     signal appHovered(int index)
     signal searchTextChanged(string text)
-    signal upPressed()
-    signal downPressed()
-    signal returnPressed()
-    signal escapePressed()
 
     function focusInput() {
         searchInput.forceActiveFocus();
@@ -283,10 +280,11 @@ Item {
                     onTextChanged: {
                         styleRoot.searchTextChanged(text);
                     }
-                    Keys.onUpPressed: styleRoot.upPressed()
-                    Keys.onDownPressed: styleRoot.downPressed()
-                    Keys.onReturnPressed: styleRoot.returnPressed()
-                    Keys.onEscapePressed: styleRoot.escapePressed()
+                    Keys.onPressed: (event) => {
+                        if (styleRoot.keyHandler)
+                            styleRoot.keyHandler(event);
+
+                    }
 
                     font {
                         family: Theme.fontMain

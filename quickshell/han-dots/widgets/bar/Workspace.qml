@@ -75,9 +75,6 @@ Rectangle {
             pillUpdateTimer.restart();
             // Local workspace index on target monitor (1..5)
             var localIdx = targetWsId >= 6 ? (targetWsId - 5) : targetWsId;
-            if (root.screenName)
-                Quickshell.execDetached(["niri", "msg", "action", "focus-monitor", root.screenName]);
-
             Quickshell.execDetached(["niri", "msg", "action", "focus-workspace", localIdx.toString()]);
         } else {
             Hyprland.dispatch("workspace " + targetWsId);

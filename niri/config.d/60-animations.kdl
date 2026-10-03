@@ -122,7 +122,7 @@ animations {
 
             vec4 close_color(vec3 coords_geo, vec3 size_geo) {
                 return close_circular_iris_tl(coords_geo, size_geo);
-            }
+            }  
         "
     }
 

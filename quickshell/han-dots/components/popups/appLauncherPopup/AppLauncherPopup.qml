@@ -97,6 +97,64 @@ PanelWindow {
         }
     }
 
+    function navigateUp() {
+        if (launcherPopup.selectedIndex > 0) {
+            launcherPopup.selectedIndex--;
+            if (styleLoader.item && typeof styleLoader.item.positionVisible === "function")
+                styleLoader.item.positionVisible(launcherPopup.selectedIndex);
+
+        }
+    }
+
+    function navigateDown() {
+        if (launcherPopup.selectedIndex < launcherPopup.filteredApps.length - 1) {
+            launcherPopup.selectedIndex++;
+            if (styleLoader.item && typeof styleLoader.item.positionVisible === "function")
+                styleLoader.item.positionVisible(launcherPopup.selectedIndex);
+
+        }
+    }
+
+    function handleKey(event) {
+        var isShift = (event.modifiers & Qt.ShiftModifier);
+        var isCtrl = (event.modifiers & Qt.ControlModifier);
+        // 1. Vim Navigation (Shift / Ctrl + H, J, K, L)
+        if (isShift || isCtrl) {
+            if (event.key === Qt.Key_J || event.key === Qt.Key_L) {
+                launcherPopup.navigateDown();
+                event.accepted = true;
+                return true;
+            } else if (event.key === Qt.Key_K || event.key === Qt.Key_H) {
+                launcherPopup.navigateUp();
+                event.accepted = true;
+                return true;
+            } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                launcherPopup.launchSelected();
+                event.accepted = true;
+                return true;
+            }
+        }
+        // 2. Standard Arrow & Action Keys
+        if (event.key === Qt.Key_Up) {
+            launcherPopup.navigateUp();
+            event.accepted = true;
+            return true;
+        } else if (event.key === Qt.Key_Down) {
+            launcherPopup.navigateDown();
+            event.accepted = true;
+            return true;
+        } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+            launcherPopup.launchSelected();
+            event.accepted = true;
+            return true;
+        } else if (event.key === Qt.Key_Escape) {
+            launcherPopup.isOpen = false;
+            event.accepted = true;
+            return true;
+        }
+        return false;
+    }
+
     exclusionMode: ExclusionMode.Ignore
     // 🏷️ Wayland LayerShell Configuration (Bottom-Center Overlay)
     WlrLayershell.namespace: "quickshell:popup"
@@ -217,28 +275,7 @@ PanelWindow {
                             styleLoader.item.positionTop();
 
                     });
-                    item.upPressed.connect(function() {
-                        if (launcherPopup.selectedIndex > 0) {
-                            launcherPopup.selectedIndex--;
-                            if (styleLoader.item && typeof styleLoader.item.positionVisible === "function")
-                                styleLoader.item.positionVisible(launcherPopup.selectedIndex);
-
-                        }
-                    });
-                    item.downPressed.connect(function() {
-                        if (launcherPopup.selectedIndex < launcherPopup.filteredApps.length - 1) {
-                            launcherPopup.selectedIndex++;
-                            if (styleLoader.item && typeof styleLoader.item.positionVisible === "function")
-                                styleLoader.item.positionVisible(launcherPopup.selectedIndex);
-
-                        }
-                    });
-                    item.returnPressed.connect(function() {
-                        launcherPopup.launchSelected();
-                    });
-                    item.escapePressed.connect(function() {
-                        launcherPopup.isOpen = false;
-                    });
+                    item.keyHandler = launcherPopup.handleKey;
                     if (launcherPopup.isOpen && typeof item.focusInput === "function")
                         item.focusInput();
 

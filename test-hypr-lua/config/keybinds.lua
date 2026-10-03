@@ -57,6 +57,8 @@ for i = 1, 10 do
     hl.bind(mainMod .. " + SHIFT + " .. key, hl.dsp.window.move({ workspace = i }))
 end
 hl.bind(mainMod .. " + Tab", hl.dsp.focus({ workspace = "previous" }))
+hl.bind(mainMod .. " + CTRL + L", hl.dsp.focus({ workspace = "e+1" }))
+hl.bind(mainMod .. " + CTRL + H",   hl.dsp.focus({ workspace = "e-1" }))
 
 -- Special Scratchpad Workspace
 hl.bind(mainMod .. " + S",       hl.dsp.workspace.toggle_special("magic"))

@@ -42,9 +42,7 @@ Scope {
         implicitHeight: 40
         color: "transparent"
 
-        mask: Region {
-        } 
-
+        mask: Region {}
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -93,7 +91,6 @@ Scope {
                 MediaPlayer {
                     barWindow: leftBarWindow
                 }
-
             }
 
             Behavior on color {
@@ -101,15 +98,12 @@ Scope {
                     duration: 200
                     easing.type: Easing.InOutQuad
                 }
-
             }
-
         }
 
         mask: Region {
             item: leftCard
         }
-
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -156,15 +150,12 @@ Scope {
                     duration: 200
                     easing.type: Easing.InOutQuad
                 }
-
             }
-
         }
 
         mask: Region {
             item: centerCard
         }
-
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -220,7 +211,6 @@ Scope {
                 Power {
                     barWindow: rightBarWindow
                 }
-
             }
 
             Behavior on color {
@@ -228,15 +218,11 @@ Scope {
                     duration: 200
                     easing.type: Easing.InOutQuad
                 }
-
             }
-
         }
 
         mask: Region {
             item: rightCard
         }
-
     }
-
 }

@@ -14,14 +14,11 @@ Rectangle {
     property string searchQuery: ""
     property string activeWallpaperPath: ""
     property bool isOpen: false
+    property var keyHandler: null
 
     signal wallpaperClicked(int index)
     signal wallpaperHovered(int index)
     signal searchTextChanged(string text)
-    signal leftPressed()
-    signal rightPressed()
-    signal returnPressed()
-    signal escapePressed()
 
     function focusInput() {
         searchInput.forceActiveFocus();
@@ -212,10 +209,11 @@ Rectangle {
                     onTextChanged: {
                         styleRoot.searchTextChanged(text);
                     }
-                    Keys.onLeftPressed: styleRoot.leftPressed()
-                    Keys.onRightPressed: styleRoot.rightPressed()
-                    Keys.onReturnPressed: styleRoot.returnPressed()
-                    Keys.onEscapePressed: styleRoot.escapePressed()
+                    Keys.onPressed: (event) => {
+                        if (styleRoot.keyHandler)
+                            styleRoot.keyHandler(event);
+
+                    }
 
                     font {
                         family: Theme.fontMain

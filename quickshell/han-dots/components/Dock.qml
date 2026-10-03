@@ -23,52 +23,98 @@ Scope {
         return sock !== "" || desk.toLowerCase().indexOf("niri") !== -1;
     }
     // 📌 DEFAULT PINNED / FAVORITE APPS
-    readonly property var defaultApps: [{
-        "name": "Terminal",
-        "icon": "kitty",
-        "exec": "kitty",
-        "appClass": "kitty"
-    }, {
-        "name": "Visual Studio Code",
-        "icon": "vscode",
-        "exec": "code",
-        "appClass": "code"
-    },  {
-        "name": "Antigravity IDE",
-        "icon": "antigravity",
-        "exec": "antigravity-ide",
-        "appClass": "antigravity-ide"
-    },  {
-        "name": "Obdisidian",
-        "icon": "obsidian",
-        "exec": "obsidian",
-        "appClass": "obsidian"
-    },  {
-        "name": "Zen Browser",
-        "icon": "zen-browser",
-        "exec": "zen-browser",
-        "appClass": "zen"
-    },  {
-        "name": "Spotify",
-        "icon": "spotify",
-        "exec": "spotify",
-        "appClass": "spotify"
-    },  {
-        "name": "Files",
-        "icon": "system-file-manager",
-        "exec": "thunar",
-        "appClass": "thunar"
-    },  {
-        "name": "Discord",
-        "icon": "discord",
-        "exec": "vesktop",
-        "appClass": "vesktop"
-    },  {
-        "name": "OBS Studio",
-        "icon": "obs",
-        "exec": "obs",
-        "appClass": "obs"
-    }]
+    readonly property var defaultApps: [
+        {
+            "name": "Terminal",
+            "icon": "kitty",
+            "exec": "kitty",
+            "appClass": "kitty"
+        },
+        {
+            "name": "Visual Studio Code",
+            "icon": "vscode",
+            "exec": "code",
+            "appClass": "code"
+        },
+        {
+            "name": "Antigravity IDE",
+            "icon": "antigravity",
+            "exec": "antigravity-ide",
+            "appClass": "antigravity-ide"
+        },
+        {
+            "name": "Arduino IDE",
+            "icon": "cc.arduino.IDE2",
+            "exec": "cc.arduino.IDE2",
+            "appClass": "cc.arduino.IDE2"
+        },
+        {
+            "name": "Godot Engine",
+            "icon": "godot",
+            "exec": "godot",
+            "appClass": "godot"
+        },
+        {
+            "name": "Obdisidian",
+            "icon": "obsidian",
+            "exec": "obsidian",
+            "appClass": "obsidian"
+        },
+        {
+            "name": "Zen Browser",
+            "icon": "zen-browser",
+            "exec": "zen-browser",
+            "appClass": "zen"
+        },
+        {
+            "name": "Firefox",
+            "icon": "firefox",
+            "exec": "firefox",
+            "appClass": "firefox"
+        },
+        {
+            "name": "Spotify",
+            "icon": "spotify",
+            "exec": "spotify",
+            "appClass": "spotify"
+        },
+        {
+            "name": "Files",
+            "icon": "system-file-manager",
+            "exec": "thunar",
+            "appClass": "thunar"
+        },
+        {
+            "name": "Discord",
+            "icon": "discord",
+            "exec": "discord",
+            "appClass": "discor"
+        },
+        {
+            "name": "OBS Studio",
+            "icon": "obs",
+            "exec": "obs",
+            "appClass": "obs"
+        },
+        {
+            "name": "Kdenlive",
+            "icon": "kdenlive",
+            "exec": "kdenlive",
+            "appClass": "kdenlive"
+        },
+        {
+            "name": "Minecraft Bedrock Launcher",
+            "icon": "io.mrarm.mcpelauncher",
+            "exec": "io.mrarm.mcpelauncher",
+            "appClass": "io.mrarm.mcpelauncher"
+        },
+        {
+            "name": "Sober",
+            "icon": "org.vinegarhq.Sober",
+            "exec": "org.vinegarhq.Sober",
+            "appClass": "org.vinegarhq.Sober"
+        },
+    ]
     property var openWindows: []
     property var dockItems: []
     // 👁️ AUTO-HIDE STATE WITH DEBOUNCE
@@ -91,17 +137,15 @@ Scope {
 
     function focusWindow(win) {
         if (!win)
-            return ;
+            return;
 
         if (dockScope.isNiri) {
             if (win.id !== undefined)
                 Quickshell.execDetached(["niri", "msg", "action", "focus-window", "--id", win.id.toString()]);
-
         } else {
             var addr = win.address || win.id;
             if (addr)
                 Quickshell.execDetached(["bash", "-c", "hyprctl dispatch 'hl.dsp.focus({ window = \"address:" + addr + "\" })' || hyprctl dispatch focuswindow address:" + addr]);
-
         }
     }
 
@@ -167,7 +211,6 @@ Scope {
                 if (app && app.id && app.id.toLowerCase().indexOf(cls) !== -1) {
                     if (app.icon)
                         return app.icon;
-
                 }
             }
         }
@@ -176,8 +219,7 @@ Scope {
 
     function updateDockItems() {
         var items = [];
-        var processedWinIds = {
-        };
+        var processedWinIds = {};
         for (var i = 0; i < dockScope.defaultApps.length; i++) {
             var pin = dockScope.defaultApps[i];
             var matchingWins = [];
@@ -190,17 +232,14 @@ Scope {
                 if (!isMatch && pin.name && pin.name.toLowerCase() === "discord") {
                     if (cls.indexOf("discord") !== -1 || cls.indexOf("vesktop") !== -1)
                         isMatch = true;
-
                 }
                 if (!isMatch && pin.name && pin.name.toLowerCase() === "terminal") {
                     if (cls.indexOf("kitty") !== -1 || cls.indexOf("alacritty") !== -1 || cls.indexOf("foot") !== -1)
                         isMatch = true;
-
                 }
                 if (!isMatch && pin.name && pin.name.toLowerCase().indexOf("code") !== -1) {
                     if (cls.indexOf("code") !== -1 || cls.indexOf("vscodium") !== -1)
                         isMatch = true;
-
                 }
                 if (isMatch) {
                     matchingWins.push(w);
@@ -241,7 +280,6 @@ Scope {
                 existingUnpinned.wins.push(win);
                 if (win.is_focused || win.is_active)
                     existingUnpinned.isFocused = true;
-
             } else {
                 items.push({
                     "name": cleanName,
@@ -271,7 +309,6 @@ Scope {
         onTriggered: {
             if (SettingsStore.dockMode === "auto_hide" && !triggerHover.hovered && !dockCardHover.hovered)
                 dockScope.isRevealedState = false;
-
         }
     }
 
@@ -303,7 +340,6 @@ Scope {
 
             onHoveredChanged: dockScope.checkReveal()
         }
-
     }
 
     // 🏷️ TOOLTIP OVERLAY WINDOW
@@ -350,11 +386,8 @@ Scope {
                     pixelSize: 11
                     bold: true
                 }
-
             }
-
         }
-
     }
 
     // ⛵ DOCK PANEL WINDOW
@@ -415,11 +448,9 @@ Scope {
                             dockScope.openWindows = formatted;
                             dockScope.updateDockItems();
                         }
-                    } catch (e) {
-                    }
+                    } catch (e) {}
                 }
             }
-
         }
 
         // ⚡ REAL-TIME HYPRLAND EVENT LISTENER
@@ -450,11 +481,9 @@ Scope {
                             dockScope.openWindows = data;
                             dockScope.updateDockItems();
                         }
-                    } catch (e) {
-                    }
+                    } catch (e) {}
                 }
             }
-
         }
 
         Process {
@@ -464,14 +493,13 @@ Scope {
             running: dockScope.isNiri && SettingsStore.dockEnabled
 
             stdout: SplitParser {
-                onRead: (data) => {
+                onRead: data => {
                     if (dockScope.isNiri && SettingsStore.dockEnabled) {
                         niriWinProc.running = false;
                         niriWinProc.running = true;
                     }
                 }
             }
-
         }
 
         Timer {
@@ -483,11 +511,9 @@ Scope {
                 if (dockScope.isNiri) {
                     if (!niriWinProc.running)
                         niriWinProc.running = true;
-
                 } else {
                     if (!hyprWinProc.running)
                         hyprWinProc.running = true;
-
                 }
             }
         }
@@ -574,20 +600,15 @@ Scope {
                                                 duration: 180
                                                 easing.type: Easing.OutCubic
                                             }
-
                                         }
 
                                         Behavior on color {
                                             ColorAnimation {
                                                 duration: 150
                                             }
-
                                         }
-
                                     }
-
                                 }
-
                             }
 
                             HoverHandler {
@@ -637,24 +658,17 @@ Scope {
                                     duration: 180
                                     easing.type: Easing.OutCubic
                                 }
-
                             }
-
                         }
-
                     }
-
                 }
-
             }
-
         }
 
         // Mask tracks dockCard's actual visual position — input perfectly aligned
         mask: Region {
             item: dockCard
         }
-
     }
 
     Behavior on slideOffset {
@@ -662,7 +676,5 @@ Scope {
             duration: 260
             easing.type: Easing.OutCubic
         }
-
     }
-
 }

@@ -84,6 +84,58 @@ PanelWindow {
         }
     }
 
+    function navigatePrev() {
+        if (selectedIndex > 0)
+            selectIndex(selectedIndex - 1);
+
+    }
+
+    function navigateNext() {
+        if (selectedIndex < filteredWallpapers.length - 1)
+            selectIndex(selectedIndex + 1);
+
+    }
+
+    function handleKey(event) {
+        var isShift = (event.modifiers & Qt.ShiftModifier);
+        var isCtrl = (event.modifiers & Qt.ControlModifier);
+        // 1. Vim Navigation (Shift / Ctrl + H, J, K, L)
+        if (isShift || isCtrl) {
+            if (event.key === Qt.Key_L || event.key === Qt.Key_J) {
+                wallpaperPopup.navigateNext();
+                event.accepted = true;
+                return true;
+            } else if (event.key === Qt.Key_H || event.key === Qt.Key_K) {
+                wallpaperPopup.navigatePrev();
+                event.accepted = true;
+                return true;
+            } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                wallpaperPopup.applySelected();
+                event.accepted = true;
+                return true;
+            }
+        }
+        // 2. Standard Arrow & Action Keys
+        if (event.key === Qt.Key_Left) {
+            wallpaperPopup.navigatePrev();
+            event.accepted = true;
+            return true;
+        } else if (event.key === Qt.Key_Right) {
+            wallpaperPopup.navigateNext();
+            event.accepted = true;
+            return true;
+        } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+            wallpaperPopup.applySelected();
+            event.accepted = true;
+            return true;
+        } else if (event.key === Qt.Key_Escape) {
+            wallpaperPopup.isOpen = false;
+            event.accepted = true;
+            return true;
+        }
+        return false;
+    }
+
     exclusionMode: ExclusionMode.Ignore
     // 🏷️ Wayland LayerShell Configuration (Bottom-Center Overlay)
     WlrLayershell.namespace: "quickshell:popup"
@@ -241,22 +293,7 @@ PanelWindow {
                     item.searchTextChanged.connect(function(text) {
                         wallpaperPopup.searchQuery = text;
                     });
-                    item.leftPressed.connect(function() {
-                        if (wallpaperPopup.selectedIndex > 0)
-                            wallpaperPopup.selectIndex(wallpaperPopup.selectedIndex - 1);
-
-                    });
-                    item.rightPressed.connect(function() {
-                        if (wallpaperPopup.selectedIndex < wallpaperPopup.filteredWallpapers.length - 1)
-                            wallpaperPopup.selectIndex(wallpaperPopup.selectedIndex + 1);
-
-                    });
-                    item.returnPressed.connect(function() {
-                        wallpaperPopup.applySelected();
-                    });
-                    item.escapePressed.connect(function() {
-                        wallpaperPopup.isOpen = false;
-                    });
+                    item.keyHandler = wallpaperPopup.handleKey;
                     if (wallpaperPopup.isOpen && typeof item.focusInput === "function")
                         item.focusInput();
 
