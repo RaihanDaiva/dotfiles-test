@@ -7,9 +7,9 @@ import Quickshell
 
 Item {
     id: clockRoot
-
+  
     property var barWindow: null
-
+ 
     function updateClock() {
         timeText.text = Qt.formatDateTime(new Date(), "hh : mm");
     }

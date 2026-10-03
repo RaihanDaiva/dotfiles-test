@@ -44,7 +44,9 @@ PanelWindow {
                 duration: 200
                 easing.type: Easing.InOutQuad
             }
+
         }
+
     }
 
     // 📍 1. PULAU KIRI (Workspace & Media Player)
@@ -61,6 +63,7 @@ PanelWindow {
         MediaPlayer {
             barWindow: unifiedBar
         }
+
     }
 
     // 📍 2. PULAU TENGAH (Clock - 100% Persis di Tengah Layar)
@@ -75,6 +78,9 @@ PanelWindow {
         anchors.verticalCenter: parent.verticalCenter
         anchors.rightMargin: 10
         spacing: 8
+
+        MouseBattery {
+        }
 
         SystemStats {
             barWindow: unifiedBar
@@ -91,9 +97,11 @@ PanelWindow {
         Power {
             barWindow: unifiedBar
         }
+
     }
 
     mask: Region {
         item: barBackground
     }
+
 }

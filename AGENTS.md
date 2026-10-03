@@ -1,109 +1,32 @@
-# AGENTS.md
+# Repository Guidelines
 
-## What This Repo Is
+## Project Structure
 
-Dotfiles for a Wayland desktop supporting **two compositors** (Hyprland & Niri) and **two Quickshell shell configs**:
+This repository contains Wayland desktop dotfiles for Niri, Hyprland, and Quickshell. `niri/config.d/` holds numbered KDL configuration modules; `test-hypr/` contains modular Hyprland configuration in `.conf` files; and `test-hypr-lua/` contains the native Lua configuration and its modules. The tracked custom Quickshell shell is `quickshell/han-dots/`, with QML components, widgets, theme services, and helper scripts. `quickshell/inir/` and `quickshell/ii/` are gitignored upstream/local trees: do not edit or commit them. `quickshell/han-dots/ii/` is tracked and distinct from those directories.
 
-| Directory | What | Tracked |
-|-----------|------|---------|
-| `test-hypr/` | Hyprland compositor config | Yes |
-| `niri/` | Niri compositor config (modular KDL) | Yes |
-| `quickshell/han-dots/` | Custom Quickshell shell (bar, popups, lockscreen, dock) | Yes |
-| `quickshell/inir/` | iNiR shell — full desktop environment (37 modules, 75+ services, two panel families) | **No** (gitignored) |
+## Development and Validation
 
-`quickshell/inir/` and `quickshell/ii/` are in `.gitignore` but may be present locally. They contain the upstream iNiR project code; **do not modify or commit changes to those directories**.
+There is no repository-wide build or automated test suite. Validate relevant files with the project tools:
 
-## Two Shell Configs — Don't Confuse Them
+- `niri validate` checks Niri configuration syntax.
+- `qmlformat -i path/to/File.qml` formats QML; `qmllint path/to/File.qml` checks it when needed.
+- `hyprctl reload` reloads Hyprland configuration in a running session.
+- Run shell scripts directly only when their required desktop utilities and environment are available.
 
-- **`quickshell/han-dots/`**: Your custom shell. Entry point: `shell.qml`. Uses `services/`, `theme/`, `widgets/`, `components/`, `scripts/`. Simpler, focused on status bar + popups.
-- **`quickshell/inir/`**: The full iNiR desktop shell. Entry point: `shell.qml` with `pragma ShellId inir`. Has `modules/` (37), `services/` (75+), two panel families (`ii` and `waffle`). Uses `GlobalStates.qml` for UI state, `Config` singleton for settings, `LazyLoader` for deferred panel loading.
+For runtime development, link the relevant config under `~/.config/` as described in `README.md`, then launch the compositor or `quickshell` in a suitable Wayland session.
 
-When editing Quickshell code, confirm which shell you're in. They share no imports or components.
+## Style and Configuration
 
-## Niri Config (Modular KDL)
+Use PascalCase filenames for QML components and camelCase for QML ids, properties, and functions. Keep variant styling in style-specific components and shared behavior in their parent component. Follow the existing modular organization: numbered Niri KDL files define load order, `hyprland.conf` sources the Hyprland `.conf` modules, and `test-hypr-lua/hyprland.lua` loads Lua modules. Keep user-specific Niri overrides in `90-user-extra.kdl`. Preserve executable bits on shell scripts and follow neighboring files' indentation and formatting.
 
-`niri/config.d/` — numbered files control load order:
-- `10` Input/cursor → `20` Layout/gaps → `30` Window rules → `40` Env vars → `50` Startup → `60` Animations → `70` Keybinds → `80` Layer rules → `90` User overrides
+## Testing Changes
 
-`90-user-extra.kdl` is your personal override layer. The `apply_wallpaper.sh` script dynamically patches it with pywal focus-ring gradients via `sed`.
+No test framework or coverage requirement is configured. Choose validation for the edited area: validate Niri syntax, format and lint changed QML, and inspect compositor behavior in a live session when practical. Wallpaper and theme changes depend on pywal output in `~/.cache/wal/colors.json`; verify both the relevant script and shell theme service when changing that flow.
 
-Niri auto-reloads on file save — no manual restart needed.
+## Commits and Pull Requests
 
-## Hyprland Config (Modular Conf)
+Recent commits use Conventional Commit-style subjects such as `feat(niri): ...` and `fix(quickshell): ...`; use a concise type and relevant scope. Pull requests should summarize the user-visible effect, list affected configurations, include validation performed, and attach screenshots for visual changes. Call out compositor-specific behavior and any required local utilities.
 
-`test-hypr/hyprland.conf` sources: `autostart.conf`, `hyprcolors.conf`, `animations.conf`, `input.conf`, `keybinds.conf`, `windowrule.conf`, `layerrule.conf`.
+## Configuration Safety
 
-Keybinds use `$mainMod = SUPER`. Quickshell integration via `quickshell ipc call <target> <action>`.
-
-## Pywal Integration (Critical)
-
-Both shells rely on pywal colors from `~/.cache/wal/colors.json`:
-
-- **han-dots**: `theme/PywalService.qml` polls every 2s, maps colors to `Theme.qml`. `apply_wallpaper.sh` triggers pywal on wallpaper change.
-- **inir**: `services/ThemeService.qml` + `services/MaterialThemeLoader.qml` handle theming.
-- **Niri**: `apply_wallpaper.sh` patches `focus-ring` gradient in `90-user-extra.kdl`.
-- **Hyprland**: `apply_wallpaper.sh` patches `hyprcolors.conf`.
-
-If colors look wrong after wallpaper change, check that `wal` ran and the respective service picked up the new colors.
-
-## Key Scripts
-
-| Script | Purpose |
-|--------|---------|
-| `quickshell/han-dots/scripts/apply_wallpaper.sh` | Full wallpaper pipeline: symlinks cache, renders via awww/hyprpaper, runs pywal, updates Niri focus-ring + Hyprland borders, reloads cava |
-| `quickshell/han-dots/scripts/restore-wallpaper.sh` | Boot-time wallpaper restore (awww + swaybg blurred backdrop + pywal) |
-| `quickshell/han-dots/scripts/sys_info.sh` | System metrics (18 outputs for QML consumption) |
-| `quickshell/han-dots/scripts/sys_event_monitor.sh` | Real-time PipeWire volume + backlight event stream |
-| `quickshell/inir/scripts/inir` | iNiR CLI (4150 lines): `run`, `restart`, `doctor`, `logs`, `status`, IPC targets, theme management |
-| `quickshell/inir/setup` | Installer/maintainer: `install`, `update`, `migrate`, `doctor`, `rollback` |
-
-## iNiR Panel Families
-
-The iNiR shell supports two visual families switchable at runtime via `quickshell ipc call panelFamily cycle`:
-
-- **`ii`** (default): Horizontal bar, vertical bar, sidebars, overview, tiling overlay. Loads via `ShellIiPanels.qml`.
-- **`waffle`**: Windows 11-inspired (start menu, action center, task view). Loads via `ShellWafflePanels.qml`.
-
-Panel IDs are registered in `shell.qml` → `panelFamilies` property. Only the active family's QML is parsed at startup (saves ~135 file parses).
-
-Three loader types control panel initialization:
-- `PanelLoader` — immediate (first-frame visible)
-- `DeferredPanelLoader` — async (after first frame, waits for `shellEntryReady` then `deferredPanelsReady`)
-- `OnDemandPanelLoader` — interactive (open/close lifecycle, idle timer)
-
-## Settings Persistence
-
-- **han-dots**: `services/SettingsStore.qml` → `~/.config/quickshell/settings.json`. 19 properties (popupOpacity, isDarkMode, barStyle, dockMode, etc.). Boot guard prevents overwriting saved defaults.
-- **inir**: `Config` singleton (in `modules/common/`) → `~/.config/quickshell/inir-config.json`. Extensive options tree.
-
-## IPC Communication
-
-Both shells use Quickshell IPC (`quickshell ipc call <target> <function>`). Common targets:
-
-| Target | Actions |
-|--------|---------|
-| `applauncher` | `toggle`, `open`, `close` |
-| `wallpaperselect` | `toggle`, `open`, `close` |
-| `powermenu` | `toggle`, `open`, `close` |
-| `settings` | `toggle`, `open` |
-| `lockscreen` | `lock`, `toggle` |
-| `bar` | `toggle`, `open`, `close` |
-| `panelFamily` | `cycle`, `set` |
-
-## Multi-Monitor
-
-Both shells use `Variants { model: Quickshell.screens }` to instantiate per-monitor surfaces. Workspace IDs are offset per monitor:
-- Main monitor (eDP-1): workspaces 1–5 (`baseWsId = 1`)
-- Second monitor (DP-1): workspaces 6–10 (`baseWsId = 6`)
-
-`ControlCenter.qml` restricts `eventMonitorProc` to `Quickshell.screens[0]` to avoid duplicate OSD popups on multi-monitor.
-
-## Common Pitfalls
-
-1. **Editing the wrong shell**: `quickshell/han-dots/` vs `quickshell/inir/` — they're independent codebases.
-2. **Modifying gitignored files**: `quickshell/inir/` changes will be lost or cause git confusion.
-3. **Missing pywal colors**: If `~/.cache/wal/colors.json` doesn't exist or is stale, Theme.qml falls back to Catppuccin defaults (not the user's wallpaper colors).
-4. **Niri config not reloading**: If `sed` patches to `90-user-extra.kdl` leave malformed KDL, niri won't reload. Check syntax.
-5. **Duplicate IPC handlers**: The iNiR shell moved IPC handlers to `shell.qml` root to avoid collisions during panel family switching. Don't add new handlers inside panel files.
-6. **LazyLoader timing**: Adding services to the wrong initialization tier (immediate vs deferred) affects boot time. Tier 0 = startup-critical, Tier 3 = T+500ms, Tier 4 = T+1500ms.
-7. **`quickshell/han-dots/ii/`** exists and is tracked but is NOT the same as `quickshell/inir/`. It appears to be a legacy/subset copy.
+Confirm whether a change belongs to `quickshell/han-dots/`, `test-hypr/`, `test-hypr-lua/`, or `niri/` before editing. Both shells use pywal colors, so keep theme updates consistent with their existing services and wallpaper scripts. Niri reloads configuration when files change; check KDL syntax after edits to dynamically patched overrides.
