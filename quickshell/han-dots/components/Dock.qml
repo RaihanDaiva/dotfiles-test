@@ -14,7 +14,7 @@ import Quickshell.Widgets
 // ⛵ APPLICATION DOCK SURFACE
 Scope {
     id: dockScope
-
+ 
     required property var screen
     // 🖥️ DETEKSI COMPOSITOR
     readonly property bool isNiri: {

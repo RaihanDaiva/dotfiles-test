@@ -14,9 +14,9 @@
   "pillStyle": "glass",
   "barOpacity": 0.6,
   "barBlurEnabled": true,
-  "barBgEnabled": false,
-  "barStyle": "unified",
-  "dockEnabled": false,
-  "dockMode": "auto_hide",
+  "barBgEnabled": true,
+  "barStyle": "islands",
+  "dockEnabled": true,
+  "dockMode": "always_visible",
   "dockBlurEnabled": false
 }

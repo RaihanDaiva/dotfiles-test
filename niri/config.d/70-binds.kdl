@@ -131,6 +131,9 @@ binds {
     Mod+J     { focus-window-down; }
     Mod+K     { focus-window-up; }
     Mod+L     { focus-column-right; }
+    Mod+MouseBack { focus-column-left; }
+    Mod+MouseForward { focus-column-right; }
+
 
     // Jump to first / last column.
     Mod+Home { focus-column-first; }

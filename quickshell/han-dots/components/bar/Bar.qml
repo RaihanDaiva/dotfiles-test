@@ -14,13 +14,19 @@ Scope {
     // Style 1: Unified Bar — 1 permukaan Wayland, blur menutup seluruh bar
     BarStyleUnified {
         screen: barRoot.screen
-        visible: SettingsStore.barStyle !== "islands"
+        visible: SettingsStore.barStyle === "unified"
     }
 
     // Style 2: 3 Floating Islands — 3 permukaan Wayland terpisah, blur menempel per-island
     BarStyleIslands {
         screen: barRoot.screen
         islandsVisible: SettingsStore.barStyle === "islands"
+    }
+
+    // Style 3: Dynamic MacBook Notch — Notch di tengah atas layar dengan modul media & kalender
+    BarStyleNotch {
+        screen: barRoot.screen
+        notchVisible: SettingsStore.barStyle === "notch"
     }
 
 }

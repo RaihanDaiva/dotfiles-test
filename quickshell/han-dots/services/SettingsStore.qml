@@ -29,7 +29,7 @@ Item {
     property real barOpacity: 0.65
     property bool barBlurEnabled: true
     property bool barBgEnabled: true
-    property string barStyle: "unified" // "unified" (single bar) or "islands" (3 separate cards)
+    property string barStyle: "unified" // "unified" (single bar), "islands" (3 separate cards), or "notch" (macbook dynamic notch)
     // ⛵ 7. DOCK SETTINGS
     property bool dockEnabled: true
     property string dockMode: "always_visible" // "always_visible", "auto_hide", or "overlay"

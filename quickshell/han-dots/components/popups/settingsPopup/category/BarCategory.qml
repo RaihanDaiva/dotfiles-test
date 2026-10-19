@@ -73,7 +73,7 @@ Item {
                 // 2. Bar Layout Style Selection Card (Disabled when barBgEnabled is false)
                 SettingCard {
                     title: "Bar Layout Style"
-                    subtitle: !SettingsStore.barBgEnabled ? "Disabled (Defaulted to Unified Bar)" : (SettingsStore.barStyle === "islands" ? "3 Floating Islands (Separate Cards)" : "Unified Bar (Single Spanning Bar)")
+                    subtitle: !SettingsStore.barBgEnabled ? "Disabled (Defaulted to Unified Bar)" : (SettingsStore.barStyle === "islands" ? "3 Floating Islands (Separate Cards)" : (SettingsStore.barStyle === "notch" ? "Dynamic Notch (MacBook Style)" : "Unified Bar (Single Spanning Bar)"))
 
                     RowLayout {
                         spacing: 8
@@ -92,6 +92,13 @@ Item {
                             implicitHeight: 36
                             selected: SettingsStore.barStyle === "islands"
                             onClicked: SettingsStore.barStyle = "islands"
+                        }
+
+                        StyledButton {
+                            text: "Dynamic Notch"
+                            implicitHeight: 36
+                            selected: SettingsStore.barStyle === "notch"
+                            onClicked: SettingsStore.barStyle = "notch"
                         }
 
                     }
