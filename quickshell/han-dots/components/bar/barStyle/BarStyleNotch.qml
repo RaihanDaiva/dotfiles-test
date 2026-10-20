@@ -1,11 +1,13 @@
 import "../../../services"
 import "../../../theme"
 import "../../../widgets/bar"
+import "../../popups/calendarPopup/calendarStyle"
 import "../../popups/mediaPopup/mediaStyle"
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Shapes
 import Quickshell
+import Quickshell.Io
 import Quickshell.Services.Mpris
 import Quickshell.Wayland
 
@@ -24,8 +26,19 @@ Scope {
     // 📐 Geometri Notch & Wings (Disinkronkan: tinggi bar 40px, gap ke aplikasi 8px)
     readonly property real notchBarHeight: 40
     readonly property real notchBarGap: 0
+    readonly property real currentScreenWidth: (notchRoot.screen && notchRoot.screen.width > 0) ? notchRoot.screen.width : 1920
+    readonly property real currentScreenHeight: (notchRoot.screen && notchRoot.screen.height > 0) ? notchRoot.screen.height : 1080
     // 🎵 MPRIS REAL-TIME TRACKER & TAB FOCUS
     property string activeTab: "media"
+    readonly property int currentTabIndex: {
+        if (notchRoot.activeTab === "about")
+            return 0;
+
+        if (notchRoot.activeTab === "calendar")
+            return 2;
+
+        return 1;
+    }
     property real currentPosition: 0
     property bool isSeeking: false
     property real seekPosition: 0
@@ -46,9 +59,26 @@ Scope {
         }
         return players[0];
     }
+    // 📅 STATE KALENDER POPUP
+    property date displayedDate: new Date()
+    property string liveTimeString: ""
+    property string liveDateString: ""
+    property string uptimeString: "0j 0m"
+    property var calendarGridCells: []
 
     function handleSeek(targetMicros) {
-        if (notchRoot.activePlayer && typeof notchRoot.activePlayer.setPosition === "function") {
+        if (!notchRoot.activePlayer)
+            return ;
+
+        if (notchRoot.activePlayer.canSeek === false)
+            return ;
+
+        if (typeof notchRoot.activePlayer.seek === "function") {
+            var currentPos = (notchRoot.activePlayer.position !== undefined && notchRoot.activePlayer.position > 0) ? notchRoot.activePlayer.position : notchRoot.currentPosition;
+            var offsetMicros = targetMicros - currentPos;
+            notchRoot.activePlayer.seek(offsetMicros);
+            notchRoot.currentPosition = targetMicros;
+        } else if (typeof notchRoot.activePlayer.setPosition === "function") {
             notchRoot.activePlayer.setPosition(targetMicros);
             notchRoot.currentPosition = targetMicros;
         }
@@ -89,6 +119,75 @@ Scope {
             });
         }
         return list;
+    }
+
+    function getDaysInMonth(year, month) {
+        return new Date(year, month + 1, 0).getDate();
+    }
+
+    function getFirstDayOfWeek(year, month) {
+        return new Date(year, month, 1).getDay();
+    }
+
+    function generateCalendarGrid() {
+        var year = displayedDate.getFullYear();
+        var month = displayedDate.getMonth();
+        var daysInCurrent = getDaysInMonth(year, month);
+        var firstDayIndex = getFirstDayOfWeek(year, month);
+        var daysInPrev = getDaysInMonth(year, month - 1);
+        var cells = [];
+        for (var i = firstDayIndex - 1; i >= 0; i--) {
+            cells.push({
+                "day": daysInPrev - i,
+                "isCurrentMonth": false,
+                "isToday": false
+            });
+        }
+        var today = currentDate;
+        for (var d = 1; d <= daysInCurrent; d++) {
+            var isToday = (d === today.getDate() && month === today.getMonth() && year === today.getFullYear());
+            cells.push({
+                "day": d,
+                "isCurrentMonth": true,
+                "isToday": isToday
+            });
+        }
+        var nextDays = 42 - cells.length;
+        for (var n = 1; n <= nextDays; n++) {
+            cells.push({
+                "day": n,
+                "isCurrentMonth": false,
+                "isToday": false
+            });
+        }
+        return cells;
+    }
+
+    function updateCells() {
+        calendarGridCells = generateCalendarGrid();
+    }
+
+    onDisplayedDateChanged: updateCells()
+    onCurrentDateChanged: updateCells()
+    onActiveTabChanged: {
+        if (activeTab === "calendar") {
+            displayedDate = new Date();
+            updateCells();
+            uptimeProc.running = true;
+        }
+    }
+    onIsExpandedChanged: {
+        if (isExpanded) {
+            currentDate = new Date();
+            displayedDate = new Date();
+            updateCells();
+            if (activeTab === "calendar")
+                uptimeProc.running = true;
+
+        }
+    }
+    Component.onCompleted: {
+        updateCells();
     }
 
     Timer {
@@ -140,12 +239,12 @@ Scope {
 
             side: "left"
             anchors.fill: parent
+            screenWidth: notchRoot.currentScreenWidth
+            screenHeight: notchRoot.currentScreenHeight
             rTop: 8
             rBottom: 12
             implicitWidth: leftRow.implicitWidth + 24 + rTop
             implicitHeight: notchRoot.notchBarHeight
-            strokeColor: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.75)
-            strokeWidth: 1.2
 
             RowLayout {
                 id: leftRow
@@ -195,12 +294,12 @@ Scope {
 
             side: "right"
             anchors.fill: parent
+            screenWidth: notchRoot.currentScreenWidth
+            screenHeight: notchRoot.currentScreenHeight
             rTop: 8
             rBottom: 12
             implicitWidth: rightRow.implicitWidth + 24 + rTop
             implicitHeight: notchRoot.notchBarHeight
-            strokeColor: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.75)
-            strokeWidth: 1.2
 
             RowLayout {
                 id: rightRow
@@ -239,12 +338,42 @@ Scope {
 
     }
 
-    // ⏱️ TIMER PEMBARUAN WAKTU & TANGGAL
+    // ⏱️ TIMER PEMBARUAN WAKTU, TANGGAL & UPTIME
     Timer {
-        interval: 30000
+        id: clockTicker
+
+        interval: 1000
         running: true
         repeat: true
-        onTriggered: notchRoot.currentDate = new Date()
+        triggeredOnStart: true
+        onTriggered: {
+            var now = new Date();
+            notchRoot.currentDate = now;
+            notchRoot.liveTimeString = Qt.formatDateTime(now, "hh : mm : ss");
+            notchRoot.liveDateString = Qt.formatDateTime(now, "dddd, dd MMMM yyyy");
+            if (notchRoot.isExpanded && notchRoot.activeTab === "calendar")
+                uptimeProc.running = true;
+
+        }
+    }
+
+    // 🐚 PROCESS PEMBACA UPTIME SISTEM
+    Process {
+        id: uptimeProc
+
+        command: ["bash", "-c", "cut -d' ' -f1 /proc/uptime"]
+
+        stdout: SplitParser {
+            onRead: (data) => {
+                var sec = parseFloat(data.trim());
+                if (!isNaN(sec)) {
+                    var hours = Math.floor(sec / 3600);
+                    var mins = Math.floor((sec % 3600) / 60);
+                    notchRoot.uptimeString = hours + "j " + mins + "m";
+                }
+            }
+        }
+
     }
 
     // ⏱️ DELAY COLLAPSE TIMER (Mencegah notch tertutup mendadak jika kursor meleset sedikit)
@@ -293,7 +422,7 @@ Scope {
         anchors.top: true
         margins.top: 0
         width: 640
-        height: 220
+        height: 580
         color: "transparent"
 
         // 📦 THE NOTCH CONTAINER
@@ -304,18 +433,24 @@ Scope {
                 if (!notchRoot.isExpanded)
                     return (notchRoot.activePlayer && (notchRoot.activePlayer.isPlaying || (notchRoot.activePlayer.trackTitle && notchRoot.activePlayer.trackTitle !== ""))) ? 240 : 160;
 
-                return notchRoot.activeTab === "media" ? 380 : 360;
+                return 380;
             }
             property real notchBodyHeight: {
                 if (!notchRoot.isExpanded)
                     return notchRoot.notchBarHeight;
 
-                return notchRoot.activeTab === "media" ? 180 : 150;
+                if (notchRoot.activeTab === "calendar")
+                    return 525;
+
+                if (notchRoot.activeTab === "about")
+                    return 165;
+
+                return 204;
             }
             readonly property real rTop: 8
             property real rBottom: notchRoot.isExpanded ? 18 : 12
             readonly property real totalW: notchBodyWidth + 2 * rTop
-            property color notchBorderColor: notchRoot.isExpanded ? Theme.accent : Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.75)
+            property color notchBorderColor: notchRoot.isExpanded ? Theme.accent : (SettingsStore.barBgEnabled ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 1) : "transparent")
 
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: parent.top
@@ -328,10 +463,12 @@ Scope {
 
                 anchors.fill: parent
                 side: "center"
+                screenWidth: notchRoot.currentScreenWidth
+                screenHeight: notchRoot.currentScreenHeight
                 rTop: notchContainer.rTop
                 rBottom: notchContainer.rBottom
                 strokeColor: notchContainer.notchBorderColor
-                strokeWidth: notchRoot.isExpanded ? 1.5 : 1.2
+                strokeWidth: notchRoot.isExpanded ? 1.5 : (SettingsStore.barBgEnabled ? 1 : 0)
             }
 
             // 🖱️ MOUSE SENSOR AREA
@@ -354,16 +491,12 @@ Scope {
                 id: notchHoverArea
 
                 anchors.fill: parent
+                enabled: !notchRoot.isExpanded
                 hoverEnabled: true
-                cursorShape: notchRoot.isExpanded ? Qt.ArrowCursor : Qt.PointingHandCursor
+                cursorShape: Qt.PointingHandCursor
                 onEntered: {
                     collapseTimer.stop();
                     notchRoot.isExpanded = true;
-                }
-                onExited: {
-                    if (!notchRoot.isPinned)
-                        collapseTimer.restart();
-
                 }
                 onClicked: {
                     if (!notchRoot.isExpanded)
@@ -395,32 +528,30 @@ Scope {
                     //     border.color: Qt.rgba(0, 0, 0, 0.8)
                     //     border.width: 1
                     // }
+                    // Mini animated music note jika sedang memutar musik
+                    // Text {
+                    //     visible: notchRoot.activePlayer && notchRoot.activePlayer.isPlaying
+                    //     text: "󰎈"
+                    //     color: Theme.accent
+                    //     font.pixelSize: 12
+                    //     font.family: Theme.fontMono
+                    // }
+                    // // Cuplikan judul lagu jika sedang memutar musik
+                    // Text {
+                    //     visible: notchRoot.activePlayer && notchRoot.activePlayer.isPlaying
+                    //     text: notchRoot.activePlayer ? (notchRoot.activePlayer.trackTitle || "") : ""
+                    //     color: Theme.textMain
+                    //     font.pixelSize: 11
+                    //     font.bold: true
+                    //     font.family: Theme.fontMain
+                    //     elide: Text.ElideRight
+                    //     Layout.maximumWidth: 100
+                    // }
 
                     anchors.centerIn: parent
                     spacing: 8
                     visible: !notchRoot.isExpanded
                     opacity: notchRoot.isExpanded ? 0 : 1
-
-                    // Mini animated music note jika sedang memutar musik
-                    Text {
-                        visible: notchRoot.activePlayer && notchRoot.activePlayer.isPlaying
-                        text: "󰎈"
-                        color: Theme.accent
-                        font.pixelSize: 12
-                        font.family: Theme.fontMono
-                    }
-
-                    // Cuplikan judul lagu jika sedang memutar musik
-                    Text {
-                        visible: notchRoot.activePlayer && notchRoot.activePlayer.isPlaying
-                        text: notchRoot.activePlayer ? (notchRoot.activePlayer.trackTitle || "") : ""
-                        color: Theme.textMain
-                        font.pixelSize: 11
-                        font.bold: true
-                        font.family: Theme.fontMain
-                        elide: Text.ElideRight
-                        Layout.maximumWidth: 100
-                    }
 
                     // Jam Ringkas
                     Text {
@@ -448,106 +579,205 @@ Scope {
                     visible: notchRoot.isExpanded
                     opacity: notchRoot.isExpanded ? 1 : 0
 
-                    // 🏷️ HEADER / TABS ROW
-                    RowLayout {
+                    // 🏷️ HEADER / TABS CAROUSEL ROW (Pill-less, Animated Size & Opacity)
+                    Item {
                         Layout.fillWidth: true
-                        spacing: 8
+                        implicitHeight: 26
 
-                        // Tab Pill 1: "Media"
-                        Rectangle {
-                            implicitWidth: tabMediaRow.implicitWidth + 16
-                            implicitHeight: 22
-                            radius: 11
-                            color: notchRoot.activeTab === "media" ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25) : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.08)
-                            border.color: notchRoot.activeTab === "media" ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.5) : "transparent"
-                            border.width: 1
+                        // 🎯 TABS ROW (100% Presisi di Tengah Layar Notch)
+                        RowLayout {
+                            anchors.centerIn: parent
+                            spacing: 14
 
-                            RowLayout {
-                                id: tabMediaRow
+                            // Tab 1: "About"
+                            Item {
+                                implicitWidth: tabAboutRow.implicitWidth
+                                implicitHeight: 24
 
-                                anchors.centerIn: parent
-                                spacing: 5
+                                RowLayout {
+                                    id: tabAboutRow
 
-                                Text {
-                                    text: "󰎈"
-                                    color: notchRoot.activeTab === "media" ? Theme.accent : Theme.textMuted
-                                    font.pixelSize: 11
-                                    font.family: Theme.fontMono
+                                    anchors.centerIn: parent
+                                    spacing: 5
+                                    scale: notchRoot.activeTab === "about" ? 1 : 0.74
+                                    transformOrigin: Item.Center
+                                    opacity: notchRoot.activeTab === "about" ? 1 : (aboutHover.containsMouse ? 0.75 : 0.45)
+
+                                    Text {
+                                        text: "󰋜"
+                                        color: Theme.accent
+                                        font.pixelSize: 19
+                                        font.family: Theme.fontMono
+                                    }
+
+                                    Text {
+                                        text: "About"
+                                        color: Theme.textMain
+                                        font.bold: notchRoot.activeTab === "about"
+                                        font.pixelSize: 18
+                                        font.family: Theme.fontMain
+                                    }
+
+                                    Behavior on scale {
+                                        NumberAnimation {
+                                            duration: 250
+                                            easing.type: Easing.OutCubic
+                                        }
+
+                                    }
+
+                                    Behavior on opacity {
+                                        NumberAnimation {
+                                            duration: 250
+                                            easing.type: Easing.OutCubic
+                                        }
+
+                                    }
+
                                 }
 
-                                Text {
-                                    text: "Media"
-                                    color: notchRoot.activeTab === "media" ? Theme.textMain : Theme.textMuted
-                                    font.bold: notchRoot.activeTab === "media"
-                                    font.pixelSize: 11
-                                    font.family: Theme.fontMain
+                                MouseArea {
+                                    id: aboutHover
+
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: notchRoot.activeTab = "about"
                                 }
 
                             }
 
-                            MouseArea {
-                                anchors.fill: parent
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: notchRoot.activeTab = "media"
+                            // Tab 2: "Media"
+                            Item {
+                                implicitWidth: tabMediaRow.implicitWidth
+                                implicitHeight: 24
+
+                                RowLayout {
+                                    id: tabMediaRow
+
+                                    anchors.centerIn: parent
+                                    spacing: 5
+                                    scale: notchRoot.activeTab === "media" ? 1 : 0.74
+                                    transformOrigin: Item.Center
+                                    opacity: notchRoot.activeTab === "media" ? 1 : (mediaHover.containsMouse ? 0.75 : 0.45)
+
+                                    Text {
+                                        text: "󰎈"
+                                        color: Theme.accent
+                                        font.pixelSize: 19
+                                        font.family: Theme.fontMono
+                                    }
+
+                                    Text {
+                                        text: "Media"
+                                        color: Theme.textMain
+                                        font.bold: notchRoot.activeTab === "media"
+                                        font.pixelSize: 18
+                                        font.family: Theme.fontMain
+                                    }
+
+                                    Behavior on scale {
+                                        NumberAnimation {
+                                            duration: 250
+                                            easing.type: Easing.OutCubic
+                                        }
+
+                                    }
+
+                                    Behavior on opacity {
+                                        NumberAnimation {
+                                            duration: 250
+                                            easing.type: Easing.OutCubic
+                                        }
+
+                                    }
+
+                                }
+
+                                MouseArea {
+                                    id: mediaHover
+
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: notchRoot.activeTab = "media"
+                                }
+
+                            }
+
+                            // Tab 3: "Calendar"
+                            Item {
+                                implicitWidth: tabCalRow.implicitWidth
+                                implicitHeight: 24
+
+                                RowLayout {
+                                    id: tabCalRow
+
+                                    anchors.centerIn: parent
+                                    spacing: 5
+                                    scale: notchRoot.activeTab === "calendar" ? 1 : 0.74
+                                    transformOrigin: Item.Center
+                                    opacity: notchRoot.activeTab === "calendar" ? 1 : (calHover.containsMouse ? 0.75 : 0.45)
+
+                                    Text {
+                                        text: "󰸗"
+                                        color: Theme.accent
+                                        font.pixelSize: 19
+                                        font.family: Theme.fontMono
+                                    }
+
+                                    Text {
+                                        text: "Calendar"
+                                        color: Theme.textMain
+                                        font.bold: notchRoot.activeTab === "calendar"
+                                        font.pixelSize: 18
+                                        font.family: Theme.fontMain
+                                    }
+
+                                    Behavior on scale {
+                                        NumberAnimation {
+                                            duration: 250
+                                            easing.type: Easing.OutCubic
+                                        }
+
+                                    }
+
+                                    Behavior on opacity {
+                                        NumberAnimation {
+                                            duration: 250
+                                            easing.type: Easing.OutCubic
+                                        }
+
+                                    }
+
+                                }
+
+                                MouseArea {
+                                    id: calHover
+
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: notchRoot.activeTab = "calendar"
+                                }
+
                             }
 
                         }
 
-                        // Tab Pill 2: "Calendar"
+                        // 📌 PIN TOGGLE BUTTON (Menempel Rapi di Ujung Kanan)
                         Rectangle {
-                            implicitWidth: tabCalRow.implicitWidth + 16
+                            anchors.right: parent.right
+                            anchors.verticalCenter: parent.verticalCenter
+                            implicitWidth: 22
                             implicitHeight: 22
-                            radius: 11
-                            color: notchRoot.activeTab === "calendar" ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.25) : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.08)
-                            border.color: notchRoot.activeTab === "calendar" ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.5) : "transparent"
-                            border.width: 1
-
-                            RowLayout {
-                                id: tabCalRow
-
-                                anchors.centerIn: parent
-                                spacing: 5
-
-                                Text {
-                                    text: "󰸗"
-                                    color: notchRoot.activeTab === "calendar" ? Theme.accent : Theme.textMuted
-                                    font.pixelSize: 11
-                                    font.family: Theme.fontMono
-                                }
-
-                                Text {
-                                    text: "Calendar"
-                                    color: notchRoot.activeTab === "calendar" ? Theme.textMain : Theme.textMuted
-                                    font.bold: notchRoot.activeTab === "calendar"
-                                    font.pixelSize: 11
-                                    font.family: Theme.fontMain
-                                }
-
-                            }
-
-                            MouseArea {
-                                anchors.fill: parent
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: notchRoot.activeTab = "calendar"
-                            }
-
-                        }
-
-                        Item {
-                            Layout.fillWidth: true
-                        }
-
-                        // 📌 PIN TOGGLE BUTTON (Menjaga notch tetap terbuka)
-                        Rectangle {
-                            implicitWidth: 24
-                            implicitHeight: 22
-                            radius: 7
+                            radius: 6
                             color: notchRoot.isPinned ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.3) : (pinHover.containsMouse ? Qt.rgba(1, 1, 1, 0.1) : "transparent")
 
                             Text {
                                 anchors.centerIn: parent
                                 text: notchRoot.isPinned ? "󰤱" : "󰐃"
-                                color: notchRoot.isPinned ? Theme.accent : Theme.textMuted
+                                color: notchRoot.isPinned ? Theme.accent : Theme.secondary
                                 font.pixelSize: 12
                                 font.family: Theme.fontMono
                             }
@@ -565,93 +795,132 @@ Scope {
 
                     }
 
-                    // 🌟 1. VIEW MEDIA PLAYER (MediaStyleMinimalist Asli dari MediaPopup)
-                    MediaStyleMinimalist {
-                        id: notchMediaPlayer
+                    // 🎠 CONTENT VIEWPORT (LOGIKA PERSIS QUICKSETTINGSPOPUP: DIRECT X & OPACITY SLIDE)
+                    Item {
+                        id: bodyContainer
 
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        visible: notchRoot.activeTab === "media"
-                        opacity: notchRoot.activeTab === "media" ? 1 : 0
-                        player: notchRoot.activePlayer
-                        artistName: notchRoot.getArtistName(notchRoot.activePlayer)
-                        currentPosition: notchRoot.currentPosition
-                        isSeeking: notchRoot.isSeeking
-                        seekPosition: notchRoot.seekPosition
-                        onSeekRequested: (targetMicros) => {
-                            notchRoot.handleSeek(targetMicros);
-                        }
-                        onSeekStarted: (pos) => {
-                            notchRoot.isSeeking = true;
-                            notchRoot.seekPosition = pos;
-                        }
-                        onSeekEnded: () => {
-                            notchRoot.isSeeking = false;
-                        }
+                        clip: true
 
-                        Behavior on opacity {
-                            NumberAnimation {
-                                duration: 180
-                            }
+                        // ─── 1. VIEW ABOUT (Index 0) ─────────────────────────────────
+                        Item {
+                            id: notchAboutView
 
-                        }
+                            width: bodyContainer.width
+                            height: bodyContainer.height
+                            x: (0 - notchRoot.currentTabIndex) * bodyContainer.width
+                            opacity: notchRoot.currentTabIndex === 0 ? 1 : 0
+                            visible: opacity > 0
 
-                    }
-
-                    // 🌟 2. VIEW KALENDER & AGENDA (Aktif saat tab Calendar dipilih)
-                    ColumnLayout {
-                        id: notchCalendarView
-
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true
-                        visible: notchRoot.activeTab === "calendar"
-                        opacity: notchRoot.activeTab === "calendar" ? 1 : 0
-                        spacing: 10
-
-                        // 📆 Month & Horizontal Days Strip
-                        RowLayout {
-                            spacing: 8
-                            Layout.alignment: Qt.AlignHCenter
-
-                            Text {
-                                text: Qt.formatDateTime(notchRoot.currentDate, "MMMM yyyy")
-                                color: Theme.textMain
-                                font.pixelSize: 15
-                                font.bold: true
-                                font.family: Theme.fontMain
-                                Layout.rightMargin: 6
-                            }
-
-                            Repeater {
-                                model: notchRoot.getDayList()
+                            ColumnLayout {
+                                anchors.fill: parent
+                                spacing: 8
 
                                 Rectangle {
-                                    implicitWidth: modelData.isToday ? 30 : 24
-                                    implicitHeight: modelData.isToday ? 36 : 24
-                                    radius: modelData.isToday ? 9 : 6
-                                    color: modelData.isToday ? Theme.accent : Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.06)
+                                    Layout.fillWidth: true
+                                    implicitHeight: 46
+                                    radius: 10
+                                    color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.12)
+                                    border.color: Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.3)
+                                    border.width: 1
 
-                                    ColumnLayout {
-                                        anchors.centerIn: parent
-                                        spacing: 1
+                                    RowLayout {
+                                        anchors.fill: parent
+                                        anchors.margins: 10
+                                        spacing: 10
 
                                         Text {
-                                            visible: modelData.isToday
-                                            text: modelData.dayName.toUpperCase()
-                                            color: Theme.bgDark
-                                            font.pixelSize: 8
-                                            font.bold: true
-                                            font.family: Theme.fontMain
-                                            Layout.alignment: Qt.AlignHCenter
+                                            text: "󰌢"
+                                            color: Theme.accent
+                                            font.pixelSize: 22
+                                            font.family: Theme.fontMono
                                         }
 
-                                        Text {
-                                            text: modelData.dayNum
-                                            color: modelData.isToday ? Theme.bgDark : Theme.textMuted
-                                            font.pixelSize: modelData.isToday ? 13 : 11
-                                            font.bold: modelData.isToday
-                                            font.family: Theme.fontMain
-                                            Layout.alignment: Qt.AlignHCenter
+                                        ColumnLayout {
+                                            spacing: 2
+
+                                            Text {
+                                                text: Quickshell.env("USER") + "@" + (Quickshell.env("HOSTNAME") || "archlinux")
+                                                color: Theme.textMain
+                                                font.bold: true
+                                                font.pixelSize: 13
+                                                font.family: Theme.fontMain
+                                            }
+
+                                            Text {
+                                                text: (Quickshell.env("XDG_CURRENT_DESKTOP") || "Wayland") + " • Dynamic Notch"
+                                                color: Theme.secondary
+                                                font.pixelSize: 10
+                                                font.family: Theme.fontMain
+                                            }
+
+                                        }
+
+                                    }
+
+                                }
+
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 8
+
+                                    Rectangle {
+                                        Layout.fillWidth: true
+                                        implicitHeight: 34
+                                        radius: 8
+                                        color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.05)
+                                        border.color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.1)
+                                        border.width: 1
+
+                                        RowLayout {
+                                            anchors.centerIn: parent
+                                            spacing: 6
+
+                                            Text {
+                                                text: "󰣇"
+                                                color: Theme.accent
+                                                font.pixelSize: 13
+                                                font.family: Theme.fontMono
+                                            }
+
+                                            Text {
+                                                text: "Arch Linux"
+                                                color: Theme.textMain
+                                                font.pixelSize: 11
+                                                font.family: Theme.fontMain
+                                            }
+
+                                        }
+
+                                    }
+
+                                    Rectangle {
+                                        Layout.fillWidth: true
+                                        implicitHeight: 34
+                                        radius: 8
+                                        color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.05)
+                                        border.color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.1)
+                                        border.width: 1
+
+                                        RowLayout {
+                                            anchors.centerIn: parent
+                                            spacing: 6
+
+                                            Text {
+                                                text: "󰅂"
+                                                color: Theme.accent
+                                                font.pixelSize: 13
+                                                font.family: Theme.fontMono
+                                            }
+
+                                            Text {
+                                                text: "han-dots v2"
+                                                color: Theme.textMain
+                                                font.pixelSize: 11
+                                                font.family: Theme.fontMain
+                                            }
+
                                         }
 
                                     }
@@ -660,43 +929,121 @@ Scope {
 
                             }
 
-                        }
-
-                        // 📝 Agenda / Schedule Reminder
-                        Rectangle {
-                            Layout.fillWidth: true
-                            Layout.topMargin: 4
-                            implicitHeight: 34
-                            radius: 10
-                            color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.05)
-                            border.color: Qt.rgba(Theme.textMain.r, Theme.textMain.g, Theme.textMain.b, 0.1)
-                            border.width: 1
-
-                            RowLayout {
-                                anchors.centerIn: parent
-                                spacing: 8
-
-                                Text {
-                                    text: "󰸗"
-                                    color: Theme.accent
-                                    font.pixelSize: 13
-                                    font.family: Theme.fontMono
+                            Behavior on x {
+                                NumberAnimation {
+                                    duration: 250
+                                    easing.type: Easing.OutCubic
                                 }
 
-                                Text {
-                                    text: "No upcoming events scheduled"
-                                    color: Theme.textMuted
-                                    font.pixelSize: 11
-                                    font.family: Theme.fontMain
+                            }
+
+                            Behavior on opacity {
+                                NumberAnimation {
+                                    duration: 200
+                                    easing.type: Easing.OutCubic
                                 }
 
                             }
 
                         }
 
-                        Behavior on opacity {
-                            NumberAnimation {
-                                duration: 180
+                        // ─── 2. VIEW MEDIA PLAYER (Index 1) ──────────────────────────
+                        Item {
+                            id: notchMediaView
+
+                            width: bodyContainer.width
+                            height: bodyContainer.height
+                            x: (1 - notchRoot.currentTabIndex) * bodyContainer.width
+                            opacity: notchRoot.currentTabIndex === 1 ? 1 : 0
+                            visible: opacity > 0
+
+                            MediaStyleMinimalist {
+                                id: notchMediaPlayer
+
+                                anchors.fill: parent
+                                player: notchRoot.activePlayer
+                                artistName: notchRoot.getArtistName(notchRoot.activePlayer)
+                                currentPosition: notchRoot.currentPosition
+                                isSeeking: notchRoot.isSeeking
+                                seekPosition: notchRoot.seekPosition
+                                onSeekRequested: (targetMicros) => {
+                                    notchRoot.handleSeek(targetMicros);
+                                }
+                                onSeekStarted: (pos) => {
+                                    notchRoot.isSeeking = true;
+                                    notchRoot.seekPosition = pos;
+                                }
+                                onSeekEnded: () => {
+                                    notchRoot.isSeeking = false;
+                                }
+                            }
+
+                            Behavior on x {
+                                NumberAnimation {
+                                    duration: 250
+                                    easing.type: Easing.OutCubic
+                                }
+
+                            }
+
+                            Behavior on opacity {
+                                NumberAnimation {
+                                    duration: 200
+                                    easing.type: Easing.OutCubic
+                                }
+
+                            }
+
+                        }
+
+                        // ─── 3. VIEW KALENDER POPUP (Index 2) ─────────────────────────
+                        Item {
+                            id: notchCalendarViewContainer
+
+                            width: bodyContainer.width
+                            height: bodyContainer.height
+                            x: (2 - notchRoot.currentTabIndex) * bodyContainer.width
+                            opacity: notchRoot.currentTabIndex === 2 ? 1 : 0
+                            visible: opacity > 0
+
+                            CalendarStyleOriginal {
+                                id: notchCalendarView
+
+                                anchors.fill: parent
+                                displayedDate: notchRoot.displayedDate
+                                liveTimeString: notchRoot.liveTimeString
+                                liveDateString: notchRoot.liveDateString
+                                uptimeString: notchRoot.uptimeString
+                                calendarGridCells: notchRoot.calendarGridCells
+                                onPrevMonthClicked: {
+                                    var d = new Date(notchRoot.displayedDate);
+                                    d.setMonth(d.getMonth() - 1);
+                                    notchRoot.displayedDate = d;
+                                }
+                                onNextMonthClicked: {
+                                    var d = new Date(notchRoot.displayedDate);
+                                    d.setMonth(d.getMonth() + 1);
+                                    notchRoot.displayedDate = d;
+                                }
+                                onTodayClicked: {
+                                    notchRoot.displayedDate = new Date();
+                                }
+                            }
+
+                            Behavior on x {
+                                NumberAnimation {
+                                    duration: 250
+                                    easing.type: Easing.OutCubic
+                                }
+
+                            }
+
+                            Behavior on opacity {
+                                NumberAnimation {
+                                    duration: 200
+                                    easing.type: Easing.OutCubic
+                                }
+
                             }
 
                         }
@@ -716,9 +1063,10 @@ Scope {
 
             Behavior on notchBodyWidth {
                 NumberAnimation {
-                    duration: 320
-                    easing.type: Easing.OutBack
-                    easing.overshoot: 1.05
+                    // easing.overshoot: 1.05
+
+                    duration: 280
+                    easing.type: Easing.OutCubic
                 }
 
             }

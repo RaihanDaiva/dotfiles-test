@@ -61,6 +61,7 @@ layer-rule {
     }
 }
 
+
 // 🪟 Layer rules for Quickshell Dock
 layer-rule {
     match namespace="quickshell:dock"
