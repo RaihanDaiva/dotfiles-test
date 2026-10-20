@@ -1,2 +1,3 @@
 module mediaStyle
 MediaStyleClassic 1.0 MediaStyleClassic.qml
+MediaStyleMinimalist 1.0 MediaStyleMinimalist.qml

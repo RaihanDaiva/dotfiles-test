@@ -17,6 +17,10 @@ Scope {
 
     property var screen
     property bool islandsVisible: true
+    // 📐 Geometri Bar (Disamakan persis dengan BarStyleUnified: margin top 4px, tinggi 40px)
+    readonly property int barMarginTop: 4
+    readonly property int barHeight: 40
+    readonly property int barMarginSide: 15
 
     // ─────────────────────────────────────────────────────────────────────────
     // 🔲 INVISIBLE SPACER — Klaim exclusive zone penuh agar window tidak menimpa bar
@@ -38,8 +42,8 @@ Scope {
         anchors.top: true
         anchors.left: true
         anchors.right: true
-        margins.top: 8
-        implicitHeight: 40
+        margins.top: islandsRoot.barMarginTop
+        implicitHeight: islandsRoot.barHeight
         color: "transparent"
 
         mask: Region {
@@ -62,12 +66,12 @@ Scope {
         anchors.top: true
         anchors.left: true
         // Tanpa anchors.right → surface menempel ke kiri saja
-        margins.top: 8
-        margins.left: 15
+        margins.top: islandsRoot.barMarginTop
+        margins.left: islandsRoot.barMarginSide
         width: leftRow.implicitWidth + 20
-        height: 40
+        height: islandsRoot.barHeight
         implicitWidth: leftRow.implicitWidth + 20
-        implicitHeight: 40
+        implicitHeight: islandsRoot.barHeight
         color: "transparent"
 
         Rectangle {
@@ -127,11 +131,11 @@ Scope {
         anchors.top: true
         // ✨ Tidak ada anchors.left / anchors.right → Layer Shell Protocol:
         // Surface tanpa horizontal anchor diposisikan di tengah secara otomatis oleh compositor.
-        margins.top: 8
+        margins.top: islandsRoot.barMarginTop
         width: clockWidget.implicitWidth + 24
-        height: 40
+        height: islandsRoot.barHeight
         implicitWidth: clockWidget.implicitWidth + 24
-        implicitHeight: 40
+        implicitHeight: islandsRoot.barHeight
         color: "transparent"
 
         Rectangle {
@@ -181,12 +185,12 @@ Scope {
         anchors.top: true
         anchors.right: true
         // Tanpa anchors.left → surface menempel ke kanan saja
-        margins.top: 8
-        margins.right: 15
+        margins.top: islandsRoot.barMarginTop
+        margins.right: islandsRoot.barMarginSide
         width: rightRow.implicitWidth + 20
-        height: 40
+        height: islandsRoot.barHeight
         implicitWidth: rightRow.implicitWidth + 20
-        implicitHeight: 40
+        implicitHeight: islandsRoot.barHeight
         color: "transparent"
 
         Rectangle {
