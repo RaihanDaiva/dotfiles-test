@@ -18,6 +18,7 @@ PanelWindow {
     property int selectedIndex: 0
     property var filteredApps: []
     readonly property bool isPhoneStyle: (SettingsStore.appLauncherStyle === "phone")
+    readonly property bool isMinecraftStyle: (SettingsStore.appLauncherStyle === "minecraft")
     readonly property real maxCardHeight: 540
     readonly property real minCardHeight: 140
     readonly property real maxListHeight: 452
@@ -30,6 +31,9 @@ PanelWindow {
         return Math.min(maxListHeight, total);
     }
     readonly property real targetCardHeight: {
+        if (isMinecraftStyle)
+            return 656;
+
         if (isPhoneStyle)
             return 695;
 
@@ -225,8 +229,8 @@ PanelWindow {
     WlrLayershell.namespace: "quickshell:popup"
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: isOpen ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
-    implicitWidth: isPhoneStyle ? 340 : 480
-    implicitHeight: isPhoneStyle ? 700 : maxCardHeight
+    implicitWidth: isMinecraftStyle ? 780 : (isPhoneStyle ? 340 : 480)
+    implicitHeight: isMinecraftStyle ? 656 : (isPhoneStyle ? 700 : maxCardHeight)
     color: "transparent"
     visible: isOpen || launcherCard.opacity > 0
     Component.onCompleted: updateFilteredApps()
@@ -248,19 +252,23 @@ PanelWindow {
             updateFilteredApps();
             if (styleLoader.item && typeof styleLoader.item.resetInput === "function")
                 styleLoader.item.resetInput();
-
+ 
         }
     }
-    mask: isPhoneStyle ? null : cardRegion
+    mask: (isPhoneStyle || isMinecraftStyle) ? null : cardRegion
 
     anchors {
+        top: isMinecraftStyle
         bottom: true
-        right: isPhoneStyle
+        left: isMinecraftStyle
+        right: isMinecraftStyle ? true : isPhoneStyle
     }
 
     margins {
-        bottom: isPhoneStyle ? -130 : 10
-        right: isPhoneStyle ? 40 : 0
+        top: 0
+        left: 0
+        bottom: isMinecraftStyle ? 0 : (isPhoneStyle ? -130 : 10)
+        right: isMinecraftStyle ? 0 : (isPhoneStyle ? 40 : 0)
     }
 
     // ⏱️ Auto-Retry Timer if desktop entries scan finishes after boot
@@ -298,22 +306,28 @@ PanelWindow {
         target: "applauncher"
     }
 
-    // 🪟 CARD CONTAINER ITEM (Positions at bottom, animates height & slide-up smoothly)
+    // 🪟 CARD CONTAINER ITEM (Positions at bottom or center, animates smoothly)
     Item {
         id: launcherCard
 
-        anchors.bottom: parent.bottom
-        anchors.horizontalCenter: parent.horizontalCenter
-        width: parent.width
-        height: launcherPopup.targetCardHeight
+        anchors.fill: isMinecraftStyle ? parent : undefined
+        anchors.bottom: isMinecraftStyle ? undefined : parent.bottom
+        anchors.horizontalCenter: isMinecraftStyle ? undefined : parent.horizontalCenter
+        width: isMinecraftStyle ? undefined : parent.width
+        height: isMinecraftStyle ? undefined : launcherPopup.targetCardHeight
         opacity: launcherPopup.isOpen ? 1 : 0
+        scale: 1
+        transformOrigin: Item.Center
 
-        // 🔄 DYNAMIC STYLE LOADER (Original vs macOS vs Phone)
+        // 🔄 DYNAMIC STYLE LOADER (Original vs macOS vs Phone vs Minecraft)
         Loader {
             id: styleLoader
 
             anchors.fill: parent
             source: {
+                if (SettingsStore.appLauncherStyle === "minecraft")
+                    return Qt.resolvedUrl("./appLauncherStyle/AppLauncherStyleMinecraft.qml");
+
                 if (SettingsStore.appLauncherStyle === "phone")
                     return Qt.resolvedUrl("./appLauncherStyle/AppLauncherStylePhone.qml");
 
@@ -352,6 +366,11 @@ PanelWindow {
 
                     });
                     item.keyHandler = launcherPopup.handleKey;
+                    if (typeof item.requestClose !== "undefined")
+                        item.requestClose.connect(function() {
+                            launcherPopup.isOpen = false;
+                        });
+
                     if (launcherPopup.isOpen && typeof item.focusInput === "function")
                         item.focusInput();
 
@@ -360,7 +379,7 @@ PanelWindow {
         }
 
         Behavior on height {
-            enabled: launcherPopup.isOpen && !launcherPopup.isPhoneStyle
+            enabled: launcherPopup.isOpen && !launcherPopup.isPhoneStyle && !launcherPopup.isMinecraftStyle
 
             NumberAnimation {
                 duration: 200
@@ -372,9 +391,11 @@ PanelWindow {
         transform: Translate {
             id: cardTranslate
 
-            y: launcherPopup.isOpen ? 0 : (launcherPopup.isPhoneStyle ? launcherCard.height : 50)
+            y: launcherPopup.isMinecraftStyle ? 0 : (launcherPopup.isOpen ? 0 : (launcherPopup.isPhoneStyle ? launcherCard.height : 50))
 
             Behavior on y {
+                enabled: !launcherPopup.isMinecraftStyle
+
                 NumberAnimation {
                     duration: launcherPopup.isPhoneStyle ? 160 : 200
                     easing.type: Easing.OutCubic

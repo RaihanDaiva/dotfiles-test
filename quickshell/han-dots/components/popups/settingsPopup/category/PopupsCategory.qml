@@ -81,14 +81,14 @@ Item {
 
                 }
 
-                // 1b. App Launcher Style Selector (Original vs macOS vs Phone)
+                // 1b. App Launcher Style Selector (Original vs macOS vs Phone vs Minecraft)
                 SettingCard {
                     title: "App Launcher Style"
-                    subtitle: (SettingsStore.appLauncherStyle === "phone") ? "Phone (GTA V iFruit Style)" : ((SettingsStore.appLauncherStyle === "macos") ? "macOS (Capsule Pill List)" : "Original (Rounded Glass List)")
+                    subtitle: (SettingsStore.appLauncherStyle === "minecraft") ? "Minecraft (Creative Inventory GUI)" : ((SettingsStore.appLauncherStyle === "phone") ? "Phone (GTA V iFruit Style)" : ((SettingsStore.appLauncherStyle === "macos") ? "macOS (Capsule Pill List)" : "Original (Rounded Glass List)"))
 
                     StyledButton {
                         text: "Original"
-                        implicitWidth: 76
+                        implicitWidth: 68
                         implicitHeight: 36
                         selected: SettingsStore.appLauncherStyle === "original"
                         onClicked: SettingsStore.appLauncherStyle = "original"
@@ -96,7 +96,7 @@ Item {
 
                     StyledButton {
                         text: "macOS"
-                        implicitWidth: 76
+                        implicitWidth: 68
                         implicitHeight: 36
                         selected: SettingsStore.appLauncherStyle === "macos"
                         onClicked: SettingsStore.appLauncherStyle = "macos"
@@ -104,10 +104,18 @@ Item {
 
                     StyledButton {
                         text: "Phone"
-                        implicitWidth: 76
+                        implicitWidth: 68
                         implicitHeight: 36
                         selected: SettingsStore.appLauncherStyle === "phone"
                         onClicked: SettingsStore.appLauncherStyle = "phone"
+                    }
+
+                    StyledButton {
+                        text: "Minecraft"
+                        implicitWidth: 78
+                        implicitHeight: 36
+                        selected: SettingsStore.appLauncherStyle === "minecraft"
+                        onClicked: SettingsStore.appLauncherStyle = "minecraft"
                     }
 
                 }

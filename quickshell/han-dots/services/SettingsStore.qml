@@ -14,7 +14,7 @@ Item {
     property int popupBorderWidth: 1
     property bool enableBlur: true
     property string popupStyle: "macos" // "original" or "macos"
-    property string appLauncherStyle: "phone" // "original", "macos", or "phone"
+    property string appLauncherStyle: "minecraft" // "original", "macos", "phone", or "minecraft"
     property bool settingsPopupOpen: false
     // 🎨 2. THEME SETTINGS
     property bool isDarkMode: true

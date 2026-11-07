@@ -4,7 +4,7 @@
   "popupBorderWidth": 1,
   "enableBlur": true,
   "popupStyle": "original",
-  "appLauncherStyle": "phone",
+  "appLauncherStyle": "minecraft",
   "settingsPopupOpen": false,
   "isDarkMode": true,
   "mediaBlurBgEnabled": true,
@@ -18,6 +18,6 @@
   "barBgEnabled": true,
   "barStyle": "notch",
   "dockEnabled": false,
-  "dockMode": "auto_hide",
+  "dockMode": "always_visible",
   "dockBlurEnabled": false
 }
