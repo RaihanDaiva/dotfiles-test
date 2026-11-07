@@ -70,6 +70,34 @@ Item {
 
                 }
 
+                // 1b. Dock Style Selection Card (Original vs Minecraft)
+                SettingCard {
+                    title: "Dock Visual Style"
+                    subtitle: SettingsStore.dockStyle === "minecraft" ? "Minecraft (Pixel Art Hotbar GUI)" : "Original (Rounded Glass Dock)"
+
+                    RowLayout {
+                        spacing: 8
+
+                        StyledButton {
+                            text: "Original"
+                            implicitHeight: 36
+                            implicitWidth: 84
+                            selected: SettingsStore.dockStyle === "original"
+                            onClicked: SettingsStore.dockStyle = "original"
+                        }
+
+                        StyledButton {
+                            text: "Minecraft"
+                            implicitHeight: 36
+                            implicitWidth: 88
+                            selected: SettingsStore.dockStyle === "minecraft"
+                            onClicked: SettingsStore.dockStyle = "minecraft"
+                        }
+
+                    }
+
+                }
+
                 // 2. Dock Behavior Mode Selection Card
                 SettingCard {
                     title: "Dock Behavior Mode"

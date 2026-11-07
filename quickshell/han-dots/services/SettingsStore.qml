@@ -35,6 +35,7 @@ Item {
     property bool dockEnabled: true
     property string dockMode: "always_visible" // "always_visible", "auto_hide", or "overlay"
     property bool dockBlurEnabled: true
+    property string dockStyle: "minecraft" // "original" or "minecraft"
     // 💾 FILE PATH UNTUK PERSISTENSI SETTINGS
     readonly property string configFile: Quickshell.env("HOME") + "/.config/quickshell/settings.json"
     // 🔒 FLAG UNTUK MENCEGAH OVERWRITE SETTINGS SAAT BOOT
@@ -66,7 +67,8 @@ Item {
             "barStyle": store.barStyle,
             "dockEnabled": store.dockEnabled,
             "dockMode": store.dockMode,
-            "dockBlurEnabled": store.dockBlurEnabled
+            "dockBlurEnabled": store.dockBlurEnabled,
+            "dockStyle": store.dockStyle
         };
         var jsonStr = JSON.stringify(obj, null, 2);
         var safeStr = jsonStr.replace(/'/g, "'\\''");
@@ -112,6 +114,7 @@ Item {
     }
     onDockEnabledChanged: saveSettings()
     onDockModeChanged: saveSettings()
+    onDockStyleChanged: saveSettings()
     onBarBlurEnabledChanged: updateNiriBarBlur()
     onDockBlurEnabledChanged: {
         saveSettings();
@@ -198,6 +201,9 @@ Item {
 
                         if (cfg.dockBlurEnabled !== undefined)
                             store.dockBlurEnabled = cfg.dockBlurEnabled;
+
+                        if (cfg.dockStyle !== undefined)
+                            store.dockStyle = cfg.dockStyle;
 
                     } catch (e) {
                         console.log("Failed to parse settings.json: " + e);

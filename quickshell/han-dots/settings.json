@@ -17,7 +17,8 @@
   "barBlurEnabled": true,
   "barBgEnabled": true,
   "barStyle": "notch",
-  "dockEnabled": false,
+  "dockEnabled": true,
   "dockMode": "always_visible",
-  "dockBlurEnabled": false
+  "dockBlurEnabled": false,
+  "dockStyle": "minecraft"
 }

@@ -1,5 +1,6 @@
 import "./components/"
 import "./components/bar/"
+import "./components/dock/"
 import "./components/popups/"
 import "./components/popups/appLauncherPopup/"
 import "./components/popups/notificationPopup/"
