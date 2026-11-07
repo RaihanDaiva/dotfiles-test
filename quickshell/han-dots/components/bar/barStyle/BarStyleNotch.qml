@@ -29,15 +29,15 @@ Scope {
     readonly property real currentScreenWidth: (notchRoot.screen && notchRoot.screen.width > 0) ? notchRoot.screen.width : 1920
     readonly property real currentScreenHeight: (notchRoot.screen && notchRoot.screen.height > 0) ? notchRoot.screen.height : 1080
     // 🎵 MPRIS REAL-TIME TRACKER & TAB FOCUS
-    property string activeTab: "media"
+    property string activeTab: "calendar"
     readonly property int currentTabIndex: {
         if (notchRoot.activeTab === "about")
             return 0;
 
         if (notchRoot.activeTab === "calendar")
-            return 2;
+            return 1;
 
-        return 1;
+        return 2;
     }
     property real currentPosition: 0
     property bool isSeeking: false
@@ -60,6 +60,7 @@ Scope {
         return players[0];
     }
     // 📅 STATE KALENDER POPUP
+    property bool calendarFullExpanded: false
     property date displayedDate: new Date()
     property string liveTimeString: ""
     property string liveDateString: ""
@@ -171,6 +172,7 @@ Scope {
     onCurrentDateChanged: updateCells()
     onActiveTabChanged: {
         if (activeTab === "calendar") {
+            calendarFullExpanded = false;
             displayedDate = new Date();
             updateCells();
             uptimeProc.running = true;
@@ -184,6 +186,8 @@ Scope {
             if (activeTab === "calendar")
                 uptimeProc.running = true;
 
+        } else {
+            calendarFullExpanded = false;
         }
     }
     Component.onCompleted: {
@@ -431,7 +435,7 @@ Scope {
 
             property real notchBodyWidth: {
                 if (!notchRoot.isExpanded)
-                    return (notchRoot.activePlayer && (notchRoot.activePlayer.isPlaying || (notchRoot.activePlayer.trackTitle && notchRoot.activePlayer.trackTitle !== ""))) ? 240 : 160;
+                    return 200;
 
                 return 380;
             }
@@ -440,7 +444,7 @@ Scope {
                     return notchRoot.notchBarHeight;
 
                 if (notchRoot.activeTab === "calendar")
-                    return 525;
+                    return notchRoot.calendarFullExpanded ? 525 : 145;
 
                 if (notchRoot.activeTab === "about")
                     return 165;
@@ -450,7 +454,7 @@ Scope {
             readonly property real rTop: 8
             property real rBottom: notchRoot.isExpanded ? 18 : 12
             readonly property real totalW: notchBodyWidth + 2 * rTop
-            property color notchBorderColor: notchRoot.isExpanded ? Theme.accent : (SettingsStore.barBgEnabled ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 1) : "transparent")
+            property color notchBorderColor: notchRoot.isExpanded ? Theme.accent : (SettingsStore.barBgEnabled ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.3) : "transparent")
 
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: parent.top
@@ -647,65 +651,7 @@ Scope {
 
                             }
 
-                            // Tab 2: "Media"
-                            Item {
-                                implicitWidth: tabMediaRow.implicitWidth
-                                implicitHeight: 24
-
-                                RowLayout {
-                                    id: tabMediaRow
-
-                                    anchors.centerIn: parent
-                                    spacing: 5
-                                    scale: notchRoot.activeTab === "media" ? 1 : 0.74
-                                    transformOrigin: Item.Center
-                                    opacity: notchRoot.activeTab === "media" ? 1 : (mediaHover.containsMouse ? 0.75 : 0.45)
-
-                                    Text {
-                                        text: "󰎈"
-                                        color: Theme.accent
-                                        font.pixelSize: 19
-                                        font.family: Theme.fontMono
-                                    }
-
-                                    Text {
-                                        text: "Media"
-                                        color: Theme.textMain
-                                        font.bold: notchRoot.activeTab === "media"
-                                        font.pixelSize: 18
-                                        font.family: Theme.fontMain
-                                    }
-
-                                    Behavior on scale {
-                                        NumberAnimation {
-                                            duration: 250
-                                            easing.type: Easing.OutCubic
-                                        }
-
-                                    }
-
-                                    Behavior on opacity {
-                                        NumberAnimation {
-                                            duration: 250
-                                            easing.type: Easing.OutCubic
-                                        }
-
-                                    }
-
-                                }
-
-                                MouseArea {
-                                    id: mediaHover
-
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: notchRoot.activeTab = "media"
-                                }
-
-                            }
-
-                            // Tab 3: "Calendar"
+                            // Tab 2: "Calendar"
                             Item {
                                 implicitWidth: tabCalRow.implicitWidth
                                 implicitHeight: 24
@@ -759,6 +705,64 @@ Scope {
                                     hoverEnabled: true
                                     cursorShape: Qt.PointingHandCursor
                                     onClicked: notchRoot.activeTab = "calendar"
+                                }
+
+                            }
+
+                            // Tab 3: "Media"
+                            Item {
+                                implicitWidth: tabMediaRow.implicitWidth
+                                implicitHeight: 24
+
+                                RowLayout {
+                                    id: tabMediaRow
+
+                                    anchors.centerIn: parent
+                                    spacing: 5
+                                    scale: notchRoot.activeTab === "media" ? 1 : 0.74
+                                    transformOrigin: Item.Center
+                                    opacity: notchRoot.activeTab === "media" ? 1 : (mediaHover.containsMouse ? 0.75 : 0.45)
+
+                                    Text {
+                                        text: "󰎈"
+                                        color: Theme.accent
+                                        font.pixelSize: 19
+                                        font.family: Theme.fontMono
+                                    }
+
+                                    Text {
+                                        text: "Media"
+                                        color: Theme.textMain
+                                        font.bold: notchRoot.activeTab === "media"
+                                        font.pixelSize: 18
+                                        font.family: Theme.fontMain
+                                    }
+
+                                    Behavior on scale {
+                                        NumberAnimation {
+                                            duration: 250
+                                            easing.type: Easing.OutCubic
+                                        }
+
+                                    }
+
+                                    Behavior on opacity {
+                                        NumberAnimation {
+                                            duration: 250
+                                            easing.type: Easing.OutCubic
+                                        }
+
+                                    }
+
+                                }
+
+                                MouseArea {
+                                    id: mediaHover
+
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: notchRoot.activeTab = "media"
                                 }
 
                             }
@@ -947,9 +951,9 @@ Scope {
 
                         }
 
-                        // ─── 2. VIEW MEDIA PLAYER (Index 1) ──────────────────────────
+                        // ─── 2. VIEW KALENDER POPUP (Index 1) ─────────────────────────
                         Item {
-                            id: notchMediaView
+                            id: notchCalendarViewContainer
 
                             width: bodyContainer.width
                             height: bodyContainer.height
@@ -957,24 +961,32 @@ Scope {
                             opacity: notchRoot.currentTabIndex === 1 ? 1 : 0
                             visible: opacity > 0
 
-                            MediaStyleMinimalist {
-                                id: notchMediaPlayer
+                            CalendarStyleOriginal {
+                                id: notchCalendarView
 
                                 anchors.fill: parent
-                                player: notchRoot.activePlayer
-                                artistName: notchRoot.getArtistName(notchRoot.activePlayer)
-                                currentPosition: notchRoot.currentPosition
-                                isSeeking: notchRoot.isSeeking
-                                seekPosition: notchRoot.seekPosition
-                                onSeekRequested: (targetMicros) => {
-                                    notchRoot.handleSeek(targetMicros);
+                                isCollapsible: true
+                                isExpanded: notchRoot.calendarFullExpanded
+                                displayedDate: notchRoot.displayedDate
+                                liveTimeString: notchRoot.liveTimeString
+                                liveDateString: notchRoot.liveDateString
+                                uptimeString: notchRoot.uptimeString
+                                calendarGridCells: notchRoot.calendarGridCells
+                                onToggleExpandRequested: {
+                                    notchRoot.calendarFullExpanded = !notchRoot.calendarFullExpanded;
                                 }
-                                onSeekStarted: (pos) => {
-                                    notchRoot.isSeeking = true;
-                                    notchRoot.seekPosition = pos;
+                                onPrevMonthClicked: {
+                                    var d = new Date(notchRoot.displayedDate);
+                                    d.setMonth(d.getMonth() - 1);
+                                    notchRoot.displayedDate = d;
                                 }
-                                onSeekEnded: () => {
-                                    notchRoot.isSeeking = false;
+                                onNextMonthClicked: {
+                                    var d = new Date(notchRoot.displayedDate);
+                                    d.setMonth(d.getMonth() + 1);
+                                    notchRoot.displayedDate = d;
+                                }
+                                onTodayClicked: {
+                                    notchRoot.displayedDate = new Date();
                                 }
                             }
 
@@ -996,9 +1008,9 @@ Scope {
 
                         }
 
-                        // ─── 3. VIEW KALENDER POPUP (Index 2) ─────────────────────────
+                        // ─── 3. VIEW MEDIA PLAYER (Index 2) ──────────────────────────
                         Item {
-                            id: notchCalendarViewContainer
+                            id: notchMediaView
 
                             width: bodyContainer.width
                             height: bodyContainer.height
@@ -1006,27 +1018,24 @@ Scope {
                             opacity: notchRoot.currentTabIndex === 2 ? 1 : 0
                             visible: opacity > 0
 
-                            CalendarStyleOriginal {
-                                id: notchCalendarView
+                            MediaStyleMinimalist {
+                                id: notchMediaPlayer
 
                                 anchors.fill: parent
-                                displayedDate: notchRoot.displayedDate
-                                liveTimeString: notchRoot.liveTimeString
-                                liveDateString: notchRoot.liveDateString
-                                uptimeString: notchRoot.uptimeString
-                                calendarGridCells: notchRoot.calendarGridCells
-                                onPrevMonthClicked: {
-                                    var d = new Date(notchRoot.displayedDate);
-                                    d.setMonth(d.getMonth() - 1);
-                                    notchRoot.displayedDate = d;
+                                player: notchRoot.activePlayer
+                                artistName: notchRoot.getArtistName(notchRoot.activePlayer)
+                                currentPosition: notchRoot.currentPosition
+                                isSeeking: notchRoot.isSeeking
+                                seekPosition: notchRoot.seekPosition
+                                onSeekRequested: (targetMicros) => {
+                                    notchRoot.handleSeek(targetMicros);
                                 }
-                                onNextMonthClicked: {
-                                    var d = new Date(notchRoot.displayedDate);
-                                    d.setMonth(d.getMonth() + 1);
-                                    notchRoot.displayedDate = d;
+                                onSeekStarted: (pos) => {
+                                    notchRoot.isSeeking = true;
+                                    notchRoot.seekPosition = pos;
                                 }
-                                onTodayClicked: {
-                                    notchRoot.displayedDate = new Date();
+                                onSeekEnded: () => {
+                                    notchRoot.isSeeking = false;
                                 }
                             }
 

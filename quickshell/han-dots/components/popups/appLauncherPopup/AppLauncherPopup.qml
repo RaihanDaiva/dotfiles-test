@@ -17,6 +17,7 @@ PanelWindow {
     property string searchQuery: ""
     property int selectedIndex: 0
     property var filteredApps: []
+    readonly property bool isPhoneStyle: (SettingsStore.appLauncherStyle === "phone")
     readonly property real maxCardHeight: 540
     readonly property real minCardHeight: 140
     readonly property real maxListHeight: 452
@@ -29,6 +30,9 @@ PanelWindow {
         return Math.min(maxListHeight, total);
     }
     readonly property real targetCardHeight: {
+        if (isPhoneStyle)
+            return 695;
+
         if (filteredApps.length === 0 && searchQuery !== "")
             return minCardHeight;
 
@@ -97,7 +101,14 @@ PanelWindow {
         }
     }
 
-    function navigateUp() {
+    function getColumns() {
+        if (styleLoader.item && typeof styleLoader.item.columns === "number")
+            return styleLoader.item.columns;
+
+        return 1;
+    }
+
+    function navigateLeft() {
         if (launcherPopup.selectedIndex > 0) {
             launcherPopup.selectedIndex--;
             if (styleLoader.item && typeof styleLoader.item.positionVisible === "function")
@@ -106,7 +117,7 @@ PanelWindow {
         }
     }
 
-    function navigateDown() {
+    function navigateRight() {
         if (launcherPopup.selectedIndex < launcherPopup.filteredApps.length - 1) {
             launcherPopup.selectedIndex++;
             if (styleLoader.item && typeof styleLoader.item.positionVisible === "function")
@@ -115,16 +126,62 @@ PanelWindow {
         }
     }
 
+    function navigateUp() {
+        var cols = getColumns();
+        if (cols > 1) {
+            if (launcherPopup.selectedIndex - cols >= 0) {
+                launcherPopup.selectedIndex -= cols;
+                if (styleLoader.item && typeof styleLoader.item.positionVisible === "function")
+                    styleLoader.item.positionVisible(launcherPopup.selectedIndex);
+
+            }
+        } else {
+            if (launcherPopup.selectedIndex > 0) {
+                launcherPopup.selectedIndex--;
+                if (styleLoader.item && typeof styleLoader.item.positionVisible === "function")
+                    styleLoader.item.positionVisible(launcherPopup.selectedIndex);
+
+            }
+        }
+    }
+
+    function navigateDown() {
+        var cols = getColumns();
+        if (cols > 1) {
+            if (launcherPopup.selectedIndex + cols < launcherPopup.filteredApps.length) {
+                launcherPopup.selectedIndex += cols;
+                if (styleLoader.item && typeof styleLoader.item.positionVisible === "function")
+                    styleLoader.item.positionVisible(launcherPopup.selectedIndex);
+
+            }
+        } else {
+            if (launcherPopup.selectedIndex < launcherPopup.filteredApps.length - 1) {
+                launcherPopup.selectedIndex++;
+                if (styleLoader.item && typeof styleLoader.item.positionVisible === "function")
+                    styleLoader.item.positionVisible(launcherPopup.selectedIndex);
+
+            }
+        }
+    }
+
     function handleKey(event) {
         var isShift = (event.modifiers & Qt.ShiftModifier);
         var isCtrl = (event.modifiers & Qt.ControlModifier);
         // 1. Vim Navigation (Shift / Ctrl + H, J, K, L)
         if (isShift || isCtrl) {
-            if (event.key === Qt.Key_J || event.key === Qt.Key_L) {
+            if (event.key === Qt.Key_H) {
+                launcherPopup.navigateLeft();
+                event.accepted = true;
+                return true;
+            } else if (event.key === Qt.Key_L) {
+                launcherPopup.navigateRight();
+                event.accepted = true;
+                return true;
+            } else if (event.key === Qt.Key_J) {
                 launcherPopup.navigateDown();
                 event.accepted = true;
                 return true;
-            } else if (event.key === Qt.Key_K || event.key === Qt.Key_H) {
+            } else if (event.key === Qt.Key_K) {
                 launcherPopup.navigateUp();
                 event.accepted = true;
                 return true;
@@ -135,7 +192,15 @@ PanelWindow {
             }
         }
         // 2. Standard Arrow & Action Keys
-        if (event.key === Qt.Key_Up) {
+        if (event.key === Qt.Key_Left) {
+            launcherPopup.navigateLeft();
+            event.accepted = true;
+            return true;
+        } else if (event.key === Qt.Key_Right) {
+            launcherPopup.navigateRight();
+            event.accepted = true;
+            return true;
+        } else if (event.key === Qt.Key_Up) {
             launcherPopup.navigateUp();
             event.accepted = true;
             return true;
@@ -159,9 +224,9 @@ PanelWindow {
     // 🏷️ Wayland LayerShell Configuration (Bottom-Center Overlay)
     WlrLayershell.namespace: "quickshell:popup"
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.keyboardFocus: isOpen ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
-    implicitWidth: 480
-    implicitHeight: maxCardHeight
+    WlrLayershell.keyboardFocus: isOpen ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    implicitWidth: isPhoneStyle ? 340 : 480
+    implicitHeight: isPhoneStyle ? 700 : maxCardHeight
     color: "transparent"
     visible: isOpen || launcherCard.opacity > 0
     Component.onCompleted: updateFilteredApps()
@@ -186,13 +251,16 @@ PanelWindow {
 
         }
     }
+    mask: isPhoneStyle ? null : cardRegion
 
     anchors {
         bottom: true
+        right: isPhoneStyle
     }
 
     margins {
-        bottom: 10
+        bottom: isPhoneStyle ? -130 : 10
+        right: isPhoneStyle ? 40 : 0
     }
 
     // ⏱️ Auto-Retry Timer if desktop entries scan finishes after boot
@@ -240,12 +308,20 @@ PanelWindow {
         height: launcherPopup.targetCardHeight
         opacity: launcherPopup.isOpen ? 1 : 0
 
-        // 🔄 DYNAMIC STYLE LOADER (Original vs macOS)
+        // 🔄 DYNAMIC STYLE LOADER (Original vs macOS vs Phone)
         Loader {
             id: styleLoader
 
             anchors.fill: parent
-            source: (SettingsStore.popupStyle === "macos") ? Qt.resolvedUrl("./appLauncherStyle/AppLauncherStyleMacos.qml") : Qt.resolvedUrl("./appLauncherStyle/AppLauncherStyleOriginal.qml")
+            source: {
+                if (SettingsStore.appLauncherStyle === "phone")
+                    return Qt.resolvedUrl("./appLauncherStyle/AppLauncherStylePhone.qml");
+
+                if (SettingsStore.appLauncherStyle === "macos" || (SettingsStore.appLauncherStyle === "" && SettingsStore.popupStyle === "macos"))
+                    return Qt.resolvedUrl("./appLauncherStyle/AppLauncherStyleMacos.qml");
+
+                return Qt.resolvedUrl("./appLauncherStyle/AppLauncherStyleOriginal.qml");
+            }
             onLoaded: {
                 if (item) {
                     item.filteredApps = Qt.binding(function() {
@@ -284,7 +360,7 @@ PanelWindow {
         }
 
         Behavior on height {
-            enabled: launcherPopup.isOpen
+            enabled: launcherPopup.isOpen && !launcherPopup.isPhoneStyle
 
             NumberAnimation {
                 duration: 200
@@ -294,11 +370,13 @@ PanelWindow {
         }
 
         transform: Translate {
-            y: launcherPopup.isOpen ? 0 : 50
+            id: cardTranslate
+
+            y: launcherPopup.isOpen ? 0 : (launcherPopup.isPhoneStyle ? launcherCard.height : 50)
 
             Behavior on y {
                 NumberAnimation {
-                    duration: 220
+                    duration: launcherPopup.isPhoneStyle ? 160 : 200
                     easing.type: Easing.OutCubic
                 }
 
@@ -308,7 +386,7 @@ PanelWindow {
 
         Behavior on opacity {
             NumberAnimation {
-                duration: 180
+                duration: launcherPopup.isPhoneStyle ? 160 : 180
                 easing.type: Easing.OutCubic
             }
 
@@ -316,7 +394,9 @@ PanelWindow {
 
     }
 
-    mask: Region {
+    Region {
+        id: cardRegion
+
         item: launcherCard
     }
 

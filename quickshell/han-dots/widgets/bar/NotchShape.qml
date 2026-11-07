@@ -21,8 +21,9 @@ Item {
     property real rTop: 8
     property real rBottom: 10
     property real strokeWidth: SettingsStore.barBgEnabled ? 1 : 0
-    property color strokeColor: SettingsStore.barBgEnabled ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 1) : "transparent"
+    property color strokeColor: SettingsStore.barBgEnabled ? Qt.rgba(Theme.accent.r, Theme.accent.g, Theme.accent.b, 0.3) : "transparent"
     property color fillColor: SettingsStore.barBgEnabled ? Qt.rgba(Theme.bgDark.r, Theme.bgDark.g, Theme.bgDark.b, SettingsStore.barOpacity) : "transparent"
+    // property color fillColor: SettingsStore.barBgEnabled ? Qt.rgba(0, 0, 0, 1) : "transparent"
     // 📐 Koordinat Layar untuk Sinkronisasi Posisi Blur Wallpaper (Logika Persis PopupStyleOriginal)
     property real screenWidth: (Screen.width > 0) ? Screen.width : 1920
     property real screenHeight: (Screen.height > 0) ? Screen.height : 1080

@@ -14,6 +14,7 @@ Item {
     property int popupBorderWidth: 1
     property bool enableBlur: true
     property string popupStyle: "macos" // "original" or "macos"
+    property string appLauncherStyle: "phone" // "original", "macos", or "phone"
     property bool settingsPopupOpen: false
     // 🎨 2. THEME SETTINGS
     property bool isDarkMode: true
@@ -50,6 +51,7 @@ Item {
             "popupBorderWidth": store.popupBorderWidth,
             "enableBlur": store.enableBlur,
             "popupStyle": store.popupStyle,
+            "appLauncherStyle": store.appLauncherStyle,
             "settingsPopupOpen": store.settingsPopupOpen,
             "isDarkMode": store.isDarkMode,
             "mediaBlurBgEnabled": store.mediaBlurBgEnabled,
@@ -92,6 +94,7 @@ Item {
     onPopupBorderWidthChanged: saveSettings()
     onEnableBlurChanged: saveSettings()
     onPopupStyleChanged: saveSettings()
+    onAppLauncherStyleChanged: saveSettings()
     onSettingsPopupOpenChanged: saveSettings()
     onIsDarkModeChanged: saveSettings()
     onMediaBlurBgEnabledChanged: saveSettings()
@@ -153,6 +156,9 @@ Item {
 
                         if (cfg.popupStyle !== undefined)
                             store.popupStyle = cfg.popupStyle;
+
+                        if (cfg.appLauncherStyle !== undefined)
+                            store.appLauncherStyle = cfg.appLauncherStyle;
 
                         if (cfg.isDarkMode !== undefined)
                             store.isDarkMode = cfg.isDarkMode;

@@ -4,6 +4,7 @@
   "popupBorderWidth": 1,
   "enableBlur": true,
   "popupStyle": "original",
+  "appLauncherStyle": "phone",
   "settingsPopupOpen": false,
   "isDarkMode": true,
   "mediaBlurBgEnabled": true,
@@ -16,7 +17,7 @@
   "barBlurEnabled": true,
   "barBgEnabled": true,
   "barStyle": "notch",
-  "dockEnabled": true,
-  "dockMode": "always_visible",
+  "dockEnabled": false,
+  "dockMode": "auto_hide",
   "dockBlurEnabled": false
 }

@@ -94,3 +94,8 @@ window-rule {
     geometry-corner-radius 14
     clip-to-geometry true
 }
+
+window-rule {
+        match app-id=r#"(?i)onlyoffice"#
+        draw-border-with-background false
+    }

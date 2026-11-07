@@ -81,6 +81,37 @@ Item {
 
                 }
 
+                // 1b. App Launcher Style Selector (Original vs macOS vs Phone)
+                SettingCard {
+                    title: "App Launcher Style"
+                    subtitle: (SettingsStore.appLauncherStyle === "phone") ? "Phone (GTA V iFruit Style)" : ((SettingsStore.appLauncherStyle === "macos") ? "macOS (Capsule Pill List)" : "Original (Rounded Glass List)")
+
+                    StyledButton {
+                        text: "Original"
+                        implicitWidth: 76
+                        implicitHeight: 36
+                        selected: SettingsStore.appLauncherStyle === "original"
+                        onClicked: SettingsStore.appLauncherStyle = "original"
+                    }
+
+                    StyledButton {
+                        text: "macOS"
+                        implicitWidth: 76
+                        implicitHeight: 36
+                        selected: SettingsStore.appLauncherStyle === "macos"
+                        onClicked: SettingsStore.appLauncherStyle = "macos"
+                    }
+
+                    StyledButton {
+                        text: "Phone"
+                        implicitWidth: 76
+                        implicitHeight: 36
+                        selected: SettingsStore.appLauncherStyle === "phone"
+                        onClicked: SettingsStore.appLauncherStyle = "phone"
+                    }
+
+                }
+
                 // 2. Enable Backdrop Blur Toggle
                 SettingCard {
                     title: "Backdrop Blur"
